@@ -1,6 +1,6 @@
 import os.path
 import pytest
-from notesdir.core import Error, Notesdir
+from notesdir.api import Error, Notesdir
 
 
 def test_user_default_no_file(fs):
