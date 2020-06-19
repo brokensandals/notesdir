@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Set
 
 
 @dataclass
 class FileInfo:
     path: Path
+    tags: Set[str]
     title: Optional[str]
 
 
