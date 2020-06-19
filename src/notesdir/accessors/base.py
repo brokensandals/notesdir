@@ -6,6 +6,7 @@ from typing import Optional, Set
 @dataclass
 class FileInfo:
     path: Path
+    refs: Set[str]
     tags: Set[str]
     title: Optional[str]
 

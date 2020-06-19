@@ -1,5 +1,5 @@
 from pathlib import Path
-from notesdir.accessors.markdown import extract_meta, extract_tags, MarkdownAccessor
+from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, MarkdownAccessor
 
 
 def test_extract_meta_none():
@@ -31,6 +31,14 @@ The pound#sign must be preceded by whitespace if it's not at the beginning of th
     assert extract_tags(doc) == expected
 
 
+def test_extract_refs():
+    doc = """A link to [some file](some-file). A link from [a ref].
+[a ref]: foo/bar/baz%20blah.txt whatever
+An ![image link](/foo/my.png)"""
+    expected = set(['some-file', 'foo/bar/baz%20blah.txt', '/foo/my.png'])
+    assert extract_refs(doc) == expected
+
+
 def test_parse(fs):
     doc = """---\n
 title: An Examination of the Navel
@@ -45,5 +53,6 @@ published about online (see [this article](http://example.com/blah) among many o
     fs.create_file(path, contents=doc)
     info = MarkdownAccessor().parse(path)
     assert info.path == path
+    assert info.refs == set(['../Another%20Note.md', 'http://example.com/blah'])
     assert info.tags == set(['personal', 'book-draft', 'journaling'])
     assert info.title == 'An Examination of the Navel'
