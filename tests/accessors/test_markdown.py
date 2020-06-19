@@ -18,7 +18,8 @@ text: regular
 
 
 def test_extract_tags():
-    doc = """---\n
+    # FIXME why is the leading newline necessary?
+    doc = """\n
 #beginning-of-line #123excluded-because-of-leading-numbers #end-of-line
 # Heading #in-heading # whatever
 You can have #numbers1234 just not at the beginning.
