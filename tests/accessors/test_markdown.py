@@ -1,5 +1,6 @@
 from pathlib import Path
-from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, MarkdownAccessor
+from notesdir.accessors.base import FileEdit
+from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_refs, MarkdownAccessor
 
 
 def test_extract_meta_none():
@@ -35,6 +36,22 @@ def test_extract_refs():
 An ![image link](/foo/my.png)"""
     expected = set(['some-file', 'foo/bar/baz%20blah.txt', '/foo/my.png'])
     assert extract_refs(doc) == expected
+
+
+def test_replace_refs():
+    doc = """A link to [some file](some-file). A link from [a ref].
+[a ref]: foo/bar/baz%20blah.txt whatever
+An ![image link](/foo/my.png)"""
+    expected = """A link to [some file](../new/1). A link from [a ref].
+[a ref]: baz%20new/2 whatever
+An ![image link](/foo/your.png)"""
+    replacements = {
+        '/foo/my.png': '/foo/your.png',
+        'nonexistent': 'irrelevant',
+        'foo/bar/baz%20blah.txt': 'baz%20new/2',
+        'some-file': '../new/1'
+    }
+    assert replace_refs(doc, replacements) == expected
 
 
 def test_parse(fs):

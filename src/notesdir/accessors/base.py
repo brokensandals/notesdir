@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional, Dict, Set
 
 
 @dataclass
@@ -13,6 +13,7 @@ class FileInfo:
 
 @dataclass
 class FileEdit:
+    replace_refs: Dict[str, str] = field(default_factory=dict)
     pass
 
 
