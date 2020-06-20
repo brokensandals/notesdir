@@ -14,10 +14,11 @@ class FileInfo:
 @dataclass
 class FileEdit:
     ACTION = 'unknown'
+    path: Path
 
 
 @dataclass
-class SetAttr:
+class SetAttr(FileEdit):
     ACTION = 'set_attr'
     key: str
     value: Any
@@ -34,7 +35,14 @@ class BaseAccessor:
     def parse(self, path: Path) -> FileInfo:
         raise NotImplementedError()
 
-    def change(self, path: Path, edits: List[FileEdit]) -> bool:
+    def change(self, edits: List[FileEdit]) -> bool:
+        if len(edits) == 0:
+            return False
+        if len({e.path for e in edits}) > 1:
+            raise ValueError(f"change() received edits for multiple paths, which is unsupported: {edits}")
+        return self._change(edits)
+
+    def _change(self, edits: List[FileEdit]) -> bool:
         raise NotImplementedError()
 
 
@@ -42,5 +50,5 @@ class MiscAccessor(BaseAccessor):
     def parse(self, path: Path) -> FileInfo:
         return FileInfo(path)
 
-    def change(self, path: Path, edits: List[FileEdit]) -> bool:
+    def _change(self, edits: List[FileEdit]) -> bool:
         raise NotImplementedError()

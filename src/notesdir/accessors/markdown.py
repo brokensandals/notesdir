@@ -59,7 +59,8 @@ class MarkdownAccessor(BaseAccessor):
             title=meta.get('title')
         )
 
-    def change(self, path: Path, edits: List[FileEdit]) -> bool:
+    def _change(self, edits: List[FileEdit]) -> bool:
+        path = edits[0].path
         orig = path.read_text()
         changed = orig
         for edit in edits:

@@ -123,12 +123,12 @@ As I have explained at length in [another note](moved/another-note.md) and also
 published about online (see [this article](http://example.com/blahblah) and
 [this one](https://example.com/meh) among many others), ...
 """
-    edits = [
-        ReplaceRef('../Another%20Note.md', 'moved/another-note.md'),
-        ReplaceRef('http://example.com/blah', 'https://example.com/meh'),
-        SetAttr('title', 'A Close Examination of the Navel')
-    ]
     path = Path('/fakenotes/test.md')
+    edits = [
+        ReplaceRef(path, '../Another%20Note.md', 'moved/another-note.md'),
+        ReplaceRef(path, 'http://example.com/blah', 'https://example.com/meh'),
+        SetAttr(path, 'title', 'A Close Examination of the Navel')
+    ]
     fs.create_file(path, contents=doc)
-    assert MarkdownAccessor().change(path, edits)
+    assert MarkdownAccessor().change(edits)
     assert path.read_text() == expected

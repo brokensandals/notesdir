@@ -14,5 +14,5 @@ class DelegatingAccessor(BaseAccessor):
     def parse(self, path: Path) -> FileInfo:
         self.accessor(path).parse(path)
 
-    def change(self, path: Path, edits: List[FileEdit]) -> bool:
-        return self.accessor(path).change(path, edits)
+    def _change(self, edits: List[FileEdit]) -> bool:
+        return self.accessor(edits[0].path).change(edits)
