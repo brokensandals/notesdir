@@ -6,9 +6,9 @@ from typing import Any, Optional, List, Set
 @dataclass
 class FileInfo:
     path: Path
-    refs: Set[str]
-    tags: Set[str]
-    title: Optional[str]
+    refs: Set[str] = field(default_factory=set)
+    tags: Set[str] = field(default_factory=set)
+    title: Optional[str] = None
 
 
 @dataclass
@@ -34,5 +34,13 @@ class BaseAccessor:
     def parse(self, path: Path) -> FileInfo:
         raise NotImplementedError()
 
-    def change(self, path: Path, edits: List[FileEdit]):
+    def change(self, path: Path, edits: List[FileEdit]) -> bool:
+        raise NotImplementedError()
+
+
+class MiscAccessor(BaseAccessor):
+    def parse(self, path: Path) -> FileInfo:
+        return FileInfo(path)
+
+    def change(self, path: Path, edits: List[FileEdit]) -> bool:
         raise NotImplementedError()
