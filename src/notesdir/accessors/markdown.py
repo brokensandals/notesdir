@@ -1,3 +1,4 @@
+from io import StringIO
 from pathlib import Path
 import re
 from typing import List, Set
@@ -34,6 +35,17 @@ def replace_ref(doc: str, src: str, dest: str) -> str:
     refstyle = rf'(?m)(^\[.*\]:\s*){escaped_src}(\s|$)'
     doc = re.sub(refstyle, rf'\1{escaped_dest}\2', doc)
     return doc
+
+
+def set_meta(doc: str, meta: dict) -> str:
+    sio = StringIO()
+    yaml.safe_dump(meta, sio)
+    yaml_str = sio.getvalue().rstrip('\n')
+    match = YAML_META_RE.match(doc)
+    if match:
+        return f'{doc[:match.start(1)]}{yaml_str}{doc[match.end(1):]}'
+    else:
+        return f'---\n{yaml_str}\n...\n{doc}'
 
 
 class MarkdownAccessor(BaseAccessor):

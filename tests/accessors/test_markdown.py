@@ -1,6 +1,7 @@
 from pathlib import Path
 from notesdir.accessors.base import ReplaceRef
-from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref, MarkdownAccessor
+from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
+    MarkdownAccessor, set_meta
 
 
 def test_extract_meta_none():
@@ -66,6 +67,20 @@ def test_replace_ref_image():
     doc = "An ![image link](http://example.com/foo.png) should work too."
     expected = "An ![image link](http://example.com/bar.png) should work too."
     assert replace_ref(doc, 'http://example.com/foo.png', 'http://example.com/bar.png') == expected
+
+
+def test_set_meta_none_exists():
+    doc = "This is a document.\nWith text."
+    expected = "---\ntitle: My Document\n...\nThis is a document.\nWith text."
+    meta = {'title': 'My Document'}
+    assert set_meta(doc, meta) == expected
+
+
+def test_set_meta_replace():
+    doc = "---\ntitle: My Document\n...\nThis is a document.\nWith text."
+    expected = "---\ntitle: Improved Document\n...\nThis is a document.\nWith text."
+    meta = {'title': 'Improved Document'}
+    assert set_meta(doc, meta) == expected
 
 
 def test_parse(fs):
