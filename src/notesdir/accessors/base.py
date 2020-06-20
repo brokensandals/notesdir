@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Set
+from typing import Any, Optional, List, Set
 
 
 @dataclass
@@ -14,6 +14,13 @@ class FileInfo:
 @dataclass
 class FileEdit:
     ACTION = 'unknown'
+
+
+@dataclass
+class SetAttr:
+    ACTION = 'set_attr'
+    key: str
+    value: Any
 
 
 @dataclass

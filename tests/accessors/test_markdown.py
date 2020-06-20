@@ -1,5 +1,5 @@
 from pathlib import Path
-from notesdir.accessors.base import ReplaceRef
+from notesdir.accessors.base import ReplaceRef, SetAttr
 from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
     MarkdownAccessor, set_meta
 
@@ -84,7 +84,7 @@ def test_set_meta_replace():
 
 
 def test_parse(fs):
-    doc = """---\n
+    doc = """---
 title: An Examination of the Navel
 ...
 #personal #book-draft
@@ -103,7 +103,7 @@ published about online (see [this article](http://example.com/blah) among many o
 
 
 def test_change(fs):
-    doc = """---\n
+    doc = """---
 title: An Examination of the Navel
 ...
 #personal #book-draft
@@ -113,8 +113,8 @@ As I have explained at length in [another note](../Another%20Note.md) and also
 published about online (see [this article](http://example.com/blahblah) and
 [this one](http://example.com/blah) among many others), ...
 """
-    expected = """---\n
-title: An Examination of the Navel
+    expected = """---
+title: A Close Examination of the Navel
 ...
 #personal #book-draft
 # Preface: Reasons for #journaling
@@ -125,7 +125,8 @@ published about online (see [this article](http://example.com/blahblah) and
 """
     edits = [
         ReplaceRef('../Another%20Note.md', 'moved/another-note.md'),
-        ReplaceRef('http://example.com/blah', 'https://example.com/meh')
+        ReplaceRef('http://example.com/blah', 'https://example.com/meh'),
+        SetAttr('title', 'A Close Examination of the Navel')
     ]
     path = Path('/fakenotes/test.md')
     fs.create_file(path, contents=doc)

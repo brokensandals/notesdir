@@ -65,6 +65,16 @@ class MarkdownAccessor(BaseAccessor):
         for edit in edits:
             if edit.ACTION == 'replace_ref':
                 changed = replace_ref(changed, edit.original, edit.replacement)
+            elif edit.ACTION == 'set_attr':
+                meta = extract_meta(changed)
+                if edit.key == 'title':
+                    if edit.value is None:
+                        del meta['title']
+                    else:
+                        meta['title'] = edit.value
+                else:
+                    raise NotImplementedError(f'Unsupported set_attr key {edit.key}')
+                changed = set_meta(changed, meta)
             else:
                 raise NotImplementedError(f'Unsupported edit action {edit.action}')
         if not orig == changed:
