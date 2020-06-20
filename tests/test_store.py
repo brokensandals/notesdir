@@ -65,3 +65,18 @@ def test_ref_path_absolute_to_relative(fs):
     dest = Path('foo/bar')
     fs.cwd = '/somewhere/alpha'
     assert ref_path(src, dest) == Path('../alpha/foo/bar')
+
+
+def test_ref_path_symlinks(fs):
+    src = Path('/foo/bar/baz')
+    dest = Path('/whatever/hello')
+    fs.create_symlink('/whatever', '/foo/meh')
+    assert ref_path(src, dest) == Path('../meh/hello')
+
+
+def test_ref_path_symlinks_relative(fs):
+    src = Path('foo/bar/baz')
+    dest = Path('whatever/hello')
+    fs.create_symlink('/cwd/whatever', '/cwd/foo/meh')
+    fs.cwd = '/cwd'
+    assert ref_path(src, dest) == Path('../meh/hello')

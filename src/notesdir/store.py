@@ -1,7 +1,7 @@
 import os
 from os.path import relpath
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional, Set
 from notesdir.accessors.base import BaseAccessor, FileInfo
 
 
@@ -30,8 +30,15 @@ class FSStore:
     def info(self, path: Path) -> Optional[FileInfo]:
         return self.accessor.parse(path)
 
-    def referrers(self, path: Path) -> Dict[Path, Path]:
+    def referrers(self, path: Path) -> Set[Path]:
         result = set()
         for child_path in self.root.glob('**/*'):
-            pass
-        pass
+            ref = ref_path(child_path, path)
+            info = self.info(child_path)
+            # This is less accurate than if we were to resolve every ref and
+            # check whether it actually points to path. So, may want to
+            # change this to work that way at some point. But presumably the
+            # current way is much faster.
+            if info and str(ref) in info.refs:
+                result.add(child_path)
+        return result
