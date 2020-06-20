@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Dict, Set
+from typing import List, Set
 import yaml
 from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit
 
@@ -26,14 +26,13 @@ def extract_refs(doc) -> Set[str]:
     return set(INLINE_REF_RE.findall(doc) + REFSTYLE_REF_RE.findall(doc))
 
 
-def replace_refs(doc: str, replacements: Dict[str, str]) -> str:
-    for src, dest in replacements.items():
-        escaped_src = re.escape(src)
-        escaped_dest = dest.replace('\\', r'\\')
-        inline = rf'(\[.*\])\({escaped_src}\)'
-        doc = re.sub(inline, rf'\1({escaped_dest})', doc)
-        refstyle = rf'(?m)(^\[.*\]:\s*){escaped_src}(\s|$)'
-        doc = re.sub(refstyle, rf'\1{escaped_dest}\2', doc)
+def replace_ref(doc: str, src: str, dest: str) -> str:
+    escaped_src = re.escape(src)
+    escaped_dest = dest.replace('\\', r'\\')
+    inline = rf'(\[.*\])\({escaped_src}\)'
+    doc = re.sub(inline, rf'\1({escaped_dest})', doc)
+    refstyle = rf'(?m)(^\[.*\]:\s*){escaped_src}(\s|$)'
+    doc = re.sub(refstyle, rf'\1{escaped_dest}\2', doc)
     return doc
 
 
@@ -48,9 +47,14 @@ class MarkdownAccessor(BaseAccessor):
             title=meta.get('title')
         )
 
-    def change(self, path: Path, edit: FileEdit) -> bool:
+    def change(self, path: Path, edits: List[FileEdit]) -> bool:
         orig = path.read_text()
-        changed = replace_refs(orig, edit.replace_refs)
+        changed = orig
+        for edit in edits:
+            if edit.ACTION == 'replace_ref':
+                changed = replace_ref(changed, edit.original, edit.replacement)
+            else:
+                raise NotImplementedError(f'Unsupported edit action {edit.action}')
         if not orig == changed:
             path.write_text(changed)
             return True

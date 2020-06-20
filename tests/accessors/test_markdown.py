@@ -1,6 +1,6 @@
 from pathlib import Path
-from notesdir.accessors.base import FileEdit
-from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_refs, MarkdownAccessor
+from notesdir.accessors.base import ReplaceRef
+from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref, MarkdownAccessor
 
 
 def test_extract_meta_none():
@@ -38,20 +38,34 @@ An ![image link](/foo/my.png)"""
     assert extract_refs(doc) == expected
 
 
-def test_replace_refs():
-    doc = """A link to [some file](some-file). A link from [a ref].
-[a ref]: foo/bar/baz%20blah.txt whatever
-An ![image link](/foo/my.png)"""
-    expected = """A link to [some file](../new/1). A link from [a ref].
-[a ref]: baz%20new/2 whatever
-An ![image link](/foo/your.png)"""
-    replacements = {
-        '/foo/my.png': '/foo/your.png',
-        'nonexistent': 'irrelevant',
-        'foo/bar/baz%20blah.txt': 'baz%20new/2',
-        'some-file': '../new/1'
-    }
-    assert replace_refs(doc, replacements) == expected
+def test_replace_ref_inline():
+    doc = """A link to [some file](some-file) followed by
+a link to [another file](another-file) and
+[the first file again](some-file)."""
+    expected = """A link to [some file](new-ref) followed by
+a link to [another file](another-file) and
+[the first file again](new-ref)."""
+    assert replace_ref(doc, 'some-file', 'new-ref') == expected
+
+
+def test_replace_ref_refstyle():
+    doc = """Here we see the ref style syntax:
+[some id]: file-1 "Some Text"
+[other id]: file-1
+[third id]: file-2
+Ignored in the middle of a line: [some id]: file-1"""
+    expected = """Here we see the ref style syntax:
+[some id]: new-ref "Some Text"
+[other id]: new-ref
+[third id]: file-2
+Ignored in the middle of a line: [some id]: file-1"""
+    assert replace_ref(doc, 'file-1', 'new-ref') == expected
+
+
+def test_replace_ref_image():
+    doc = "An ![image link](http://example.com/foo.png) should work too."
+    expected = "An ![image link](http://example.com/bar.png) should work too."
+    assert replace_ref(doc, 'http://example.com/foo.png', 'http://example.com/bar.png') == expected
 
 
 def test_parse(fs):
@@ -81,7 +95,8 @@ title: An Examination of the Navel
 # Preface: Reasons for #journaling
 
 As I have explained at length in [another note](../Another%20Note.md) and also
-published about online (see [this article](http://example.com/blah) among many others), ...
+published about online (see [this article](http://example.com/blahblah) and
+[this one](http://example.com/blah) among many others), ...
 """
     expected = """---\n
 title: An Examination of the Navel
@@ -90,14 +105,14 @@ title: An Examination of the Navel
 # Preface: Reasons for #journaling
 
 As I have explained at length in [another note](moved/another-note.md) and also
-published about online (see [this article](http://example.com/blah) among many others), ...
+published about online (see [this article](http://example.com/blahblah) and
+[this one](https://example.com/meh) among many others), ...
 """
-    edit = FileEdit(
-        replace_refs={
-            '../Another%20Note.md': 'moved/another-note.md'
-        }
-    )
+    edits = [
+        ReplaceRef('../Another%20Note.md', 'moved/another-note.md'),
+        ReplaceRef('http://example.com/blah', 'https://example.com/meh')
+    ]
     path = Path('/fakenotes/test.md')
     fs.create_file(path, contents=doc)
-    assert MarkdownAccessor().change(path, edit)
+    assert MarkdownAccessor().change(path, edits)
     assert path.read_text() == expected

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Dict, Set
+from typing import Optional, List, Set
 
 
 @dataclass
@@ -13,13 +13,19 @@ class FileInfo:
 
 @dataclass
 class FileEdit:
-    replace_refs: Dict[str, str] = field(default_factory=dict)
-    pass
+    ACTION = 'unknown'
+
+
+@dataclass
+class ReplaceRef(FileEdit):
+    ACTION = 'replace_ref'
+    original: str
+    replacement: str
 
 
 class BaseAccessor:
     def parse(self, path: Path) -> FileInfo:
         raise NotImplementedError()
 
-    def change(self, path: Path, edit: FileEdit):
+    def change(self, path: Path, edits: List[FileEdit]):
         raise NotImplementedError()
