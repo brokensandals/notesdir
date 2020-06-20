@@ -9,16 +9,23 @@ def ref_path(src: Path, dest: Path) -> Path:
     """Returns the path to use for a reference from file src to file dest.
 
     This is a relative path to dest from the directory containing src.
+
     For example, for src `/foo/bar/baz.md` and dest `/foo/meh/blah.png`,
     returns `../meh/blah.png`.
 
     src and dest are resolved before calculating the relative path.
     """
-    result = relpath(dest.resolve(), src.resolve())
-    if result.startswith(f'..{os.sep}'):
-        result = result[3:]
-    if result == '':
+    src = src.resolve()
+    dest = dest.resolve()
+    result = relpath(dest, src)
+    if result == '.':
+        result = dest.name
+    elif result == '..':
         result = '.'
+    elif result.startswith(f'..{os.sep}'):
+        result = result[3:]
+        if result == '':
+            result = '.'
     return Path(result)
 
 

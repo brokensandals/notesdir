@@ -1,11 +1,12 @@
 from pathlib import Path
-from notesdir.store import ref_path
+from notesdir.accessors.base import BaseAccessor, FileInfo
+from notesdir.store import ref_path, FSStore
 
 
 def test_ref_path_same_file():
     src = Path('foo/bar')
     dest = Path('foo/bar')
-    assert ref_path(src, dest) == Path('.')
+    assert ref_path(src, dest) == Path('bar')
 
 
 def test_ref_path_same_dir():
@@ -50,7 +51,7 @@ def test_ref_path_child():
 def test_ref_path_parent():
     src = Path('foo/bar')
     dest = Path('foo')
-    assert ref_path(src, dest) == Path('..')
+    assert ref_path(src, dest) == Path('.')
 
 
 def test_ref_path_relative_to_absolute(fs):
@@ -80,3 +81,46 @@ def test_ref_path_symlinks_relative(fs):
     fs.create_symlink('/cwd/whatever', '/cwd/foo/meh')
     fs.cwd = '/cwd'
     assert ref_path(src, dest) == Path('../meh/hello')
+
+
+class MockAccessor(BaseAccessor):
+    def __init__(self, infos=None):
+        self.infos = infos or {}
+
+    def parse(self, path):
+        return self.infos.get(path)
+
+    def change(self, path, edits):
+        raise NotImplementedError()
+
+    def mockinfo(self, pathstr):
+        path = Path(pathstr).resolve()
+        if path not in self.infos:
+            self.infos[path] = FileInfo(path)
+        return self.infos[path]
+
+
+def test_referrers(fs):
+    fs.cwd = '/notes/foo'
+    fs.create_file('/notes/foo/subject')
+    fs.create_file('/notes/bar/baz/r1')
+    fs.create_file('/notes/bar/baz/no')
+    fs.create_file('/notes/r2')
+    fs.create_file('/notes/foo/r3')
+    accessor = MockAccessor()
+    accessor.mockinfo('/notes/bar/baz/r1').refs = {'no', '../../foo/subject'}
+    accessor.mockinfo('/notes/bar/baz/no').refs = {'../../foo/bogus'}
+    accessor.mockinfo('/notes/r2').refs = {'foo/subject', 'foo/bogus'}
+    accessor.mockinfo('/notes/foo/r3').refs = {'subject'}
+    store = FSStore(Path('/notes'), accessor)
+    expected = {Path(p) for p in {'/notes/bar/baz/r1', '/notes/r2', '/notes/foo/r3'}}
+    assert store.referrers(Path('subject')) == expected
+
+
+def test_referrers_self(fs):
+    fs.create_file('/notes/subject')
+    accessor = MockAccessor()
+    accessor.mockinfo('/notes/subject').refs = {'subject'}
+    store = FSStore(Path('/notes'), accessor)
+    expected = {Path('/notes/subject')}
+    assert store.referrers(Path('/notes/subject')) == expected
