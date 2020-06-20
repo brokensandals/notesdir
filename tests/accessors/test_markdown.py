@@ -71,3 +71,33 @@ published about online (see [this article](http://example.com/blah) among many o
     assert info.refs == set(['../Another%20Note.md', 'http://example.com/blah'])
     assert info.tags == set(['personal', 'book-draft', 'journaling'])
     assert info.title == 'An Examination of the Navel'
+
+
+def test_change(fs):
+    doc = """---\n
+title: An Examination of the Navel
+...
+#personal #book-draft
+# Preface: Reasons for #journaling
+
+As I have explained at length in [another note](../Another%20Note.md) and also
+published about online (see [this article](http://example.com/blah) among many others), ...
+"""
+    expected = """---\n
+title: An Examination of the Navel
+...
+#personal #book-draft
+# Preface: Reasons for #journaling
+
+As I have explained at length in [another note](moved/another-note.md) and also
+published about online (see [this article](http://example.com/blah) among many others), ...
+"""
+    edit = FileEdit(
+        replace_refs={
+            '../Another%20Note.md': 'moved/another-note.md'
+        }
+    )
+    path = Path('/fakenotes/test.md')
+    fs.create_file(path, contents=doc)
+    assert MarkdownAccessor().change(path, edit)
+    assert path.read_text() == expected
