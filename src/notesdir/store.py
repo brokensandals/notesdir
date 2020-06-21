@@ -27,18 +27,9 @@ def ref_path(src: Path, dest: Path) -> Path:
 
     src and dest are resolved before calculating the relative path.
     """
-    src = src.resolve()
+    src = src.resolve().parent
     dest = dest.resolve()
-    result = relpath(dest, src)
-    if result == '.':
-        result = dest.name
-    elif result == '..':
-        result = '.'
-    elif result.startswith(f'..{os.sep}'):
-        result = result[3:]
-        if result == '':
-            result = '.'
-    return Path(result)
+    return Path(relpath(dest, src))
 
 
 class BaseStore:

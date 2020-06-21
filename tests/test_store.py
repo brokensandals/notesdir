@@ -45,7 +45,7 @@ def test_ref_path_root_is_only_common_ancestor_relative(fs):
 def test_ref_path_child():
     src = Path('foo')
     dest = Path('foo/bar')
-    assert ref_path(src, dest) == Path('bar')
+    assert ref_path(src, dest) == Path('foo/bar')
 
 
 # Not sure if this is a real use case for this function
