@@ -1,8 +1,20 @@
 import os
 from os.path import relpath
 from pathlib import Path
-from typing import Optional, Set
-from notesdir.accessors.base import BaseAccessor, FileInfo
+from typing import Dict, List, Optional, Set
+from notesdir.accessors.base import BaseAccessor, FileEdit, FileInfo
+
+
+def group_edits(edits: List[FileEdit]) -> List[List[FileEdit]]:
+    group = None
+    result = []
+    for edit in edits:
+        if group and edit.path == group[0].path and not edit.ACTION == 'move':
+            group.append(edit)
+        else:
+            group = [edit]
+            result.append(group)
+    return result
 
 
 def ref_path(src: Path, dest: Path) -> Path:
@@ -29,7 +41,18 @@ def ref_path(src: Path, dest: Path) -> Path:
     return Path(result)
 
 
-class FSStore:
+class BaseStore:
+    def info(self, path: Path) -> Optional[FileInfo]:
+        raise NotImplementedError()
+
+    def change(self, edits: List[FileEdit]):
+        raise NotImplementedError()
+
+    def referrers(self, path: Path) -> Set[Path]:
+        raise NotImplementedError()
+
+
+class FSStore(BaseStore):
     def __init__(self, root: Path, accessor: BaseAccessor):
         self.root = root
         self.accessor = accessor
@@ -49,3 +72,11 @@ class FSStore:
             if info and str(ref) in info.refs:
                 result.add(child_path)
         return result
+
+    def change(self, edits: List[FileEdit]):
+        for group in group_edits(edits):
+            if group[0].ACTION == 'move':
+                for edit in group:
+                    edit.path.rename(edit.dest)
+            else:
+                self.accessor.change(group)

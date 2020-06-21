@@ -1,5 +1,6 @@
 from pathlib import Path
-from notesdir.accessors.base import BaseAccessor, FileInfo
+from unittest.mock import call, Mock
+from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetAttr
 from notesdir.store import ref_path, FSStore
 
 
@@ -90,7 +91,7 @@ class MockAccessor(BaseAccessor):
     def parse(self, path):
         return self.infos.get(path)
 
-    def change(self, path, edits):
+    def _change(self, path, edits):
         raise NotImplementedError()
 
     def mockinfo(self, pathstr):
@@ -124,3 +125,18 @@ def test_referrers_self(fs):
     store = FSStore(Path('/notes'), accessor)
     expected = {Path('/notes/subject')}
     assert store.referrers(Path('/notes/subject')) == expected
+
+
+def test_change(fs):
+    fs.create_file('/notes/one')
+    fs.create_file('/notes/two')
+    edits = [SetAttr(Path('/notes/one'), 'title', 'New Title'),
+             ReplaceRef(Path('/notes/one'), 'old', 'new'),
+             Move(Path('/notes/one'), Path('/notes/moved')),
+             ReplaceRef(Path('/notes/two'), 'foo', 'bar')]
+    accessor = Mock()
+    store = FSStore(Path('/notes'), accessor)
+    store.change(edits)
+    assert not Path('/notes/one').exists()
+    assert Path('/notes/moved').exists()
+    accessor.assert_has_calls([call.change(edits[0:2]), call.change([edits[3]])])

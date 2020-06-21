@@ -31,6 +31,12 @@ class ReplaceRef(FileEdit):
     replacement: str
 
 
+@dataclass
+class Move(FileEdit):
+    ACTION = 'move'
+    dest: Path
+
+
 class BaseAccessor:
     def parse(self, path: Path) -> FileInfo:
         raise NotImplementedError()

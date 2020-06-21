@@ -1,6 +1,8 @@
 from __future__ import annotations
 from pathlib import Path
 import toml
+from notesdir.accessors.delegating import DelegatingAccessor
+from notesdir.store import FSStore, ref_path
 
 
 class Error(Exception):
@@ -25,4 +27,8 @@ class Notesdir:
         return cls(toml.load(path))
 
     def __init__(self, config):
+        if 'root' not in config:
+            raise Error('Config missing key "root"')
         self.config = config
+        accessor = DelegatingAccessor()
+        self.store = FSStore(Path(config['root']), accessor)
