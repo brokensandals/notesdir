@@ -56,6 +56,26 @@ def test_refs_to_path_handles_special_characters():
     assert info.refs_to_path(Path('hi there!')) == {'hi%20there%21', 'hi+there%21'}
 
 
+# path_refs is mostly tested via refs_to_path since I wrote that method first and
+# don't feel like rewriting all the tests.
+def test_path_refs(fs):
+    fs.cwd = '/a dir'
+    fs.create_symlink('/a dir/via-symlink', '/a dir/a file!.md')
+    info = FileInfo(Path('foo'), refs={
+        '/a%20dir/a%20file%21.md',
+        '../a%20dir/a%20file%21.md',
+        'file://otherhost/a%20dir/a%20file%21.md',
+        'via-symlink',
+        'file:///a%20dir/a%20file%21.md'
+    })
+    assert info.refs_to_path(Path('/a dir/a file!.md')) == {
+        '/a%20dir/a%20file%21.md',
+        '../a%20dir/a%20file%21.md',
+        'via-symlink',
+        'file:///a%20dir/a%20file%21.md'
+    }
+
+
 def test_change_empty():
     assert not BaseAccessor().change([])
 

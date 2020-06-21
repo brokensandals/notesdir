@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, List, Set, Union
+from typing import Any, Optional, List, Set, Dict
 from urllib.parse import urlparse, unquote_plus
 
 
@@ -11,18 +11,19 @@ class FileInfo:
     tags: Set[str] = field(default_factory=set)
     title: Optional[str] = None
 
-    def refs_to_path(self, dest: Path) -> Set[str]:
-        """Returns the subset of self.refs that refer to the specified file.
+    def path_refs(self) -> Dict[Path, Set[str]]:
+        """Returns subsets of self.refs that refer to local paths.
 
-        This excludes out refs that do not refer to local files, or refer to different
-        local files; but includes refs that refer to the same file despite having a different
-        query string or URL fragment, or being specified via relative paths or a path
-        including symlinks.
+        Each key of the result is a local path, and the value is the subset of refs
+        that refer to it. The same ref will not appear in multiple keys. Refs that
+        resolve to the same path will appear under the same key, even if they are
+        specified via differing relative paths or paths involving symlinks, or if they
+        differ in the fragment or query string of the URL.
 
-        Relative paths in self.refs are assumed to be relative to the parent of self.path.
+        Refs that cannot be parsed as URLs or that do not refer to local paths will
+        not appear in the result.
         """
-        dest = dest.resolve()
-        result = set()
+        result = {}
         for ref in self.refs:
             try:
                 url = urlparse(ref)
@@ -31,11 +32,20 @@ class FileInfo:
                     if not src.is_absolute():
                         src = self.path.joinpath('..', src)
                     src = src.resolve()
-                    if src == dest:
-                        result.add(ref)
+                    if src in result:
+                        result[src].add(ref)
+                    else:
+                        result[src] = set([ref])
             except ValueError:
                 pass
         return result
+
+    def refs_to_path(self, dest: Path) -> Set[str]:
+        """Returns the value of self.path_refs() for the given path, or an empty set.
+
+        The path is resolved first to account for symlinks or relative paths.
+        """
+        return self.path_refs().get(dest.resolve(), set())
 
 
 @dataclass
