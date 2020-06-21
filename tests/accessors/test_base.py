@@ -51,6 +51,11 @@ def test_refs_to_path_resolves_src_relative_to_self(fs):
     assert info.refs_to_path(Path('../foo/baz')) == {'baz'}
 
 
+def test_refs_to_path_handles_special_characters():
+    info = FileInfo(Path('foo'), refs={'hi%20there%21', 'hi+there%21'})
+    assert info.refs_to_path(Path('hi there!')) == {'hi%20there%21', 'hi+there%21'}
+
+
 def test_change_empty():
     assert not BaseAccessor().change([])
 

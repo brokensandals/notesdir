@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional, List, Set, Union
-from urllib.parse import urlparse, ParseResult
+from urllib.parse import urlparse, unquote_plus
 
 
 @dataclass
@@ -27,7 +27,7 @@ class FileInfo:
             try:
                 url = urlparse(ref)
                 if (not url.scheme) or (url.scheme == 'file' and url.netloc in ['', 'localhost']):
-                    src = Path(url.path)
+                    src = Path(unquote_plus(url.path))
                     if not src.is_absolute():
                         src = self.path.joinpath('..', src)
                     src = src.resolve()
