@@ -1,7 +1,9 @@
 from pathlib import Path
 from unittest.mock import call, Mock
+from urllib.parse import urlparse
+import pytest
 from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetAttr
-from notesdir.store import ref_path, FSStore
+from notesdir.store import ref_path, path_as_ref, FSStore
 
 
 def test_ref_path_same_file():
@@ -82,6 +84,44 @@ def test_ref_path_symlinks_relative(fs):
     fs.create_symlink('/cwd/whatever', '/cwd/foo/meh')
     fs.cwd = '/cwd'
     assert ref_path(src, dest) == Path('../meh/hello')
+
+
+def test_path_as_ref_absolute():
+    assert path_as_ref(Path('/foo/bar/baz')) == '/foo/bar/baz'
+
+
+def test_path_as_ref_relative():
+    assert path_as_ref(Path('../bar/baz')) == '../bar/baz'
+
+
+def test_path_as_ref_absolute_into_url():
+    parts = urlparse('/foo/bar/baz#f?k=v')
+    assert path_as_ref(Path('/meh/ok'), parts) == '/meh/ok#f?k=v'
+
+
+def test_path_as_ref_relative_into_url():
+    parts = urlparse('/foo/bar/baz#f?k=v')
+    assert path_as_ref(Path('../meh/ok'), parts) == '../meh/ok#f?k=v'
+
+
+def test_path_as_ref_absolute_into_url_with_scheme():
+    parts = urlparse('file://localhost/foo/bar/baz')
+    assert path_as_ref(Path('/meh/ok'), parts) == 'file://localhost/meh/ok'
+
+
+def test_path_as_ref_relative_into_url_with_scheme():
+    parts = urlparse('file://localhost/foo/bar/baz')
+    with pytest.raises(ValueError):
+        path_as_ref(Path('../meh/ok'), parts)
+
+
+def test_path_as_ref_special_characters():
+    assert path_as_ref(Path('/a dir/a file!.md')) == '/a%20dir/a%20file%21.md'
+
+
+def test_path_as_ref_special_characters_into_url():
+    parts = urlparse('/foo/bar/baz#f?k=v')
+    assert path_as_ref(Path('/a dir/a file!.md'), parts) == '/a%20dir/a%20file%21.md#f?k=v'
 
 
 class MockAccessor(BaseAccessor):
