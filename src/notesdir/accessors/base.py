@@ -18,6 +18,8 @@ class FileInfo:
         local files; but includes refs that refer to the same file despite having a different
         query string or URL fragment, or being specified via relative paths or a path
         including symlinks.
+
+        Relative paths in self.refs are assumed to be relative to the parent of self.path.
         """
         dest = dest.resolve()
         result = set()
@@ -25,7 +27,10 @@ class FileInfo:
             try:
                 url = urlparse(ref)
                 if (not url.scheme) or (url.scheme == 'file' and url.netloc in ['', 'localhost']):
-                    src = Path(url.path).resolve()
+                    src = Path(url.path)
+                    if not src.is_absolute():
+                        src = self.path.joinpath('..', src)
+                    src = src.resolve()
                     if src == dest:
                         result.add(ref)
             except ValueError:

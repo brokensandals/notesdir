@@ -63,13 +63,8 @@ class FSStore(BaseStore):
     def referrers(self, path: Path) -> Set[Path]:
         result = set()
         for child_path in self.root.glob('**/*'):
-            ref = ref_path(child_path, path)
             info = self.info(child_path)
-            # This is less accurate than if we were to resolve every ref and
-            # check whether it actually points to path. So, may want to
-            # change this to work that way at some point. But presumably the
-            # current way is much faster.
-            if info and str(ref) in info.refs:
+            if info and len(info.refs_to_path(path)) > 0:
                 result.add(child_path)
         return result
 

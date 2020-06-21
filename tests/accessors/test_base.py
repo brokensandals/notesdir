@@ -45,6 +45,12 @@ def test_refs_to_path_ignores_query_and_fragment():
     assert info.refs_to_path(Path('bar')) == {'bar#baz', 'bar?baz'}
 
 
+def test_refs_to_path_resolves_src_relative_to_self(fs):
+    fs.cwd = '/meh'
+    info = FileInfo(Path('/foo/bar'), refs={'baz'})
+    assert info.refs_to_path(Path('../foo/baz')) == {'baz'}
+
+
 def test_change_empty():
     assert not BaseAccessor().change([])
 
