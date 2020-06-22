@@ -1,8 +1,10 @@
+from __future__ import annotations
 from os.path import relpath
 from pathlib import Path
+from tempfile import mkstemp
 from typing import Dict, List, Optional, Set
-from urllib.parse import ParseResult, urlunparse, quote
-from notesdir.accessors.base import BaseAccessor, FileEdit, FileInfo
+from urllib.parse import ParseResult, urlparse, urlunparse, quote
+from notesdir.accessors.base import BaseAccessor, FileEdit, FileInfo, Move, ReplaceRef
 
 
 def group_edits(edits: List[FileEdit]) -> List[List[FileEdit]]:
@@ -50,6 +52,63 @@ def path_as_ref(path: Path, into_url: ParseResult = None) -> str:
     return urlpath
 
 
+def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[Move]:
+    """Builds a list of Moves that will rename a set of files/folders.
+
+    The keys of the dictionary are the paths to be renamed, and the values
+    are what they should be renamed to. If a path appears as both a key and
+    as a value, it will be moved to a temporary file as an intermediate
+    step.
+    """
+    phase1 = []
+    phase2 = []
+    resolved = {s.resolve(): d.resolve() for s, d in renames.items()}
+    dests = set(resolved.values())
+    for dest in dests:
+        if dest in resolved and dest.exists():
+            file, tmp = mkstemp(prefix=str(dest.name), dir=dest.parent)
+            tmp = Path(tmp)
+            phase1.append(Move(dest, tmp))
+            phase2.append(Move(tmp, resolved[dest]))
+    for src, dest in resolved.items():
+        if src not in dests and src.exists():
+            phase1.append(Move(src, dest))
+    return phase1 + phase2
+
+
+def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
+    """Builds a list of FileEdits that will rename files and update references accordingly.
+
+    The keys of the dictionary are the paths to be renamed, and the values
+    are what they should be renamed to. (If a path appears as both a key and
+    as a value, it will be moved to a temporary file as an intermediate step.)
+
+    The given store is used to search for files that refer to any of the paths that
+    are keys in the dictionary, so that ReplaceRef edits can be generated for them.
+    The files that are being renamed will also be checked for outbound relative references,
+    and ReplaceRef edits will be generated for those too.
+    """
+    edits = []
+    resolved = {s.resolve(): d.resolve() for s, d in renames.items()}
+    for src, dest in resolved.items():
+        if src.is_file():
+            info = store.info(src)
+            for target, refs in info.path_refs().items():
+                for ref in refs:
+                    url = urlparse(ref)
+                    newref = path_as_ref(ref_path(dest, target), url)
+                    if not ref == newref:
+                        edits.append(ReplaceRef(src, ref, newref))
+        for referrer in store.referrers(src):
+            info = store.info(referrer)
+            for ref in info.refs_to_path(src):
+                url = urlparse(ref)
+                newref = path_as_ref(ref_path(referrer, dest), url)
+                edits.append(ReplaceRef(referrer, ref, newref))
+    edits.extend(edits_for_raw_moves(resolved))
+    return edits
+
+
 class BaseStore:
     def info(self, path: Path) -> Optional[FileInfo]:
         raise NotImplementedError()
@@ -72,6 +131,13 @@ class FSStore(BaseStore):
     def referrers(self, path: Path) -> Set[Path]:
         result = set()
         for child_path in self.root.glob('**/*'):
+            if not child_path.is_file():
+                # This is a little bit of a hack to make the tests simpler -
+                # when using DelegatingAccessor it's fine to call .info on a directory,
+                # as you'll just get an empty FileInfo back, but some of the tests use
+                # other accessors directly, where calling .info on a directory would
+                # cause an error.
+                continue
             info = self.info(child_path)
             if info and len(info.refs_to_path(path)) > 0:
                 result.add(child_path)

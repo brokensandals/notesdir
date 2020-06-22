@@ -3,7 +3,8 @@ from unittest.mock import call, Mock
 from urllib.parse import urlparse
 import pytest
 from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetAttr
-from notesdir.store import ref_path, path_as_ref, FSStore
+from notesdir.accessors.markdown import MarkdownAccessor
+from notesdir.store import ref_path, path_as_ref, edits_for_rearrange, FSStore
 
 
 def test_ref_path_same_file():
@@ -180,3 +181,83 @@ def test_change(fs):
     assert not Path('/notes/one').exists()
     assert Path('/notes/moved').exists()
     accessor.assert_has_calls([call.change(edits[0:2]), call.change([edits[3]])])
+
+
+def test_rearrange_selfreference(fs):
+    doc = 'I link to [myself](one.md).'
+    fs.create_file('/notes/one.md', contents=doc)
+    store = FSStore(Path('/notes'), MarkdownAccessor())
+    store.change(edits_for_rearrange(store, {Path('/notes/one.md'): Path('/notes/two.md')}))
+    assert not Path('/notes/one.md').exists()
+    assert Path('/notes/two.md').exists()
+    assert Path('/notes/two.md').read_text() == 'I link to [myself](two.md).'
+
+
+def test_rearrange_mutual(fs):
+    doc1 = 'I link to [two](two.md).'
+    doc2 = 'I link to [one](one.md).'
+    fs.create_file('/notes/one.md', contents=doc1)
+    fs.create_file('/notes/two.md', contents=doc2)
+    store = FSStore(Path('/notes'), MarkdownAccessor())
+    store.change(edits_for_rearrange(store, {
+        Path('/notes/one.md'): Path('/notes/three.md'),
+        Path('/notes/two.md'): Path('/notes/four.md')
+    }))
+    assert not Path('/notes/one.md').exists()
+    assert not Path('/notes/two.md').exists()
+    assert Path('/notes/three.md').exists()
+    assert Path('/notes/four.md').exists()
+    assert Path('/notes/three.md').read_text() == 'I link to [two](four.md).'
+    assert Path('/notes/four.md').read_text() == 'I link to [one](three.md).'
+
+
+def test_rearrange_mutual_subdirs(fs):
+    doc1 = 'I link to [two](../two.md).'
+    doc2 = 'I link to [one](subdir1/one.md).'
+    fs.create_file('/notes/subdir1/one.md', contents=doc1)
+    fs.create_file('/notes/two.md', contents=doc2)
+    Path('/notes/subdir2').mkdir()
+    store = FSStore(Path('/notes'), MarkdownAccessor())
+    store.change(edits_for_rearrange(store, {
+        Path('/notes/subdir1/one.md'): Path('/notes/one.md'),
+        Path('/notes/two.md'): Path('/notes/subdir2/two.md')
+    }))
+    assert not Path('/notes/subdir1/one.md').exists()
+    assert not Path('/notes/two.md').exists()
+    assert Path('/notes/one.md').exists()
+    assert Path('/notes/subdir2/two.md').exists()
+    assert Path('/notes/one.md').read_text() == 'I link to [two](subdir2/two.md).'
+    assert Path('/notes/subdir2/two.md').read_text() == 'I link to [one](../one.md).'
+
+
+def test_rearrange_swap(fs):
+    doc1 = 'I link to [two](two.md).'
+    doc2 = 'I link to [one](one.md).'
+    fs.create_file('/notes/one.md', contents=doc1)
+    fs.create_file('/notes/two.md', contents=doc2)
+    store = FSStore(Path('/notes'), MarkdownAccessor())
+    store.change(edits_for_rearrange(store, {
+        Path('/notes/one.md'): Path('/notes/two.md'),
+        Path('/notes/two.md'): Path('/notes/one.md')
+    }))
+    assert Path('/notes/one.md').exists()
+    assert Path('/notes/two.md').exists()
+    assert Path('/notes/one.md').read_text() == 'I link to [one](two.md).'
+    assert Path('/notes/two.md').read_text() == 'I link to [two](one.md).'
+
+
+def test_rearrange_special_characters(fs):
+    doc1 = 'I link to [two](second%20doc%21.md).'
+    doc2 = 'I link to [one](first%20doc%21.md).'
+    fs.create_file('/notes/first doc!.md', contents=doc1)
+    fs.create_file('/notes/second doc!.md', contents=doc2)
+    Path('/notes/subdir').mkdir()
+    store = FSStore(Path('/notes'), MarkdownAccessor())
+    store.change(edits_for_rearrange(store, {
+        Path('/notes/first doc!.md'): Path('/notes/subdir/new loc!.md')}))
+    assert not Path('/notes/first doc!.md').exists()
+    assert Path('/notes/second doc!.md').exists()
+    assert Path('/notes/subdir/new loc!.md').exists()
+    assert Path('/notes/second doc!.md').read_text() == 'I link to [one](subdir/new%20loc%21.md).'
+    assert (Path('/notes/subdir/new loc!.md').read_text()
+            == 'I link to [two](../second%20doc%21.md).')
