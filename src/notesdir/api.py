@@ -1,8 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import Dict
 import toml
 from notesdir.accessors.delegating import DelegatingAccessor
-from notesdir.store import FSStore, ref_path
+from notesdir.store import FSStore, edits_for_rearrange
 
 
 class Error(Exception):
@@ -32,3 +33,7 @@ class Notesdir:
         self.config = config
         accessor = DelegatingAccessor()
         self.store = FSStore(Path(config['root']), accessor)
+
+    def rearrange(self, renames: Dict[Path, Path]):
+        edits = edits_for_rearrange(self.store, renames)
+        self.store.change(edits)

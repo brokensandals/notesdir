@@ -1,0 +1,8 @@
+usage: notesdir [-h] {mv} ...
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+Commands:
+  {mv}
+    mv        move file and update references

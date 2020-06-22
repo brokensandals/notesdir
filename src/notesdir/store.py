@@ -93,14 +93,15 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
     for src, dest in resolved.items():
         if src.is_file():
             info = store.info(src)
-            for target, refs in info.path_refs().items():
-                if target in resolved:
-                    target = resolved[target]
-                for ref in refs:
-                    url = urlparse(ref)
-                    newref = path_as_ref(ref_path(dest, target), url)
-                    if not ref == newref:
-                        edits.append(ReplaceRef(src, ref, newref))
+            if info:
+                for target, refs in info.path_refs().items():
+                    if target in resolved:
+                        target = resolved[target]
+                    for ref in refs:
+                        url = urlparse(ref)
+                        newref = path_as_ref(ref_path(dest, target), url)
+                        if not ref == newref:
+                            edits.append(ReplaceRef(src, ref, newref))
         for referrer in store.referrers(src):
             if referrer.resolve() in resolved:
                 continue

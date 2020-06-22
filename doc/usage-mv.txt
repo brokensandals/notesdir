@@ -1,0 +1,8 @@
+usage: notesdir mv [-h] src dest
+
+positional arguments:
+  src         file or folder to move
+  dest        new filename or new parent folder
+
+optional arguments:
+  -h, --help  show this help message and exit
