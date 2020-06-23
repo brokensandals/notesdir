@@ -3,22 +3,11 @@
 
 import argparse
 from pathlib import Path
-import sys
 from notesdir.api import Notesdir
 
 
 def _mv(args, nd: Notesdir) -> int:
-    src = Path(args.src[0])
-    dest = Path(args.dest[0])
-    if not src.exists():
-        print(f'File does not exist: {src}', file=sys.stderr)
-        return 2
-    if dest.is_dir():
-        dest = dest.joinpath(src.name)
-        if dest.is_dir():
-            print(f'Will not replace a directory with a file: {dest}', file=sys.stderr)
-            return 2
-    nd.rearrange({src: dest})
+    nd.move(Path(args.src[0]), Path(args.dest[0]))
     return 0
 
 

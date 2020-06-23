@@ -34,6 +34,14 @@ class Notesdir:
         accessor = DelegatingAccessor()
         self.store = FSStore(Path(config['root']), accessor)
 
-    def rearrange(self, renames: Dict[Path, Path]):
-        edits = edits_for_rearrange(self.store, renames)
+    def move(self, src: Path, dest: Path):
+        """Moves a file or directory and updates references to/from it appropriately.
+        """
+        if not src.exists():
+            raise FileNotFoundError(f'File does not exist: {src}')
+        if dest.is_dir():
+            dest = dest.joinpath(src.name)
+            if dest.is_dir():
+                raise Error(f'Will not replace a directory: {dest}')
+        edits = edits_for_rearrange(self.store, {src: dest})
         self.store.change(edits)
