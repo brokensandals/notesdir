@@ -7,7 +7,11 @@ from notesdir.api import Notesdir
 
 
 def _mv(args, nd: Notesdir) -> int:
-    nd.move(Path(args.src[0]), Path(args.dest[0]))
+    src = Path(args.src[0])
+    dest = Path(args.dest[0])
+    final_dest = nd.move(src, dest)
+    if final_dest not in [dest, dest.joinpath(src.name)]:
+        print(f'Moved to: {final_dest}')
     return 0
 
 

@@ -29,7 +29,7 @@ def test_help(capsys):
             re.sub(r'\S*pytest\S*', 'notesdir', cap.out))
 
 
-def test_mv_file(fs):
+def test_mv_file(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/subdir/old.md')
     fs.create_file('/notes/dir/referrer.md', contents='I have a [link](../cwd/subdir/old.md).')
@@ -37,9 +37,11 @@ def test_mv_file(fs):
     assert not Path('/notes/cwd/subdir/old.md').exists()
     assert Path('/notes/dir/new.md').exists()
     assert Path('/notes/dir/referrer.md').read_text() == 'I have a [link](new.md).'
+    out, err = capsys.readouterr()
+    assert not out
 
 
-def test_mv_file_to_dir(fs):
+def test_mv_file_to_dir(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/subdir/old.md')
     fs.create_file('/notes/dir/referrer.md', contents='I have a [link](../cwd/subdir/old.md).')
@@ -47,9 +49,11 @@ def test_mv_file_to_dir(fs):
     assert not Path('/notes/cwd/subdir/old.md').exists()
     assert Path('/notes/dir/old.md').exists()
     assert Path('/notes/dir/referrer.md').read_text() == 'I have a [link](old.md).'
+    out, err = capsys.readouterr()
+    assert not out
 
 
-def test_mv_file_conflict(fs):
+def test_mv_file_conflict(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/referrer.md', contents='I have a [link](foo.md).')
     fs.create_file('/notes/cwd/foo.md', contents='foo')
@@ -61,9 +65,11 @@ def test_mv_file_conflict(fs):
     assert Path('/notes/dir/2-bar.md').read_text() == 'baz'
     assert Path('/notes/dir/3-bar.md').read_text() == 'foo'
     assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/3-bar.md).'
+    out, err = capsys.readouterr()
+    assert 'Moved to: ../dir/3-bar.md' in out
 
 
-def test_mv_file_to_dir_conflict(fs):
+def test_mv_file_to_dir_conflict(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/referrer.md', contents='I have a [link](foo.md).')
     fs.create_file('/notes/cwd/foo.md', contents='foo')
@@ -73,3 +79,5 @@ def test_mv_file_to_dir_conflict(fs):
     assert Path('/notes/dir/foo.md').read_text() == 'bar'
     assert Path('/notes/dir/2-foo.md').read_text() == 'foo'
     assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/2-foo.md).'
+    out, err = capsys.readouterr()
+    assert 'Moved to: ../dir/2-foo.md' in out

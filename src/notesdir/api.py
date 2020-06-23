@@ -1,6 +1,5 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict
 import toml
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.store import FSStore, edits_for_rearrange
@@ -42,6 +41,8 @@ class Notesdir:
 
         Existing files/directories will never be overwritten; if needed, a numeric
         prefix will be added to the final destination filename to ensure uniqueness.
+
+        Returns the actual path that src was moved to.
         """
         if not src.exists():
             raise FileNotFoundError(f'File does not exist: {src}')
@@ -54,3 +55,4 @@ class Notesdir:
             prefix += 1
         edits = edits_for_rearrange(self.store, {src: dest})
         self.store.change(edits)
+        return dest
