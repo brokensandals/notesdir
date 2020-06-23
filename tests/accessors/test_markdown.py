@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from notesdir.accessors.base import ReplaceRef, SetAttr
 from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
@@ -86,6 +87,7 @@ def test_set_meta_replace():
 def test_parse(fs):
     doc = """---
 title: An Examination of the Navel
+created: 2019-06-04 10:12:13-08:00
 ...
 #personal #book-draft
 # Preface: Reasons for #journaling
@@ -100,6 +102,7 @@ published about online (see [this article](http://example.com/blah) among many o
     assert info.refs == set(['../Another%20Note.md', 'http://example.com/blah'])
     assert info.tags == set(['personal', 'book-draft', 'journaling'])
     assert info.title == 'An Examination of the Navel'
+    assert info.created == datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))
 
 
 def test_change(fs):
@@ -114,6 +117,7 @@ published about online (see [this article](http://example.com/blahblah) and
 [this one](http://example.com/blah) among many others), ...
 """
     expected = """---
+created: 2019-06-04 10:12:13-08:00
 title: A Close Examination of the Navel
 ...
 #personal #book-draft
@@ -127,7 +131,8 @@ published about online (see [this article](http://example.com/blahblah) and
     edits = [
         ReplaceRef(path, '../Another%20Note.md', 'moved/another-note.md'),
         ReplaceRef(path, 'http://example.com/blah', 'https://example.com/meh'),
-        SetAttr(path, 'title', 'A Close Examination of the Navel')
+        SetAttr(path, 'title', 'A Close Examination of the Navel'),
+        SetAttr(path, 'created', datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
     ]
     fs.create_file(path, contents=doc)
     assert MarkdownAccessor().change(edits)

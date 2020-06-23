@@ -15,6 +15,14 @@ def _mv(args, nd: Notesdir) -> int:
     return 0
 
 
+def _norm(args, nd: Notesdir) -> int:
+    path = Path(args.path[0])
+    final_path = nd.normalize(path)
+    if final_path != path:
+        print(f'Moved to: {final_path}')
+    return 0
+
+
 def main(args=None) -> int:
     """Runs the tool and returns its exit code.
 
@@ -32,6 +40,12 @@ def main(args=None) -> int:
     p_mv.add_argument('src', help='file or folder to move', nargs=1)
     p_mv.add_argument('dest', help='new filename or new parent folder', nargs=1)
     p_mv.set_defaults(func=_mv)
+
+    p_norm = subs.add_parser(
+        'norm',
+        help='normalize file')
+    p_norm.add_argument('path', help='file to normalize', nargs=1)
+    p_norm.set_defaults(func=_norm)
 
     args = parser.parse_args(args)
     if not args.func:

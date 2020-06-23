@@ -1,8 +1,8 @@
 from pathlib import Path
 import re
+from freezegun import freeze_time
 import pytest
 from notesdir import cli
-
 
 def nd_setup(fs):
     fs.cwd = '/notes/cwd'
@@ -81,3 +81,63 @@ def test_mv_file_to_dir_conflict(fs, capsys):
     assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/2-foo.md).'
     out, err = capsys.readouterr()
     assert 'Moved to: ../dir/2-foo.md' in out
+
+
+def test_norm_nothing(fs, capsys):
+    doc = """---
+created: 2001-02-03T04:05:06Z
+title: Foo Bar
+...
+some text"""
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo-bar.md', contents=doc)
+    assert cli.main(['norm', 'foo-bar.md']) == 0
+    assert Path('/notes/cwd/foo-bar.md').read_text() == doc
+    out, err = capsys.readouterr()
+    assert not out
+
+
+@freeze_time('2012-03-04T05:06:07-0800')
+def test_norm_missing_attrs(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo-bar.md', contents='some text')
+    assert cli.main(['norm', 'foo-bar.md']) == 0
+    assert Path('/notes/cwd/foo-bar.md').read_text() == """---
+created: 2012-03-04 13:06:07
+title: foo-bar
+...
+some text"""
+    out, err = capsys.readouterr()
+    assert not out
+
+
+def test_norm_move(fs, capsys):
+    doc = """---
+created: 2012-03-04 05:06:07
+title: Foo Bar! Hooray!
+...
+some text"""
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foobar.md', contents=doc)
+    assert cli.main(['norm', 'foobar.md']) == 0
+    assert not Path('/notes/cwd/foobar.md').exists()
+    assert Path('/notes/cwd/foo-bar-hooray.md').read_text() == doc
+    out, err = capsys.readouterr()
+    assert 'Moved to: foo-bar-hooray.md' in out
+
+
+def test_norm_move_and_set_title(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/+foo-Bar-.md', contents="""---
+created: 2012-03-04 05:06:07
+...
+some text""")
+    assert cli.main(['norm', '+foo-Bar-.md']) == 0
+    assert not Path('/notes/cwd/+foo-Bar-.md').exists()
+    assert Path('/notes/cwd/foo-bar.md').read_text() == """---
+created: 2012-03-04 05:06:07
+title: +foo-Bar-
+...
+some text"""
+    out, err = capsys.readouterr()
+    assert 'Moved to: foo-bar.md' in out

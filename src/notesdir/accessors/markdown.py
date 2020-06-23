@@ -56,7 +56,8 @@ class MarkdownAccessor(BaseAccessor):
             path=path,
             refs=extract_refs(text),
             tags=extract_tags(text),
-            title=meta.get('title')
+            title=meta.get('title'),
+            created=meta.get('created')
         )
 
     def _change(self, edits: List[FileEdit]) -> bool:
@@ -73,6 +74,11 @@ class MarkdownAccessor(BaseAccessor):
                         del meta['title']
                     else:
                         meta['title'] = edit.value
+                elif edit.key == 'created':
+                    if edit.value is None:
+                        del meta['created']
+                    else:
+                        meta['created'] = edit.value
                 else:
                     raise NotImplementedError(f'Unsupported set_attr key {edit.key}')
                 changed = set_meta(changed, meta)

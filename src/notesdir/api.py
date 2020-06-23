@@ -1,8 +1,19 @@
 from __future__ import annotations
 from pathlib import Path
+import re
+from datetime import datetime
 import toml
+from notesdir.accessors.base import SetAttr
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.store import FSStore, edits_for_rearrange
+
+
+def filename_for_title(title: str) -> str:
+    title = title.lower()
+    title = re.sub(r'[^a-z0-9]', '-', title)
+    title = re.sub(r'-+', '-', title)
+    title = title.strip('-')
+    return title
 
 
 class Error(Exception):
@@ -33,7 +44,7 @@ class Notesdir:
         accessor = DelegatingAccessor()
         self.store = FSStore(Path(config['root']), accessor)
 
-    def move(self, src: Path, dest: Path):
+    def move(self, src: Path, dest: Path) -> Path:
         """Moves a file or directory and updates references to/from it appropriately.
 
         If dest is a directory, src will be moved into it, using src's filename.
@@ -56,3 +67,40 @@ class Notesdir:
         edits = edits_for_rearrange(self.store, {src: dest})
         self.store.change(edits)
         return dest
+
+    def normalize(self, path: Path) -> Path:
+        """Updates metadata and/or moves a file to adhere to conventions.
+
+        If the file does not have a title, one is set based on the filename.
+        If the file has a title, the filename is derived from it.
+        In either case filename_for_title is applied.
+
+        If the file does not have created set in its metadata, it is set
+        based on the ctime of the file.
+
+        The final path of the file is returned.
+        """
+        if not path.exists():
+            raise FileNotFoundError(f'File does not exist: {path}')
+        info = self.store.info(path)
+        if not info:
+            raise Error(f'Cannot parse file: {path}')
+
+        edits = []
+
+        title = info.title or path.stem
+        name = f'{filename_for_title(title)}{path.suffix}'
+        if not path.name == name:
+            path = self.move(path, path.with_name(name))
+        if not title == info.title:
+            edits.append(SetAttr(path, 'title', title))
+
+        if not info.created:
+            stat = path.stat()
+            created = datetime.utcfromtimestamp(stat.st_ctime)
+            edits.append(SetAttr(path, 'created', created))
+
+        if edits:
+            self.store.change(edits)
+
+        return path

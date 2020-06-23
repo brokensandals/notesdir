@@ -1,8 +1,9 @@
-usage: notesdir [-h] {mv} ...
+usage: notesdir [-h] {mv,norm} ...
 
 optional arguments:
   -h, --help  show this help message and exit
 
 Commands:
-  {mv}
+  {mv,norm}
     mv        move file and update references
+    norm      normalize file

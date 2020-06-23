@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, List, Set, Dict
 from urllib.parse import urlparse, unquote_plus
@@ -10,6 +11,7 @@ class FileInfo:
     refs: Set[str] = field(default_factory=set)
     tags: Set[str] = field(default_factory=set)
     title: Optional[str] = None
+    created: Optional[datetime] = None
 
     def path_refs(self) -> Dict[Path, Set[str]]:
         """Returns subsets of self.refs that refer to local paths.

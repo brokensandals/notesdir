@@ -1,0 +1,7 @@
+usage: notesdir norm [-h] path
+
+positional arguments:
+  path        file to normalize
+
+optional arguments:
+  -h, --help  show this help message and exit
