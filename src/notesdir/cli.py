@@ -9,7 +9,7 @@ from notesdir.api import Notesdir
 def _mv(args, nd: Notesdir) -> int:
     src = Path(args.src[0])
     dest = Path(args.dest[0])
-    final_dest = nd.move(src, dest)
+    final_dest = nd.move(src, dest, creation_folders=args.creation_folders)
     if final_dest not in [dest, dest.joinpath(src.name)]:
         print(f'Moved to: {final_dest}')
     return 0
@@ -39,6 +39,8 @@ def main(args=None) -> int:
         help='move file and update references')
     p_mv.add_argument('src', help='file or folder to move', nargs=1)
     p_mv.add_argument('dest', help='new filename or new parent folder', nargs=1)
+    p_mv.add_argument('-c', '--creation-folders', action='store_true',
+                      help='insert folders like 2020/06 based on creation date of src')
     p_mv.set_defaults(func=_mv)
 
     p_norm = subs.add_parser(

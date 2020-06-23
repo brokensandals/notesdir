@@ -83,6 +83,17 @@ def test_mv_file_to_dir_conflict(fs, capsys):
     assert 'Moved to: ../dir/2-foo.md' in out
 
 
+def test_mv_creation_folders(fs, capsys):
+    doc = '---\ncreated: 2013-04-05 06:07:08\n...\nsome text'
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo.md', contents=doc)
+    assert cli.main(['mv', '-c', 'foo.md', '../blah.md']) == 0
+    assert not Path('/notes/cwd/foo.md').exists()
+    assert Path('/notes/2013/04/blah.md').read_text() == doc
+    out, err = capsys.readouterr()
+    assert 'Moved to: ../2013/04/blah.md' in out
+
+
 def test_norm_nothing(fs, capsys):
     doc = """---
 created: 2001-02-03T04:05:06Z

@@ -44,7 +44,7 @@ class Notesdir:
         accessor = DelegatingAccessor()
         self.store = FSStore(Path(config['root']), accessor)
 
-    def move(self, src: Path, dest: Path) -> Path:
+    def move(self, src: Path, dest: Path, *, creation_folders=False) -> Path:
         """Moves a file or directory and updates references to/from it appropriately.
 
         If dest is a directory, src will be moved into it, using src's filename.
@@ -53,12 +53,24 @@ class Notesdir:
         Existing files/directories will never be overwritten; if needed, a numeric
         prefix will be added to the final destination filename to ensure uniqueness.
 
+        If creation_folders is true, then inside the parent of dest (or dest itself if
+        dest is a directory), a folder named for the creation year of the file will be
+        created (if it does not exist), and inside of that will be a folder named for
+        the creation month of the file. The file will be moved into that directory.
+
         Returns the actual path that src was moved to.
         """
         if not src.exists():
             raise FileNotFoundError(f'File does not exist: {src}')
         if dest.is_dir():
             dest = dest.joinpath(src.name)
+        if creation_folders:
+            info = self.store.info(src)
+            if not (info and info.created):
+                raise Error(f'Cannot parse created time from file: {src}')
+            destdir = dest.parent.joinpath(str(info.created.year), f'{info.created.month:02}')
+            destdir.mkdir(parents=True)
+            dest = destdir.joinpath(dest.name)
         basename = dest.name
         prefix = 2
         while dest.exists():
