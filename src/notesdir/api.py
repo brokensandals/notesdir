@@ -88,7 +88,7 @@ class Notesdir:
         In either case filename_for_title is applied.
 
         If the file does not have created set in its metadata, it is set
-        based on the ctime of the file.
+        based on the birthtime or ctime of the file.
 
         The final path of the file is returned.
         """
@@ -109,7 +109,10 @@ class Notesdir:
 
         if not info.created:
             stat = path.stat()
-            created = datetime.utcfromtimestamp(stat.st_ctime)
+            try:
+                created = datetime.utcfromtimestamp(stat.st_birthtime)
+            except AttributeError:
+                created = datetime.utcfromtimestamp(stat.st_ctime)
             edits.append(SetAttr(path, 'created', created))
 
         if edits:
