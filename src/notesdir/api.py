@@ -69,7 +69,7 @@ class Notesdir:
             if not (info and info.created):
                 raise Error(f'Cannot parse created time from file: {src}')
             destdir = dest.parent.joinpath(str(info.created.year), f'{info.created.month:02}')
-            destdir.mkdir(parents=True)
+            destdir.mkdir(parents=True, exist_ok=True)
             dest = destdir.joinpath(dest.name)
         basename = dest.name
         prefix = 2
