@@ -47,3 +47,29 @@ def test_mv_file_to_dir(fs):
     assert not Path('/notes/cwd/subdir/old.md').exists()
     assert Path('/notes/dir/old.md').exists()
     assert Path('/notes/dir/referrer.md').read_text() == 'I have a [link](old.md).'
+
+
+def test_mv_file_conflict(fs):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/referrer.md', contents='I have a [link](foo.md).')
+    fs.create_file('/notes/cwd/foo.md', contents='foo')
+    fs.create_file('/notes/dir/bar.md', contents='bar')
+    fs.create_file('/notes/dir/2-bar.md', contents='baz')
+    assert cli.main(['mv', 'foo.md', '../dir/bar.md']) == 0
+    assert not Path('/notes/cwd/foo.md').exists()
+    assert Path('/notes/dir/bar.md').read_text() == 'bar'
+    assert Path('/notes/dir/2-bar.md').read_text() == 'baz'
+    assert Path('/notes/dir/3-bar.md').read_text() == 'foo'
+    assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/3-bar.md).'
+
+
+def test_mv_file_to_dir_conflict(fs):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/referrer.md', contents='I have a [link](foo.md).')
+    fs.create_file('/notes/cwd/foo.md', contents='foo')
+    fs.create_file('/notes/dir/foo.md', contents='bar')
+    assert cli.main(['mv', 'foo.md', '../dir']) == 0
+    assert not Path('/notes/cwd/foo.md').exists()
+    assert Path('/notes/dir/foo.md').read_text() == 'bar'
+    assert Path('/notes/dir/2-foo.md').read_text() == 'foo'
+    assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/2-foo.md).'

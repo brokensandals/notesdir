@@ -36,12 +36,21 @@ class Notesdir:
 
     def move(self, src: Path, dest: Path):
         """Moves a file or directory and updates references to/from it appropriately.
+
+        If dest is a directory, src will be moved into it, using src's filename.
+        Otherwise, src is renamed to dest.
+
+        Existing files/directories will never be overwritten; if needed, a numeric
+        prefix will be added to the final destination filename to ensure uniqueness.
         """
         if not src.exists():
             raise FileNotFoundError(f'File does not exist: {src}')
         if dest.is_dir():
             dest = dest.joinpath(src.name)
-            if dest.is_dir():
-                raise Error(f'Will not replace a directory: {dest}')
+        basename = dest.name
+        prefix = 2
+        while dest.exists():
+            dest = dest.with_name(f'{prefix}-{basename}')
+            prefix += 1
         edits = edits_for_rearrange(self.store, {src: dest})
         self.store.change(edits)
