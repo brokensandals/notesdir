@@ -50,7 +50,7 @@ def test_mv_file_to_dir(fs, capsys):
     assert Path('/notes/dir/old.md').exists()
     assert Path('/notes/dir/referrer.md').read_text() == 'I have a [link](old.md).'
     out, err = capsys.readouterr()
-    assert not out
+    assert 'Moved subdir/old.md to ../dir/old.md' in out
 
 
 def test_mv_file_conflict(fs, capsys):
@@ -66,7 +66,7 @@ def test_mv_file_conflict(fs, capsys):
     assert Path('/notes/dir/3-bar.md').read_text() == 'foo'
     assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/3-bar.md).'
     out, err = capsys.readouterr()
-    assert 'Moved to: ../dir/3-bar.md' in out
+    assert 'Moved foo.md to ../dir/3-bar.md' in out
 
 
 def test_mv_file_to_dir_conflict(fs, capsys):
@@ -80,7 +80,38 @@ def test_mv_file_to_dir_conflict(fs, capsys):
     assert Path('/notes/dir/2-foo.md').read_text() == 'foo'
     assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/2-foo.md).'
     out, err = capsys.readouterr()
-    assert 'Moved to: ../dir/2-foo.md' in out
+    assert 'Moved foo.md to ../dir/2-foo.md' in out
+
+
+def test_mv_file_to_dir_startswith_conflict(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo.md')
+    Path('/notes/dir/foo.md.resources').mkdir(exist_ok=True, parents=True)
+    assert cli.main(['mv', 'foo.md', '../dir']) == 0
+    assert not Path('/notes/cwd/foo.md').exists()
+    assert Path('/notes/dir/2-foo.md').exists()
+    assert Path('/notes/dir/foo.md.resources').is_dir()
+    out, err = capsys.readouterr()
+    assert 'Moved foo.md to ../dir/2-foo.md' in out
+
+
+def test_mv_with_resources(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo.md', contents='I have an [attachment](foo.md.resources/blah.txt).')
+    fs.create_file('/notes/cwd/foo.md.resources/blah.txt', contents='Yo')
+    fs.create_file('/notes/cwd/bar.md', contents='This is a [bad idea](foo.md.resources/blah.txt).')
+    fs.create_file('/notes/dir/foo.md', contents='I conflict!')
+    Path('/notes/dir').mkdir(exist_ok=True, parents=True)
+    assert cli.main(['mv', 'foo.md', '../dir']) == 0
+    assert not Path('/notes/cwd/foo.md').exists()
+    assert not Path('/notes/cwd/foo.md.resources').exists()
+    assert Path('/notes/dir/foo.md').read_text() == 'I conflict!'
+    assert Path('/notes/dir/2-foo.md').read_text() == 'I have an [attachment](2-foo.md.resources/blah.txt).'
+    assert Path('/notes/dir/2-foo.md.resources/blah.txt').read_text() == 'Yo'
+    assert Path('/notes/cwd/bar.md').read_text() == 'This is a [bad idea](../dir/2-foo.md.resources/blah.txt).'
+    out, err = capsys.readouterr()
+    assert 'Moved foo.md to ../dir/2-foo.md' in out
+    assert 'Moved foo.md.resources to ../dir/2-foo.md.resources' in out
 
 
 def test_mv_creation_folders(fs, capsys):
@@ -91,7 +122,7 @@ def test_mv_creation_folders(fs, capsys):
     assert not Path('/notes/cwd/foo.md').exists()
     assert Path('/notes/2013/04/blah.md').read_text() == doc
     out, err = capsys.readouterr()
-    assert 'Moved to: ../2013/04/blah.md' in out
+    assert 'Moved foo.md to ../2013/04/blah.md' in out
 
 
 def test_norm_nothing(fs, capsys):
@@ -134,7 +165,7 @@ some text"""
     assert not Path('/notes/cwd/foobar.md').exists()
     assert Path('/notes/cwd/foo-bar-hooray.md').read_text() == doc
     out, err = capsys.readouterr()
-    assert 'Moved to: foo-bar-hooray.md' in out
+    assert 'Moved foobar.md to foo-bar-hooray.md' in out
 
 
 def test_norm_move_and_set_title(fs, capsys):
@@ -151,4 +182,4 @@ title: +foo-Bar-
 ...
 some text"""
     out, err = capsys.readouterr()
-    assert 'Moved to: foo-bar.md' in out
+    assert 'Moved +foo-Bar-.md to foo-bar.md' in out

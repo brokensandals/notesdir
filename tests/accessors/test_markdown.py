@@ -70,6 +70,14 @@ def test_replace_ref_image():
     assert replace_ref(doc, 'http://example.com/foo.png', 'http://example.com/bar.png') == expected
 
 
+def test_replace_ref_replacement_string_special_characters():
+    doc = """A [link](foo.md).
+[refstyle]: foo.md"""
+    expected = """A [link](2-foo\\3.md).
+[refstyle]: 2-foo\\3.md"""
+    assert replace_ref(doc, 'foo.md', '2-foo\\3.md') == expected
+
+
 def test_set_meta_none_exists():
     doc = "This is a document.\nWith text."
     expected = "---\ntitle: My Document\n...\nThis is a document.\nWith text."

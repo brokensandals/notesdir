@@ -29,11 +29,17 @@ def extract_refs(doc) -> Set[str]:
 
 def replace_ref(doc: str, src: str, dest: str) -> str:
     escaped_src = re.escape(src)
-    escaped_dest = dest.replace('\\', r'\\')
+
+    def inline_replacement(match):
+        return f'{match.group(1)}({dest})'
+
+    def refstyle_replacement(match):
+        return f'{match.group(1)}{dest}{match.group(2)}'
+
     inline = rf'(\[.*\])\({escaped_src}\)'
-    doc = re.sub(inline, rf'\1({escaped_dest})', doc)
+    doc = re.sub(inline, inline_replacement, doc)
     refstyle = rf'(?m)(^\[.*\]:\s*){escaped_src}(\s|$)'
-    doc = re.sub(refstyle, rf'\1{escaped_dest}\2', doc)
+    doc = re.sub(refstyle, refstyle_replacement, doc)
     return doc
 
 

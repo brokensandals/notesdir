@@ -87,30 +87,40 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
     are keys in the dictionary, so that ReplaceRef edits can be generated for them.
     The files that are being renamed will also be checked for outbound relative references,
     and ReplaceRef edits will be generated for those too.
+
+    Source paths may be directories; the directory as a whole will be moved, and references
+    to/from all files/folders within it will be updated too.
     """
     edits = []
-    resolved = {s.resolve(): d.resolve() for s, d in renames.items()}
-    for src, dest in resolved.items():
-        if src.is_file():
-            info = store.info(src)
-            if info:
-                for target, refs in info.path_refs().items():
-                    if target in resolved:
-                        target = resolved[target]
-                    for ref in refs:
-                        url = urlparse(ref)
-                        newref = path_as_ref(ref_path(dest, target), url)
-                        if not ref == newref:
-                            edits.append(ReplaceRef(src, ref, newref))
+    to_move = {s.resolve(): d.resolve() for s, d in renames.items()}
+    all_moves = {}
+    for src, dest in to_move.items():
+        all_moves[src] = dest
+        if src.is_dir():
+            for path in src.glob('**/*'):
+                all_moves[path] = dest.joinpath(path.relative_to(src))
+
+    for src, dest in all_moves.items():
+        info = store.info(src)
+        if info:
+            for target, refs in info.path_refs().items():
+                if target in all_moves:
+                    target = all_moves[target]
+                for ref in refs:
+                    url = urlparse(ref)
+                    newref = path_as_ref(ref_path(dest, target), url)
+                    if not ref == newref:
+                        edits.append(ReplaceRef(src, ref, newref))
         for referrer in store.referrers(src):
-            if referrer.resolve() in resolved:
+            if referrer.resolve() in all_moves:
                 continue
             info = store.info(referrer)
             for ref in info.refs_to_path(src):
                 url = urlparse(ref)
                 newref = path_as_ref(ref_path(referrer, dest), url)
                 edits.append(ReplaceRef(referrer, ref, newref))
-    edits.extend(edits_for_raw_moves(resolved))
+
+    edits.extend(edits_for_raw_moves(to_move))
     return edits
 
 

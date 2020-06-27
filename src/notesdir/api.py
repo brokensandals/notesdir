@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from datetime import datetime
+from typing import Dict
 import toml
 from notesdir.accessors.base import SetAttr
 from notesdir.accessors.delegating import DelegatingAccessor
@@ -44,7 +45,7 @@ class Notesdir:
         accessor = DelegatingAccessor()
         self.store = FSStore(Path(config['root']), accessor)
 
-    def move(self, src: Path, dest: Path, *, creation_folders=False) -> Path:
+    def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
 
         If dest is a directory, src will be moved into it, using src's filename.
@@ -58,7 +59,7 @@ class Notesdir:
         created (if it does not exist), and inside of that will be a folder named for
         the creation month of the file. The file will be moved into that directory.
 
-        Returns the actual path that src was moved to.
+        Returns a dict mapping paths of files that were moved, to their final paths.
         """
         if not src.exists():
             raise FileNotFoundError(f'File does not exist: {src}')
@@ -71,16 +72,26 @@ class Notesdir:
             destdir = dest.parent.joinpath(str(info.created.year), f'{info.created.month:02}')
             destdir.mkdir(parents=True, exist_ok=True)
             dest = destdir.joinpath(dest.name)
+
         basename = dest.name
         prefix = 2
-        while dest.exists():
+        existing = [p.name for p in dest.parent.iterdir()]
+        while True in (n.startswith(dest.name) for n in existing):
             dest = dest.with_name(f'{prefix}-{basename}')
             prefix += 1
-        edits = edits_for_rearrange(self.store, {src: dest})
-        self.store.change(edits)
-        return dest
 
-    def normalize(self, path: Path) -> Path:
+        moves = {src: dest}
+        # TODO this should probably be configurable
+        resdir = src.with_name(f'{src.name}.resources')
+        if resdir.exists():
+            moves[resdir] = dest.with_name(f'{dest.name}.resources')
+
+        edits = edits_for_rearrange(self.store, moves)
+        self.store.change(edits)
+
+        return moves
+
+    def normalize(self, path: Path) -> Dict[Path, Path]:
         """Updates metadata and/or moves a file to adhere to conventions.
 
         If the file does not have a title, one is set based on the filename.
@@ -90,7 +101,7 @@ class Notesdir:
         If the file does not have created set in its metadata, it is set
         based on the birthtime or ctime of the file.
 
-        The final path of the file is returned.
+        Returns a dict mapping paths of files that were moved, to their final paths.
         """
         if not path.exists():
             raise FileNotFoundError(f'File does not exist: {path}')
@@ -99,11 +110,14 @@ class Notesdir:
             raise Error(f'Cannot parse file: {path}')
 
         edits = []
+        moves = {}
 
         title = info.title or path.stem
         name = f'{filename_for_title(title)}{path.suffix}'
         if not path.name == name:
-            path = self.move(path, path.with_name(name))
+            moves = self.move(path, path.with_name(name))
+            if path in moves:
+                path = moves[path]
         if not title == info.title:
             edits.append(SetAttr(path, 'title', title))
 
@@ -118,4 +132,4 @@ class Notesdir:
         if edits:
             self.store.change(edits)
 
-        return path
+        return moves

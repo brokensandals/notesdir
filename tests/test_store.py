@@ -3,6 +3,7 @@ from unittest.mock import call, Mock
 from urllib.parse import urlparse
 import pytest
 from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetAttr
+from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.store import ref_path, path_as_ref, edits_for_rearrange, FSStore
 
@@ -261,3 +262,21 @@ def test_rearrange_special_characters(fs):
     assert Path('/notes/second doc!.md').read_text() == 'I link to [one](subdir/new%20loc%21.md).'
     assert (Path('/notes/subdir/new loc!.md').read_text()
             == 'I link to [two](../second%20doc%21.md).')
+
+
+def test_rearrange_folder(fs):
+    doc1 = 'I link to [two](dir/two.md).'
+    doc2 = 'I link to [three](subdir/three.md).'
+    doc3 = 'I link to [one](../../one.md).'
+    fs.create_file('/notes/one.md', contents=doc1)
+    fs.create_file('/notes/dir/two.md', contents=doc2)
+    fs.create_file('/notes/dir/subdir/three.md', contents=doc3)
+    Path('/notes/wrapper').mkdir()
+    store = FSStore(Path('/notes'), DelegatingAccessor())
+    store.change(edits_for_rearrange(store, {
+        Path('/notes/dir'): Path('/notes/wrapper/newdir')}))
+    assert not Path('/notes/dir').exists()
+    assert Path('/notes/one.md').read_text() == 'I link to [two](wrapper/newdir/two.md).'
+    assert Path('/notes/wrapper/newdir/two.md').read_text() == 'I link to [three](subdir/three.md).'
+    assert (Path('/notes/wrapper/newdir/subdir/three.md').read_text()
+            == 'I link to [one](../../../one.md).')

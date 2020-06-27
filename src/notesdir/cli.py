@@ -9,17 +9,19 @@ from notesdir.api import Notesdir
 def _mv(args, nd: Notesdir) -> int:
     src = Path(args.src[0])
     dest = Path(args.dest[0])
-    final_dest = nd.move(src, dest, creation_folders=args.creation_folders)
-    if final_dest not in [dest, dest.joinpath(src.name)]:
-        print(f'Moved to: {final_dest}')
+    moves = nd.move(src, dest, creation_folders=args.creation_folders)
+    if not moves == {src: dest}:
+        for k, v in moves.items():
+            print(f'Moved {k} to {v}')
     return 0
 
 
 def _norm(args, nd: Notesdir) -> int:
     path = Path(args.path[0])
-    final_path = nd.normalize(path)
-    if final_path != path:
-        print(f'Moved to: {final_path}')
+    moves = nd.normalize(path)
+    if moves:
+        for k, v in moves.items():
+            print(f'Moved {k} to {v}')
     return 0
 
 
