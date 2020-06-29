@@ -125,6 +125,17 @@ def test_mv_creation_folders(fs, capsys):
     assert 'Moved foo.md to ../2013/04/blah.md' in out
 
 
+@freeze_time('2012-03-04T05:06:07-0800')
+def test_mv_c_unrecognized(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/garbage.garbage')
+    assert cli.main(['mv', '-c', 'garbage.garbage', '..']) == 0
+    assert not Path('/notes/cwd/garbage.garbage').exists()
+    assert Path('/notes/2012/03/garbage.garbage').exists()
+    out, err = capsys.readouterr()
+    assert 'Moved garbage.garbage to ../2012/03/garbage.garbage' in out
+
+
 def test_norm_nothing(fs, capsys):
     doc = """---
 created: 2001-02-03T04:05:06Z

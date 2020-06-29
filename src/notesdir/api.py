@@ -17,6 +17,14 @@ def filename_for_title(title: str) -> str:
     return title
 
 
+def guess_created(path: Path) -> datetime:
+    stat = path.stat()
+    try:
+        return datetime.utcfromtimestamp(stat.st_birthtime)
+    except AttributeError:
+        return datetime.utcfromtimestamp(stat.st_ctime)
+
+
 class Error(Exception):
     pass
 
@@ -67,9 +75,8 @@ class Notesdir:
             dest = dest.joinpath(src.name)
         if creation_folders:
             info = self.store.info(src)
-            if not (info and info.created):
-                raise Error(f'Cannot parse created time from file: {src}')
-            destdir = dest.parent.joinpath(str(info.created.year), f'{info.created.month:02}')
+            created = (info and info.created) or guess_created(src)
+            destdir = dest.parent.joinpath(str(created.year), f'{created.month:02}')
             destdir.mkdir(parents=True, exist_ok=True)
             dest = destdir.joinpath(dest.name)
 
@@ -122,12 +129,7 @@ class Notesdir:
             edits.append(SetAttr(path, 'title', title))
 
         if not info.created:
-            stat = path.stat()
-            try:
-                created = datetime.utcfromtimestamp(stat.st_birthtime)
-            except AttributeError:
-                created = datetime.utcfromtimestamp(stat.st_ctime)
-            edits.append(SetAttr(path, 'created', created))
+            edits.append(SetAttr(path, 'created', guess_created(path)))
 
         if edits:
             self.store.change(edits)
