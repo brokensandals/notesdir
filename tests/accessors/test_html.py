@@ -52,7 +52,7 @@ def test_change_from_missing_attributes(fs):
         SetAttr(path, 'created', datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
     ]
     assert HTMLAccessor().change(edits)
-    assert BeautifulSoup(path.read_text()) == BeautifulSoup(expected)
+    assert BeautifulSoup(path.read_text(), 'lxml') == BeautifulSoup(expected, 'lxml')
 
 
 def test_change(fs):
@@ -96,4 +96,4 @@ def test_change(fs):
         ReplaceRef(path, 'media/something.weird', 'content/something.cool')
     ]
     assert HTMLAccessor().change(edits)
-    assert BeautifulSoup(path.read_text()) == BeautifulSoup(expected)
+    assert BeautifulSoup(path.read_text(), 'lxml',) == BeautifulSoup(expected, 'lxml')

@@ -36,7 +36,7 @@ class HTMLAccessor(BaseAccessor):
     def _parse(self, path: Path) -> (ParseInfo, FileInfo):
         with path.open() as file:
             try:
-                page = BeautifulSoup(file)
+                page = BeautifulSoup(file, 'lxml')
             except:
                 # TODO log the error somewhere, maybe
                 pass
