@@ -10,7 +10,7 @@ from notesdir.store import FSStore, edits_for_rearrange
 
 
 def filename_for_title(title: str) -> str:
-    title = title.lower()
+    title = title.lower()[:60]
     title = re.sub(r'[^a-z0-9]', '-', title)
     title = re.sub(r'-+', '-', title)
     title = title.strip('-')
