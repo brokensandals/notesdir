@@ -51,7 +51,12 @@ class Notesdir:
             raise Error('Config missing key "root"')
         self.config = config
         accessor = DelegatingAccessor()
-        self.store = FSStore(Path(config['root']), accessor)
+
+        edit_log_path = config.get('edit_log_path', None)
+        if edit_log_path:
+            edit_log_path = Path(edit_log_path)
+
+        self.store = FSStore(Path(config['root']), accessor, edit_log_path=edit_log_path)
 
     def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.

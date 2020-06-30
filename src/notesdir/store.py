@@ -1,4 +1,8 @@
 from __future__ import annotations
+import base64
+import dataclasses
+from datetime import datetime
+import json
 from os.path import relpath
 from pathlib import Path
 from tempfile import mkstemp
@@ -124,6 +128,17 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
     return edits
 
 
+def edit_log_json_serializer(val):
+    if isinstance(val, datetime):
+        return val.isoformat()
+    if isinstance(val, FileEdit):
+        d = dataclasses.asdict(val)
+        del d['path']
+        d['action'] = val.ACTION
+        return d
+    return str(val)
+
+
 class BaseStore:
     def info(self, path: Path) -> Optional[FileInfo]:
         raise NotImplementedError()
@@ -136,9 +151,10 @@ class BaseStore:
 
 
 class FSStore(BaseStore):
-    def __init__(self, root: Path, accessor: BaseAccessor):
+    def __init__(self, root: Path, accessor: BaseAccessor, *, edit_log_path: Path = None):
         self.root = root
         self.accessor = accessor
+        self.edit_log_path = edit_log_path
 
     def info(self, path: Path) -> Optional[FileInfo]:
         return self.accessor.parse(path)
@@ -160,8 +176,25 @@ class FSStore(BaseStore):
 
     def change(self, edits: List[FileEdit]):
         for group in group_edits(edits):
+            self._log_edits(group)
             if group[0].ACTION == 'move':
                 for edit in group:
                     edit.path.rename(edit.dest)
             else:
                 self.accessor.change(group)
+
+    def _log_edits(self, edit_group: List[FileEdit]):
+        if self.edit_log_path:
+            path = edit_group[0].path
+            entry = {
+                'datetime': datetime.now(),
+                'path': path,
+                'edits': edit_group,
+            }
+            if path.is_file():
+                try:
+                    entry['prior_text'] = path.read_text()
+                except:
+                    entry['prior_base64'] = base64.b64encode(path.read_bytes()).decode('utf-8')
+            with self.edit_log_path.open('a+') as file:
+                print(json.dumps(entry, default=edit_log_json_serializer), file=file)

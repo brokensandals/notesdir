@@ -1,6 +1,8 @@
+import json
 from pathlib import Path
 from unittest.mock import call, Mock
 from urllib.parse import urlparse
+from freezegun import freeze_time
 import pytest
 from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetAttr
 from notesdir.accessors.delegating import DelegatingAccessor
@@ -280,3 +282,41 @@ def test_rearrange_folder(fs):
     assert Path('/notes/wrapper/newdir/two.md').read_text() == 'I link to [three](subdir/three.md).'
     assert (Path('/notes/wrapper/newdir/subdir/three.md').read_text()
             == 'I link to [one](../../../one.md).')
+
+
+@freeze_time('2020-02-03T04:05:06-0800')
+def test_log_edits(fs):
+    doc1 = 'I have [a link](doc2.md).'
+    doc2 = bytes([0xfe, 0xfe, 0xff, 0xff])
+    fs.create_file('doc1.md', contents=doc1)
+    fs.create_file('doc2.bin', contents=doc2)
+    edits = [
+        ReplaceRef(Path('doc1.md'), 'doc2.md', 'garbage.md'),
+        Move(Path('doc2.bin'), Path('new-doc2.bin')),
+    ]
+    store = FSStore(Path('/notes'), DelegatingAccessor(), edit_log_path=Path('edits'))
+    store.change(edits)
+    log = Path('edits').read_text().splitlines()
+    assert len(log) == 2
+    entry1 = json.loads(log[0])
+    # FIXME these dates should have time zone indicators!
+    assert entry1 == {
+        'datetime': '2020-02-03T12:05:06',
+        'path': 'doc1.md',
+        'edits': [{
+            'action': 'replace_ref',
+            'original': 'doc2.md',
+            'replacement': 'garbage.md',
+        }],
+        'prior_text': 'I have [a link](doc2.md).'
+    }
+    entry2 = json.loads(log[1])
+    assert entry2 == {
+        'datetime': '2020-02-03T12:05:06',
+        'path': 'doc2.bin',
+        'edits': [{
+            'action': 'move',
+            'dest': 'new-doc2.bin',
+        }],
+        'prior_base64': '/v7//w=='
+    }
