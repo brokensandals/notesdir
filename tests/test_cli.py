@@ -4,6 +4,7 @@ from freezegun import freeze_time
 import pytest
 from notesdir import cli
 
+
 def nd_setup(fs):
     fs.cwd = '/notes/cwd'
     Path('~').expanduser().mkdir(parents=True)
