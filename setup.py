@@ -27,6 +27,7 @@ setuptools.setup(
     install_requires=[
         'beautifulsoup4>=4.9.1',
         'lxml',
+        'pypdf4',
         'pyyaml>=5.3.1',
         'toml>=0.10.1',
     ],
