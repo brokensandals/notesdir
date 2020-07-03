@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 from PyPDF4 import PdfFileReader, PdfFileMerger
+from PyPDF4.generic import IndirectObject
 from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit
 
 
@@ -26,6 +27,12 @@ def pdf_strftime(d: Optional[datetime]) -> Optional[str]:
         return f"{s}{tz[:3]}'{tz[3:]}'"
 
 
+def resolve_object(o):
+    if isinstance(o, IndirectObject):
+        return o.getObject()
+    return o
+
+
 class PDFAccessor(BaseAccessor):
     def parse(self, path: Path) -> FileInfo:
         info = FileInfo(path)
@@ -33,9 +40,9 @@ class PDFAccessor(BaseAccessor):
             try:
                 pdf = PdfFileReader(file)
                 pdfinfo = pdf.getDocumentInfo()
-                info.title = pdfinfo.title or None
-                info.created = pdf_strptime(pdfinfo['/CreationDate'])
-                info.tags.update(t.strip() for t in pdfinfo['/Keywords'].split(',') if t.strip())
+                info.title = resolve_object(pdfinfo.get('/Title', None))
+                info.created = pdf_strptime(resolve_object(pdfinfo.get('/CreationDate', None)))
+                info.tags.update(t.strip() for t in resolve_object(pdfinfo.get('/Keywords', None)).split(',') if t.strip())
             except:
                 # TODO
                 pass
@@ -47,7 +54,7 @@ class PDFAccessor(BaseAccessor):
 
         with path.open('rb') as file:
             pdf = PdfFileReader(file)
-            oldmeta = {k: v for k, v in pdf.getDocumentInfo().items()}
+            oldmeta = {k: resolve_object(v) for k, v in pdf.getDocumentInfo().items()}
             newmeta = oldmeta.copy()
 
             for edit in edits:
