@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import Dict
 import toml
-from notesdir.models import SetTitle, SetCreated
+from notesdir.models import SetTitleCmd, SetCreatedCmd
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.store import FSStore, edits_for_rearrange
 
@@ -131,10 +131,10 @@ class Notesdir:
             if path in moves:
                 path = moves[path]
         if not title == info.title:
-            edits.append(SetTitle(path, title))
+            edits.append(SetTitleCmd(path, title))
 
         if not info.created:
-            edits.append(SetCreated(path, guess_created(path)))
+            edits.append(SetCreatedCmd(path, guess_created(path)))
 
         if edits:
             self.store.change(edits)

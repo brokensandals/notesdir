@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 from notesdir.accessors.base import BaseAccessor
-from notesdir.models import FileInfo, FileEdit
+from notesdir.models import FileInfo, FileEditCmd
 
 
 def test_refs_to_path_skips_invalid_urls():
@@ -83,4 +83,4 @@ def test_change_empty():
 
 def test_change_multiple_paths():
     with pytest.raises(ValueError):
-        BaseAccessor().change([FileEdit(Path('a')), FileEdit(Path('b'))])
+        BaseAccessor().change([FileEditCmd(Path('a')), FileEditCmd(Path('b'))])

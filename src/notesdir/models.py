@@ -55,28 +55,26 @@ class FileInfo:
 
 
 @dataclass
-class FileEdit:
+class FileEditCmd:
     path: Path
 
 
 @dataclass
-class SetTitle(FileEdit):
+class SetTitleCmd(FileEditCmd):
     value: Optional[str]
 
 
 @dataclass
-class SetCreated(FileEdit):
+class SetCreatedCmd(FileEditCmd):
     value: Optional[datetime]
 
 
 @dataclass
-class ReplaceRef(FileEdit):
-    ACTION = 'replace_ref'
+class ReplaceRefCmd(FileEditCmd):
     original: str
     replacement: str
 
 
 @dataclass
-class Move(FileEdit):
-    ACTION = 'move'
+class MoveCmd(FileEditCmd):
     dest: Path

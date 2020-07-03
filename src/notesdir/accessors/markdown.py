@@ -4,7 +4,7 @@ import re
 from typing import List, Set
 import yaml
 from notesdir.accessors.base import BaseAccessor
-from notesdir.models import FileInfo, FileEdit, SetTitle, SetCreated, ReplaceRef
+from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 YAML_META_RE = re.compile(r'(?ms)\A---\n(.*)\n(---|\.\.\.)\s*$')
 TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
@@ -66,21 +66,21 @@ class MarkdownAccessor(BaseAccessor):
         info.created = meta.get('created')
         return info
 
-    def _change(self, edits: List[FileEdit]) -> bool:
+    def _change(self, edits: List[FileEditCmd]) -> bool:
         path = edits[0].path
         orig = path.read_text()
         changed = orig
         for edit in edits:
-            if isinstance(edit, ReplaceRef):
+            if isinstance(edit, ReplaceRefCmd):
                 changed = replace_ref(changed, edit.original, edit.replacement)
-            elif isinstance(edit, SetTitle):
+            elif isinstance(edit, SetTitleCmd):
                 meta = extract_meta(changed)
                 if edit.value is None:
                     del meta['title']
                 else:
                     meta['title'] = edit.value
                 changed = set_meta(changed, meta)
-            elif isinstance(edit, SetCreated):
+            elif isinstance(edit, SetCreatedCmd):
                 meta = extract_meta(changed)
                 if edit.value is None:
                     del meta['created']

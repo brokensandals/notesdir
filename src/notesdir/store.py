@@ -9,14 +9,14 @@ from tempfile import mkstemp
 from typing import Dict, List, Optional, Set
 from urllib.parse import ParseResult, urlparse, urlunparse, quote
 from notesdir.accessors.base import BaseAccessor
-from notesdir.models import FileInfo, FileEdit, ReplaceRef, Move
+from notesdir.models import FileInfo, FileEditCmd, ReplaceRefCmd, MoveCmd
 
 
-def group_edits(edits: List[FileEdit]) -> List[List[FileEdit]]:
+def group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
     group = None
     result = []
     for edit in edits:
-        if group and edit.path == group[0].path and not isinstance(edit, Move):
+        if group and edit.path == group[0].path and not isinstance(edit, MoveCmd):
             group.append(edit)
         else:
             group = [edit]
@@ -57,7 +57,7 @@ def path_as_ref(path: Path, into_url: ParseResult = None) -> str:
     return urlpath
 
 
-def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[Move]:
+def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[MoveCmd]:
     """Builds a list of Moves that will rename a set of files/folders.
 
     The keys of the dictionary are the paths to be renamed, and the values
@@ -73,11 +73,11 @@ def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[Move]:
         if dest in resolved and dest.exists():
             file, tmp = mkstemp(prefix=str(dest.name), dir=dest.parent)
             tmp = Path(tmp)
-            phase1.append(Move(dest, tmp))
-            phase2.append(Move(tmp, resolved[dest]))
+            phase1.append(MoveCmd(dest, tmp))
+            phase2.append(MoveCmd(tmp, resolved[dest]))
     for src, dest in resolved.items():
         if src not in dests and src.exists():
-            phase1.append(Move(src, dest))
+            phase1.append(MoveCmd(src, dest))
     return phase1 + phase2
 
 
@@ -115,7 +115,7 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
                     url = urlparse(ref)
                     newref = path_as_ref(ref_path(dest, target), url)
                     if not ref == newref:
-                        edits.append(ReplaceRef(src, ref, newref))
+                        edits.append(ReplaceRefCmd(src, ref, newref))
         for referrer in store.referrers(src):
             if referrer.resolve() in all_moves:
                 continue
@@ -123,7 +123,7 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
             for ref in info.refs_to_path(src):
                 url = urlparse(ref)
                 newref = path_as_ref(ref_path(referrer, dest), url)
-                edits.append(ReplaceRef(referrer, ref, newref))
+                edits.append(ReplaceRefCmd(referrer, ref, newref))
 
     edits.extend(edits_for_raw_moves(to_move))
     return edits
@@ -132,7 +132,7 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
 def edit_log_json_serializer(val):
     if isinstance(val, datetime):
         return val.isoformat()
-    if isinstance(val, FileEdit):
+    if isinstance(val, FileEditCmd):
         d = dataclasses.asdict(val)
         del d['path']
         d['class'] = type(val).__name__
@@ -144,7 +144,7 @@ class BaseStore:
     def info(self, path: Path) -> Optional[FileInfo]:
         raise NotImplementedError()
 
-    def change(self, edits: List[FileEdit]):
+    def change(self, edits: List[FileEditCmd]):
         raise NotImplementedError()
 
     def referrers(self, path: Path) -> Set[Path]:
@@ -175,16 +175,16 @@ class FSStore(BaseStore):
                 result.add(child_path)
         return result
 
-    def change(self, edits: List[FileEdit]):
+    def change(self, edits: List[FileEditCmd]):
         for group in group_edits(edits):
             self._log_edits(group)
-            if isinstance(group[0], Move):
+            if isinstance(group[0], MoveCmd):
                 for edit in group:
                     edit.path.rename(edit.dest)
             else:
                 self.accessor.change(group)
 
-    def _log_edits(self, edit_group: List[FileEdit]):
+    def _log_edits(self, edit_group: List[FileEditCmd]):
         if self.edit_log_path:
             path = edit_group[0].path
             entry = {

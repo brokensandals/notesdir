@@ -6,7 +6,7 @@ import re
 from typing import Dict, List
 from bs4 import BeautifulSoup, Tag
 from notesdir.accessors.base import BaseAccessor
-from notesdir.models import FileInfo, FileEdit, SetTitle, SetCreated, ReplaceRef
+from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 
 class Error(Exception):
@@ -72,7 +72,7 @@ class HTMLAccessor(BaseAccessor):
             # TODO srcset attribute
         return pinfo, info
 
-    def _change(self, edits: List[FileEdit]) -> bool:
+    def _change(self, edits: List[FileEditCmd]) -> bool:
         path = edits[0].path
         pinfo, info = self._parse(path)
         changed = False
@@ -86,7 +86,7 @@ class HTMLAccessor(BaseAccessor):
             html_el.insert(0, head_el)
 
         for edit in edits:
-            if isinstance(edit, ReplaceRef):
+            if isinstance(edit, ReplaceRefCmd):
                 for ref_el in pinfo.ref_els[edit.original]:
                     if ref_el.attrs.get('href', None) == edit.original:
                         ref_el.attrs['href'] = edit.replacement
@@ -94,13 +94,13 @@ class HTMLAccessor(BaseAccessor):
                     if ref_el.attrs.get('src', None) == edit.original:
                         ref_el.attrs['src'] = edit.replacement
                         changed = True
-            elif isinstance(edit, SetTitle):
+            elif isinstance(edit, SetTitleCmd):
                 changed = True
                 if not pinfo.title_el:
                     pinfo.title_el = pinfo.page.new_tag('title')
                     head_el.append(pinfo.title_el)
                 pinfo.title_el.string = edit.value
-            elif isinstance(edit, SetCreated):
+            elif isinstance(edit, SetCreatedCmd):
                 changed = True
                 if not pinfo.created_el:
                     pinfo.created_el = pinfo.page.new_tag('meta')

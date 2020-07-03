@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from freezegun import freeze_time
 import pytest
 from notesdir.accessors.base import BaseAccessor
-from notesdir.models import FileInfo, SetTitle, ReplaceRef, Move
+from notesdir.models import FileInfo, SetTitleCmd, ReplaceRefCmd, MoveCmd
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.store import ref_path, path_as_ref, edits_for_rearrange, FSStore
@@ -175,10 +175,10 @@ def test_referrers_self(fs):
 def test_change(fs):
     fs.create_file('/notes/one')
     fs.create_file('/notes/two')
-    edits = [SetTitle(Path('/notes/one'), 'New Title'),
-             ReplaceRef(Path('/notes/one'), 'old', 'new'),
-             Move(Path('/notes/one'), Path('/notes/moved')),
-             ReplaceRef(Path('/notes/two'), 'foo', 'bar')]
+    edits = [SetTitleCmd(Path('/notes/one'), 'New Title'),
+             ReplaceRefCmd(Path('/notes/one'), 'old', 'new'),
+             MoveCmd(Path('/notes/one'), Path('/notes/moved')),
+             ReplaceRefCmd(Path('/notes/two'), 'foo', 'bar')]
     accessor = Mock()
     store = FSStore(Path('/notes'), accessor)
     store.change(edits)
@@ -292,8 +292,8 @@ def test_log_edits(fs):
     fs.create_file('doc1.md', contents=doc1)
     fs.create_file('doc2.bin', contents=doc2)
     edits = [
-        ReplaceRef(Path('doc1.md'), 'doc2.md', 'garbage.md'),
-        Move(Path('doc2.bin'), Path('new-doc2.bin')),
+        ReplaceRefCmd(Path('doc1.md'), 'doc2.md', 'garbage.md'),
+        MoveCmd(Path('doc2.bin'), Path('new-doc2.bin')),
     ]
     store = FSStore(Path('/notes'), DelegatingAccessor(), edit_log_path=Path('edits'))
     store.change(edits)
@@ -305,7 +305,7 @@ def test_log_edits(fs):
         'datetime': '2020-02-03T12:05:06',
         'path': 'doc1.md',
         'edits': [{
-            'class': 'ReplaceRef',
+            'class': 'ReplaceRefCmd',
             'original': 'doc2.md',
             'replacement': 'garbage.md',
         }],
@@ -316,7 +316,7 @@ def test_log_edits(fs):
         'datetime': '2020-02-03T12:05:06',
         'path': 'doc2.bin',
         'edits': [{
-            'class': 'Move',
+            'class': 'MoveCmd',
             'dest': 'new-doc2.bin',
         }],
         'prior_base64': '/v7//w=='
