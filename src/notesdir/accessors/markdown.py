@@ -88,7 +88,7 @@ class MarkdownAccessor(BaseAccessor):
                     meta['created'] = edit.value
                 changed = set_meta(changed, meta)
             else:
-                raise NotImplementedError(f'Unsupported edit action {edit.action}')
+                raise NotImplementedError(f'Unsupported edit {edit}')
         if not orig == changed:
             path.write_text(changed)
             return True

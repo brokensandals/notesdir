@@ -107,6 +107,8 @@ class HTMLAccessor(BaseAccessor):
                     pinfo.created_el['name'] = 'created'
                     head_el.append(pinfo.created_el)
                 pinfo.created_el['content'] = edit.value.strftime(_DATE_FORMAT)
+            else:
+                raise NotImplementedError(f'Unsupported edit {edit}')
         if changed:
             path.write_text(str(pinfo.page))
         return changed

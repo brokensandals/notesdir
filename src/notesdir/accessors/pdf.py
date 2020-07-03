@@ -66,6 +66,8 @@ class PDFAccessor(BaseAccessor):
                     newmeta['/Title'] = edit.value
                 elif isinstance(edit, SetCreatedCmd):
                     newmeta['/CreationDate'] = pdf_strftime(edit.value)
+                else:
+                    raise NotImplementedError(f'Unsupported edit {edit}')
 
             if oldmeta == newmeta:
                 return False
