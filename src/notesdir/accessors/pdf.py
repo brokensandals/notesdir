@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
-from PyPDF4 import PdfFileReader
+from PyPDF4 import PdfFileReader, PdfFileMerger
 from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit
 
 
@@ -42,4 +42,28 @@ class PDFAccessor(BaseAccessor):
         return info
 
     def _change(self, edits: List[FileEdit]) -> bool:
-        pass
+        path = edits[0].path
+        merger = PdfFileMerger()
+
+        with path.open('rb') as file:
+            pdf = PdfFileReader(file)
+            oldmeta = {k: v for k, v in pdf.getDocumentInfo().items()}
+            newmeta = oldmeta.copy()
+
+            for edit in edits:
+                if edit.ACTION == 'set_attr':
+                    if edit.key == 'title':
+                        newmeta['/Title'] = edit.value
+                    elif edit.key == 'created':
+                        newmeta['/CreationDate'] = pdf_strftime(edit.value)
+
+            if oldmeta == newmeta:
+                return False
+
+            merger.append(file)
+
+        merger.addMetadata(newmeta)
+        with path.open('wb') as file:
+            merger.write(file)
+
+        return True
