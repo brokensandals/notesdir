@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import List
 
-from notesdir.accessors.base import FileInfo, FileEdit, BaseAccessor, MiscAccessor
+from notesdir.accessors.base import BaseAccessor, MiscAccessor
+from notesdir.models import FileInfo, FileEdit
 from notesdir.accessors.html import HTMLAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.accessors.pdf import PDFAccessor

@@ -4,7 +4,8 @@ from unittest.mock import call, Mock
 from urllib.parse import urlparse
 from freezegun import freeze_time
 import pytest
-from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetTitle
+from notesdir.accessors.base import BaseAccessor
+from notesdir.models import FileInfo, SetTitle, ReplaceRef, Move
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.store import ref_path, path_as_ref, edits_for_rearrange, FSStore

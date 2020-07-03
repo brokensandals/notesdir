@@ -5,7 +5,8 @@ from pathlib import Path
 import re
 from typing import Dict, List
 from bs4 import BeautifulSoup, Tag
-from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit, ReplaceRef, SetTitle, SetCreated
+from notesdir.accessors.base import BaseAccessor
+from notesdir.models import FileInfo, FileEdit, SetTitle, SetCreated, ReplaceRef
 
 
 class Error(Exception):

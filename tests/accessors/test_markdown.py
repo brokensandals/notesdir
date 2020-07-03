@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from notesdir.accessors.base import ReplaceRef, SetTitle, SetCreated
+from notesdir.models import SetTitle, SetCreated, ReplaceRef
 from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
     MarkdownAccessor, set_meta
 

@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import List, Optional
 from PyPDF4 import PdfFileReader, PdfFileMerger
 from PyPDF4.generic import IndirectObject
-from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit, SetTitle, SetCreated
+from notesdir.accessors.base import BaseAccessor
+from notesdir.models import FileInfo, FileEdit, SetTitle, SetCreated
 
 
 def pdf_strptime(s: Optional[str]) -> Optional[datetime]:

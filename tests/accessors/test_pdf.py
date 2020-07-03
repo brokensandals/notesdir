@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from PyPDF4 import PdfFileReader
-from notesdir.accessors.base import SetTitle, SetCreated
+from notesdir.models import SetTitle, SetCreated
 from notesdir.accessors.pdf import PDFAccessor
 
 

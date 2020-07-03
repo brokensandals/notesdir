@@ -1,6 +1,7 @@
 from pathlib import Path
 import pytest
-from notesdir.accessors.base import BaseAccessor, FileEdit, FileInfo
+from notesdir.accessors.base import BaseAccessor
+from notesdir.models import FileInfo, FileEdit
 
 
 def test_refs_to_path_skips_invalid_urls():

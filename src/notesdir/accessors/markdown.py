@@ -3,8 +3,8 @@ from pathlib import Path
 import re
 from typing import List, Set
 import yaml
-from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit, ReplaceRef, SetCreated, SetTitle
-
+from notesdir.accessors.base import BaseAccessor
+from notesdir.models import FileInfo, FileEdit, SetTitle, SetCreated, ReplaceRef
 
 YAML_META_RE = re.compile(r'(?ms)\A---\n(.*)\n(---|\.\.\.)\s*$')
 TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')

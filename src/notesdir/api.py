@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import Dict
 import toml
-from notesdir.accessors.base import SetTitle, SetCreated
+from notesdir.models import SetTitle, SetCreated
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.store import FSStore, edits_for_rearrange
 

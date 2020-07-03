@@ -8,7 +8,8 @@ from pathlib import Path
 from tempfile import mkstemp
 from typing import Dict, List, Optional, Set
 from urllib.parse import ParseResult, urlparse, urlunparse, quote
-from notesdir.accessors.base import BaseAccessor, FileEdit, FileInfo, Move, ReplaceRef
+from notesdir.accessors.base import BaseAccessor
+from notesdir.models import FileInfo, FileEdit, ReplaceRef, Move
 
 
 def group_edits(edits: List[FileEdit]) -> List[List[FileEdit]]:

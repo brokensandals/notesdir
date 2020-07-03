@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from bs4 import BeautifulSoup
-from notesdir.accessors.base import ReplaceRef, SetTitle, SetCreated, FileInfo
+from notesdir.models import FileInfo, SetTitle, SetCreated, ReplaceRef
 from notesdir.accessors.html import HTMLAccessor
 
 
