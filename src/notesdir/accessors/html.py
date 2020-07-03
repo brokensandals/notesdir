@@ -5,12 +5,8 @@ from pathlib import Path
 import re
 from typing import Dict, List
 from bs4 import BeautifulSoup, Tag
-from notesdir.accessors.base import BaseAccessor
+from notesdir.accessors.base import BaseAccessor, ChangeError, ParseError, UnsupportedChangeError
 from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
-
-
-class Error(Exception):
-    pass
 
 
 _DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
@@ -38,9 +34,8 @@ class HTMLAccessor(BaseAccessor):
         with path.open() as file:
             try:
                 page = BeautifulSoup(file, 'lxml')
-            except:
-                # TODO log the error somewhere, maybe
-                pass
+            except Exception as e:
+                raise ParseError('Cannot parse HTML', path, e)
         info = FileInfo(path)
         pinfo = ParseInfo(page)
         title_el = page.find('title')
@@ -79,7 +74,7 @@ class HTMLAccessor(BaseAccessor):
 
         html_el = pinfo.page.find('html')
         if not html_el:
-            raise Error(f'File does not contain root <html> element: {path}')
+            raise ChangeError(f'File does not contain root <html> element', edits)
         head_el = html_el.find('head')
         if not head_el:
             head_el = pinfo.page.new_tag('head')
@@ -108,7 +103,7 @@ class HTMLAccessor(BaseAccessor):
                     head_el.append(pinfo.created_el)
                 pinfo.created_el['content'] = edit.value.strftime(_DATE_FORMAT)
             else:
-                raise NotImplementedError(f'Unsupported edit {edit}')
+                raise UnsupportedChangeError(edit)
         if changed:
             path.write_text(str(pinfo.page))
         return changed

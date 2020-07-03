@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 from typing import List, Set
 import yaml
-from notesdir.accessors.base import BaseAccessor
+from notesdir.accessors.base import BaseAccessor, UnsupportedChangeError
 from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 YAML_META_RE = re.compile(r'(?ms)\A---\n(.*)\n(---|\.\.\.)\s*$')
@@ -88,7 +88,7 @@ class MarkdownAccessor(BaseAccessor):
                     meta['created'] = edit.value
                 changed = set_meta(changed, meta)
             else:
-                raise NotImplementedError(f'Unsupported edit {edit}')
+                raise UnsupportedChangeError(edit)
         if not orig == changed:
             path.write_text(changed)
             return True

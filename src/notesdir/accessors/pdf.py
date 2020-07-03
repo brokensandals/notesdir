@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 from PyPDF4 import PdfFileReader, PdfFileMerger
 from PyPDF4.generic import IndirectObject
-from notesdir.accessors.base import BaseAccessor
+from notesdir.accessors.base import BaseAccessor, ParseError, UnsupportedChangeError
 from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd
 
 
@@ -47,9 +47,8 @@ class PDFAccessor(BaseAccessor):
                     tag = tag.strip()
                     if tag:
                         info.managed_tags.add(tag)
-            except:
-                # TODO
-                pass
+            except Exception as e:
+                raise ParseError('Cannot parse PDF', path, e)
         return info
 
     def _change(self, edits: List[FileEditCmd]) -> bool:
@@ -67,7 +66,7 @@ class PDFAccessor(BaseAccessor):
                 elif isinstance(edit, SetCreatedCmd):
                     newmeta['/CreationDate'] = pdf_strftime(edit.value)
                 else:
-                    raise NotImplementedError(f'Unsupported edit {edit}')
+                    raise UnsupportedChangeError(edit)
 
             if oldmeta == newmeta:
                 return False
