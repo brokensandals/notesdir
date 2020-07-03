@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from bs4 import BeautifulSoup
-from notesdir.accessors.base import ReplaceRef, SetAttr, FileInfo
+from notesdir.accessors.base import ReplaceRef, SetTitle, SetCreated, FileInfo
 from notesdir.accessors.html import HTMLAccessor
 
 
@@ -49,8 +49,8 @@ def test_change_from_missing_attributes(fs):
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
     edits = [
-        SetAttr(path, 'title', 'A Delightful Note'),
-        SetAttr(path, 'created', datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
+        SetTitle(path, 'A Delightful Note'),
+        SetCreated(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
     ]
     assert HTMLAccessor().change(edits)
     assert BeautifulSoup(path.read_text(), 'lxml') == BeautifulSoup(expected, 'lxml')
@@ -90,8 +90,8 @@ def test_change(fs):
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
     edits = [
-        SetAttr(path, 'title', 'A Delightful Note'),
-        SetAttr(path, 'created', datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))),
+        SetTitle(path, 'A Delightful Note'),
+        SetCreated(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))),
         ReplaceRef(path, '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'),
         ReplaceRef(path, 'http://example.com/foo.png', 'http://example.com/bar.png'),
         ReplaceRef(path, 'media/something.weird', 'content/something.cool')

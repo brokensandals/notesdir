@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from PyPDF4 import PdfFileReader
-from notesdir.accessors.base import SetAttr
+from notesdir.accessors.base import SetTitle, SetCreated
 from notesdir.accessors.pdf import PDFAccessor
 
 
@@ -19,8 +19,8 @@ def test_change(fs):
     path = Path(__file__).parent.joinpath('test.pdf')
     fs.add_real_file(path, read_only=False)
     edits = [
-        SetAttr(path, 'title', 'Why Donuts Are Great'),
-        SetAttr(path, 'created', datetime.fromisoformat('1999-02-04T06:08:10+00:00'))
+        SetTitle(path, 'Why Donuts Are Great'),
+        SetCreated(path, datetime.fromisoformat('1999-02-04T06:08:10+00:00'))
     ]
     assert PDFAccessor().change(edits)
     with path.open('rb') as file:

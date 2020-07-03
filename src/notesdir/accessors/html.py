@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 from typing import Dict, List
 from bs4 import BeautifulSoup, Tag
-from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit
+from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit, ReplaceRef, SetTitle, SetCreated
 
 
 class Error(Exception):
@@ -85,7 +85,7 @@ class HTMLAccessor(BaseAccessor):
             html_el.insert(0, head_el)
 
         for edit in edits:
-            if edit.ACTION == 'replace_ref':
+            if isinstance(edit, ReplaceRef):
                 for ref_el in pinfo.ref_els[edit.original]:
                     if ref_el.attrs.get('href', None) == edit.original:
                         ref_el.attrs['href'] = edit.replacement
@@ -93,19 +93,19 @@ class HTMLAccessor(BaseAccessor):
                     if ref_el.attrs.get('src', None) == edit.original:
                         ref_el.attrs['src'] = edit.replacement
                         changed = True
-            if edit.ACTION == 'set_attr':
+            elif isinstance(edit, SetTitle):
                 changed = True
-                if edit.key == 'title':
-                    if not pinfo.title_el:
-                        pinfo.title_el = pinfo.page.new_tag('title')
-                        head_el.append(pinfo.title_el)
-                    pinfo.title_el.string = edit.value
-                elif edit.key == 'created':
-                    if not pinfo.created_el:
-                        pinfo.created_el = pinfo.page.new_tag('meta')
-                        pinfo.created_el['name'] = 'created'
-                        head_el.append(pinfo.created_el)
-                    pinfo.created_el['content'] = edit.value.strftime(_DATE_FORMAT)
+                if not pinfo.title_el:
+                    pinfo.title_el = pinfo.page.new_tag('title')
+                    head_el.append(pinfo.title_el)
+                pinfo.title_el.string = edit.value
+            elif isinstance(edit, SetCreated):
+                changed = True
+                if not pinfo.created_el:
+                    pinfo.created_el = pinfo.page.new_tag('meta')
+                    pinfo.created_el['name'] = 'created'
+                    head_el.append(pinfo.created_el)
+                pinfo.created_el['content'] = edit.value.strftime(_DATE_FORMAT)
         if changed:
             path.write_text(str(pinfo.page))
         return changed

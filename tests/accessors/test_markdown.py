@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from notesdir.accessors.base import ReplaceRef, SetAttr
+from notesdir.accessors.base import ReplaceRef, SetTitle, SetCreated
 from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
     MarkdownAccessor, set_meta
 
@@ -142,8 +142,8 @@ published about online (see [this article](http://example.com/blahblah) and
     edits = [
         ReplaceRef(path, '../Another%20Note.md', 'moved/another-note.md'),
         ReplaceRef(path, 'http://example.com/blah', 'https://example.com/meh'),
-        SetAttr(path, 'title', 'A Close Examination of the Navel'),
-        SetAttr(path, 'created', datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
+        SetTitle(path, 'A Close Examination of the Navel'),
+        SetCreated(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
     ]
     fs.create_file(path, contents=doc)
     assert MarkdownAccessor().change(edits)

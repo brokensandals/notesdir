@@ -4,7 +4,7 @@ from unittest.mock import call, Mock
 from urllib.parse import urlparse
 from freezegun import freeze_time
 import pytest
-from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetAttr
+from notesdir.accessors.base import BaseAccessor, FileInfo, Move, ReplaceRef, SetTitle
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.store import ref_path, path_as_ref, edits_for_rearrange, FSStore
@@ -174,7 +174,7 @@ def test_referrers_self(fs):
 def test_change(fs):
     fs.create_file('/notes/one')
     fs.create_file('/notes/two')
-    edits = [SetAttr(Path('/notes/one'), 'title', 'New Title'),
+    edits = [SetTitle(Path('/notes/one'), 'New Title'),
              ReplaceRef(Path('/notes/one'), 'old', 'new'),
              Move(Path('/notes/one'), Path('/notes/moved')),
              ReplaceRef(Path('/notes/two'), 'foo', 'bar')]
@@ -304,7 +304,7 @@ def test_log_edits(fs):
         'datetime': '2020-02-03T12:05:06',
         'path': 'doc1.md',
         'edits': [{
-            'action': 'replace_ref',
+            'class': 'ReplaceRef',
             'original': 'doc2.md',
             'replacement': 'garbage.md',
         }],
@@ -315,7 +315,7 @@ def test_log_edits(fs):
         'datetime': '2020-02-03T12:05:06',
         'path': 'doc2.bin',
         'edits': [{
-            'action': 'move',
+            'class': 'Move',
             'dest': 'new-doc2.bin',
         }],
         'prior_base64': '/v7//w=='

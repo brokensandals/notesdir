@@ -56,15 +56,17 @@ class FileInfo:
 
 @dataclass
 class FileEdit:
-    ACTION = 'unknown'
     path: Path
 
 
 @dataclass
-class SetAttr(FileEdit):
-    ACTION = 'set_attr'
-    key: str
-    value: Any
+class SetTitle(FileEdit):
+    value: Optional[str]
+
+
+@dataclass
+class SetCreated(FileEdit):
+    value: Optional[datetime]
 
 
 @dataclass

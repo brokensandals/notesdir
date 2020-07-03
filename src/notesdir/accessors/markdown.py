@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 from typing import List, Set
 import yaml
-from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit
+from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit, ReplaceRef, SetCreated, SetTitle
 
 
 YAML_META_RE = re.compile(r'(?ms)\A---\n(.*)\n(---|\.\.\.)\s*$')
@@ -71,22 +71,21 @@ class MarkdownAccessor(BaseAccessor):
         orig = path.read_text()
         changed = orig
         for edit in edits:
-            if edit.ACTION == 'replace_ref':
+            if isinstance(edit, ReplaceRef):
                 changed = replace_ref(changed, edit.original, edit.replacement)
-            elif edit.ACTION == 'set_attr':
+            elif isinstance(edit, SetTitle):
                 meta = extract_meta(changed)
-                if edit.key == 'title':
-                    if edit.value is None:
-                        del meta['title']
-                    else:
-                        meta['title'] = edit.value
-                elif edit.key == 'created':
-                    if edit.value is None:
-                        del meta['created']
-                    else:
-                        meta['created'] = edit.value
+                if edit.value is None:
+                    del meta['title']
                 else:
-                    raise NotImplementedError(f'Unsupported set_attr key {edit.key}')
+                    meta['title'] = edit.value
+                changed = set_meta(changed, meta)
+            elif isinstance(edit, SetCreated):
+                meta = extract_meta(changed)
+                if edit.value is None:
+                    del meta['created']
+                else:
+                    meta['created'] = edit.value
                 changed = set_meta(changed, meta)
             else:
                 raise NotImplementedError(f'Unsupported edit action {edit.action}')

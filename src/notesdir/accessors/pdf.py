@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 from PyPDF4 import PdfFileReader, PdfFileMerger
 from PyPDF4.generic import IndirectObject
-from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit
+from notesdir.accessors.base import BaseAccessor, FileInfo, FileEdit, SetTitle, SetCreated
 
 
 def pdf_strptime(s: Optional[str]) -> Optional[datetime]:
@@ -61,11 +61,10 @@ class PDFAccessor(BaseAccessor):
             newmeta = oldmeta.copy()
 
             for edit in edits:
-                if edit.ACTION == 'set_attr':
-                    if edit.key == 'title':
-                        newmeta['/Title'] = edit.value
-                    elif edit.key == 'created':
-                        newmeta['/CreationDate'] = pdf_strftime(edit.value)
+                if isinstance(edit, SetTitle):
+                    newmeta['/Title'] = edit.value
+                elif isinstance(edit, SetCreated):
+                    newmeta['/CreationDate'] = pdf_strftime(edit.value)
 
             if oldmeta == newmeta:
                 return False

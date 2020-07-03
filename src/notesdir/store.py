@@ -15,7 +15,7 @@ def group_edits(edits: List[FileEdit]) -> List[List[FileEdit]]:
     group = None
     result = []
     for edit in edits:
-        if group and edit.path == group[0].path and not edit.ACTION == 'move':
+        if group and edit.path == group[0].path and not isinstance(edit, Move):
             group.append(edit)
         else:
             group = [edit]
@@ -134,7 +134,7 @@ def edit_log_json_serializer(val):
     if isinstance(val, FileEdit):
         d = dataclasses.asdict(val)
         del d['path']
-        d['action'] = val.ACTION
+        d['class'] = type(val).__name__
         return d
     return str(val)
 
@@ -177,7 +177,7 @@ class FSStore(BaseStore):
     def change(self, edits: List[FileEdit]):
         for group in group_edits(edits):
             self._log_edits(group)
-            if group[0].ACTION == 'move':
+            if isinstance(group[0], Move):
                 for edit in group:
                     edit.path.rename(edit.dest)
             else:
