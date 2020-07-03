@@ -58,13 +58,13 @@ class MarkdownAccessor(BaseAccessor):
     def parse(self, path: Path) -> FileInfo:
         text = path.read_text()
         meta = extract_meta(text)
-        return FileInfo(
-            path=path,
-            refs=extract_refs(text),
-            tags=extract_tags(text),
-            title=meta.get('title'),
-            created=meta.get('created')
-        )
+        info = FileInfo(path)
+        info.refs = extract_refs(text)
+        info.managed_tags = {k.lower() for k in meta.get('keywords', [])}
+        info.unmanaged_tags = extract_tags(text)
+        info.title = meta.get('title')
+        info.created = meta.get('created')
+        return info
 
     def _change(self, edits: List[FileEdit]) -> bool:
         path = edits[0].path

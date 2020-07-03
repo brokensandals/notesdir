@@ -50,10 +50,10 @@ class HTMLAccessor(BaseAccessor):
             for kw in keywords_tag.attrs.get('content', '').lower().split(','):
                 tag = kw.strip()
                 if tag:
-                    info.tags.add(tag)
+                    info.managed_tags.add(tag)
         body_tag = page.find('body')
         if body_tag:
-            info.tags.update(set(t.lower() for t in TAG_RE.findall(body_tag.get_text())))
+            info.unmanaged_tags.update(set(t.lower() for t in TAG_RE.findall(body_tag.get_text())))
         created_tag = page.find('meta', {'name': 'created'})
         if created_tag:
             info.created = datetime.strptime(created_tag['content'], _DATE_FORMAT)

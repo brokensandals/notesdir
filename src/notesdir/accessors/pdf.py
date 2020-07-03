@@ -40,9 +40,12 @@ class PDFAccessor(BaseAccessor):
             try:
                 pdf = PdfFileReader(file)
                 pdfinfo = pdf.getDocumentInfo()
-                info.title = resolve_object(pdfinfo.get('/Title', None))
-                info.created = pdf_strptime(resolve_object(pdfinfo.get('/CreationDate', None)))
-                info.tags.update(t.strip() for t in resolve_object(pdfinfo.get('/Keywords', None)).split(',') if t.strip())
+                info.title = resolve_object(pdfinfo.get('/Title'))
+                info.created = pdf_strptime(resolve_object(pdfinfo.get('/CreationDate')))
+                for tag in resolve_object(pdfinfo.get('/Keywords')).split(','):
+                    tag = tag.strip()
+                    if tag:
+                        info.managed_tags.add(tag)
             except:
                 # TODO
                 pass

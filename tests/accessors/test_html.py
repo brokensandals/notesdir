@@ -33,7 +33,8 @@ def test_parse(fs):
     info = HTMLAccessor().parse(path)
     assert info.path == path
     assert info.title == 'I Am A Strange Knot'
-    assert info.tags == {'mind', 'philosophy', 'consciousness', 'extra'}
+    assert info.managed_tags == {'mind', 'philosophy', 'consciousness'}
+    assert info.unmanaged_tags == {'extra'}
     assert info.created == datetime(2019, 10, 3, 23, 31, 14, 0, timezone(timedelta(hours=-8)))
     assert info.refs == {'../Another%20Note.md', 'me.html.resources/A%20Picture.png', '#nope'}
 

@@ -12,7 +12,7 @@ def test_parse(fs):
     assert info.path == path
     assert info.title == 'Test PDF'
     assert info.created == datetime.fromisoformat('2020-07-02T17:43:40+00:00')
-    assert info.tags == {'tag1', 'tag2'}
+    assert info.managed_tags == {'tag1', 'tag2'}
 
 
 def test_change(fs):
@@ -31,4 +31,4 @@ def test_change(fs):
     info = PDFAccessor().parse(path)
     assert info.title == 'Why Donuts Are Great'
     assert info.created == datetime.fromisoformat('1999-02-04T06:08:10+00:00')
-    assert info.tags == {'tag1', 'tag2'}
+    assert info.managed_tags == {'tag1', 'tag2'}

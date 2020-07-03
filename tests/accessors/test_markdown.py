@@ -96,6 +96,8 @@ def test_parse(fs):
     doc = """---
 title: An Examination of the Navel
 created: 2019-06-04 10:12:13-08:00
+keywords:
+  - TrulyProfound
 ...
 #personal #book-draft
 # Preface: Reasons for #journaling
@@ -107,8 +109,9 @@ published about online (see [this article](http://example.com/blah) among many o
     fs.create_file(path, contents=doc)
     info = MarkdownAccessor().parse(path)
     assert info.path == path
-    assert info.refs == set(['../Another%20Note.md', 'http://example.com/blah'])
-    assert info.tags == set(['personal', 'book-draft', 'journaling'])
+    assert info.refs == {'../Another%20Note.md', 'http://example.com/blah'}
+    assert info.managed_tags == {'trulyprofound'}
+    assert info.unmanaged_tags == {'personal', 'book-draft', 'journaling'}
     assert info.title == 'An Examination of the Navel'
     assert info.created == datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))
 
