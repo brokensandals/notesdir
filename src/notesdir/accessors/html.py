@@ -23,9 +23,9 @@ def defaultdict_list():
 @dataclass
 class ParseInfo:
     page: BeautifulSoup
-    title_tag: Tag = None
-    created_tag: Tag = None
-    ref_tags: Dict[str, List[Tag]] = field(default_factory=defaultdict_list)
+    title_el: Tag = None
+    created_el: Tag = None
+    ref_els: Dict[str, List[Tag]] = field(default_factory=defaultdict_list)
     pass
 
 
@@ -42,32 +42,32 @@ class HTMLAccessor(BaseAccessor):
                 pass
         info = FileInfo(path)
         pinfo = ParseInfo(page)
-        title_tag = page.find('title')
-        if title_tag:
-            info.title = title_tag.get_text()
-            pinfo.title_tag = title_tag
-        for keywords_tag in page.find_all('meta', {'name': 'keywords'}):
-            for kw in keywords_tag.attrs.get('content', '').lower().split(','):
+        title_el = page.find('title')
+        if title_el:
+            info.title = title_el.get_text()
+            pinfo.title_el = title_el
+        for keywords_el in page.find_all('meta', {'name': 'keywords'}):
+            for kw in keywords_el.attrs.get('content', '').lower().split(','):
                 tag = kw.strip()
                 if tag:
                     info.managed_tags.add(tag)
-        body_tag = page.find('body')
-        if body_tag:
-            info.unmanaged_tags.update(set(t.lower() for t in TAG_RE.findall(body_tag.get_text())))
-        created_tag = page.find('meta', {'name': 'created'})
-        if created_tag:
-            info.created = datetime.strptime(created_tag['content'], _DATE_FORMAT)
-            pinfo.created_tag = created_tag
-        for a_tag in page.find_all('a'):
-            href = a_tag.attrs.get('href', None)
+        body_el = page.find('body')
+        if body_el:
+            info.unmanaged_tags.update(set(t.lower() for t in TAG_RE.findall(body_el.get_text())))
+        created_el = page.find('meta', {'name': 'created'})
+        if created_el:
+            info.created = datetime.strptime(created_el['content'], _DATE_FORMAT)
+            pinfo.created_el = created_el
+        for a_el in page.find_all('a'):
+            href = a_el.attrs.get('href', None)
             if href:
                 info.refs.add(href)
-                pinfo.ref_tags[href].append(a_tag)
-        for source_tag in page.find_all(['img', 'video', 'audio', 'source']):
-            src = source_tag.attrs.get('src', None)
+                pinfo.ref_els[href].append(a_el)
+        for source_el in page.find_all(['img', 'video', 'audio', 'source']):
+            src = source_el.attrs.get('src', None)
             if src:
                 info.refs.add(src)
-                pinfo.ref_tags[src].append(source_tag)
+                pinfo.ref_els[src].append(source_el)
             # TODO srcset attribute
         return pinfo, info
 
@@ -76,36 +76,36 @@ class HTMLAccessor(BaseAccessor):
         pinfo, info = self._parse(path)
         changed = False
 
-        html_tag = pinfo.page.find('html')
-        if not html_tag:
+        html_el = pinfo.page.find('html')
+        if not html_el:
             raise Error(f'File does not contain root <html> element: {path}')
-        head_tag = html_tag.find('head')
-        if not head_tag:
-            head_tag = pinfo.page.new_tag('head')
-            html_tag.insert(0, head_tag)
+        head_el = html_el.find('head')
+        if not head_el:
+            head_el = pinfo.page.new_tag('head')
+            html_el.insert(0, head_el)
 
         for edit in edits:
             if edit.ACTION == 'replace_ref':
-                for ref_tag in pinfo.ref_tags[edit.original]:
-                    if ref_tag.attrs.get('href', None) == edit.original:
-                        ref_tag.attrs['href'] = edit.replacement
+                for ref_el in pinfo.ref_els[edit.original]:
+                    if ref_el.attrs.get('href', None) == edit.original:
+                        ref_el.attrs['href'] = edit.replacement
                         changed = True
-                    if ref_tag.attrs.get('src', None) == edit.original:
-                        ref_tag.attrs['src'] = edit.replacement
+                    if ref_el.attrs.get('src', None) == edit.original:
+                        ref_el.attrs['src'] = edit.replacement
                         changed = True
             if edit.ACTION == 'set_attr':
                 changed = True
                 if edit.key == 'title':
-                    if not pinfo.title_tag:
-                        pinfo.title_tag = pinfo.page.new_tag('title')
-                        head_tag.append(pinfo.title_tag)
-                    pinfo.title_tag.string = edit.value
+                    if not pinfo.title_el:
+                        pinfo.title_el = pinfo.page.new_tag('title')
+                        head_el.append(pinfo.title_el)
+                    pinfo.title_el.string = edit.value
                 elif edit.key == 'created':
-                    if not pinfo.created_tag:
-                        pinfo.created_tag = pinfo.page.new_tag('meta')
-                        pinfo.created_tag['name'] = 'created'
-                        head_tag.append(pinfo.created_tag)
-                    pinfo.created_tag['content'] = edit.value.strftime(_DATE_FORMAT)
+                    if not pinfo.created_el:
+                        pinfo.created_el = pinfo.page.new_tag('meta')
+                        pinfo.created_el['name'] = 'created'
+                        head_el.append(pinfo.created_el)
+                    pinfo.created_el['content'] = edit.value.strftime(_DATE_FORMAT)
         if changed:
             path.write_text(str(pinfo.page))
         return changed
