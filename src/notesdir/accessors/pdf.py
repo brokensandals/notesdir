@@ -57,6 +57,12 @@ class PDFAccessor(Accessor):
         merger = PdfFileMerger()
         with self.path.open('rb') as file:
             merger.append(file)
+        if '/AAPL:Keywords' in self._meta:
+            # HACK: Some Apple software includes this field when producing PDFs.
+            # The value is an array. However, at least as of version 1.7, the PDF spec
+            # forbids custom document info fields from having anything but string values.
+            # PyPDF will crash if we try to have it write an array to a document info field.
+            del self._meta['/AAPL:Keywords']
         merger.addMetadata(self._meta)
         with self.path.open('wb') as file:
             merger.write(file)
