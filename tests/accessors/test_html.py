@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from bs4 import BeautifulSoup
-from notesdir.models import FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 from notesdir.accessors.html import HTMLAccessor
 
 
@@ -96,3 +96,29 @@ def test_change(fs):
     acc.edit(ReplaceRefCmd(path, 'media/something.weird', 'content/something.cool'))
     assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml',) == BeautifulSoup(expected, 'lxml')
+
+
+def test_change_tags(fs):
+    doc = """<html>
+    <head>
+        <meta name="keywords" content="one, two"/>
+    </head>
+    <body>
+        text
+    </body>
+</html>"""
+    expected = """<html>
+    <head>
+        <meta name="keywords" content="three, two"/>
+    </head>
+    <body>
+        text
+    </body>
+</html>"""
+    path = Path('/fakenotes/test.html')
+    fs.create_file(path, contents=doc)
+    acc = HTMLAccessor(path)
+    acc.edit(AddTagCmd(path, 'THREE'))
+    acc.edit(DelTagCmd(path, 'ONE'))
+    assert acc.save()
+    assert BeautifulSoup(path.read_text(), 'lxml', ) == BeautifulSoup(expected, 'lxml')

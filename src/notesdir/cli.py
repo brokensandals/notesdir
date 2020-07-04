@@ -25,6 +25,20 @@ def _norm(args, nd: Notesdir) -> int:
     return 0
 
 
+def _tags_add(args, nd: Notesdir) -> int:
+    tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
+    paths = {Path(p) for p in args.paths}
+    nd.add_tags(tags, paths)
+    return 0
+
+
+def _tags_rm(args, nd: Notesdir) -> int:
+    tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
+    paths = {Path(p) for p in args.paths}
+    nd.remove_tags(tags, paths)
+    return 0
+
+
 def main(args=None) -> int:
     """Runs the tool and returns its exit code.
 
@@ -50,6 +64,20 @@ def main(args=None) -> int:
         help='normalize file')
     p_norm.add_argument('path', help='file to normalize', nargs=1)
     p_norm.set_defaults(func=_norm)
+
+    p_tags_add = subs.add_parser(
+        'tags-add',
+        help='add tags to files')
+    p_tags_add.add_argument('tags', help='comma-separated list of tags', nargs=1)
+    p_tags_add.add_argument('paths', help='files to add tags to', nargs='+')
+    p_tags_add.set_defaults(func=_tags_add)
+
+    p_tags_rm = subs.add_parser(
+        'tags-rm',
+        help='remove tags from files')
+    p_tags_rm.add_argument('tags', help='comma-separated list of tags', nargs=1)
+    p_tags_rm.add_argument('paths', help='files to remove tags from', nargs='+')
+    p_tags_rm.set_defaults(func=_tags_rm)
 
     args = parser.parse_args(args)
     if not args.func:

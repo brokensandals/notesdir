@@ -2,9 +2,9 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Set
 import toml
-from notesdir.models import SetTitleCmd, SetCreatedCmd
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.store import FSStore, edits_for_rearrange
 
@@ -56,7 +56,7 @@ class Notesdir:
             edit_log_path = Path(edit_log_path)
 
         self.store = FSStore(set(config['paths']), DelegatingAccessor, edit_log_path=edit_log_path,
-                             filters={re.compile(f) for f in config.get('filters')})
+                             filters={re.compile(f) for f in config.get('filters', [])})
 
     def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
@@ -140,3 +140,17 @@ class Notesdir:
             self.store.change(edits)
 
         return moves
+
+    def add_tags(self, tags: Set[str], paths: Set[Path]):
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(f'File does not exist: {path}')
+            edits = [AddTagCmd(path, t.lower()) for t in tags]
+            self.store.change(edits)
+
+    def remove_tags(self, tags: Set[str], paths: Set[Path]):
+        for path in paths:
+            if not path.exists():
+                raise FileNotFoundError(f'File does not exist: {path}')
+            edits = [DelTagCmd(path, t.lower()) for t in tags]
+            self.store.change(edits)

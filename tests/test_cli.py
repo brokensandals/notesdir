@@ -195,3 +195,12 @@ title: +foo-Bar-
 some text"""
     out, err = capsys.readouterr()
     assert 'Moved +foo-Bar-.md to foo-bar.md' in out
+
+
+def test_tags(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo.md')
+    assert cli.main(['tags-add', 'One,two, , three', 'foo.md']) == 0
+    assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- one\n- three\n- two\n...\n'
+    assert cli.main(['tags-rm', 'oNe,tWo', 'foo.md']) == 0
+    assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- three\n...\n'

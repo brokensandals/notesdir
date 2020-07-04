@@ -5,7 +5,7 @@ from typing import Set, Tuple
 import yaml
 
 from notesdir.accessors.base import Accessor
-from notesdir.models import FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*)\n(---|\.\.\.)\s*\r?\n)?(.*)')
 TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
@@ -68,6 +68,25 @@ class MarkdownAccessor(Accessor):
         else:
             text = self.body
         self.path.write_text(text)
+
+    def _add_tag(self, edit: AddTagCmd):
+        tag = edit.value.lower()
+        self.edited = self.edited or tag not in self.meta.get('keywords', [])
+        if 'keywords' in self.meta:
+            self.meta['keywords'].append(tag)
+            self.meta['keywords'].sort()
+        else:
+            self.meta['keywords'] = [tag]
+
+    def _del_tag(self, edit: DelTagCmd):
+        tag = edit.value.lower()
+        if tag not in self.meta.get('keywords', []):
+            return
+        if len(self.meta['keywords']) == 1:
+            del self.meta['keywords']
+        else:
+            self.meta['keywords'].remove(tag)
+        self.edited = True
 
     def _set_title(self, edit: SetTitleCmd):
         self.edited = self.edited or not self.meta.get('title') == edit.value

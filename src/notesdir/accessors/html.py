@@ -1,11 +1,12 @@
 import re
 from collections import defaultdict
 from datetime import datetime
+from typing import Set
 
 from bs4 import BeautifulSoup, Tag
 
 from notesdir.accessors.base import Accessor, ChangeError, ParseError
-from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 _DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
@@ -19,7 +20,7 @@ class HTMLAccessor(Accessor):
             except Exception as e:
                 raise ParseError('Cannot parse HTML', self.path, e)
         self._title_el = self._page.find('title')
-        self._keywords_els = self._page.find_all('meta', {'name': 'keywords'})
+        self._keywords_el = self._page.find('meta', {'name': 'keywords'})
         body_el = self._page.find('body')
         if body_el:
             self._unmanaged_tags = {t.lower() for t in TAG_RE.findall(body_el.get_text())}
@@ -40,11 +41,7 @@ class HTMLAccessor(Accessor):
     def _info(self, info: FileInfo):
         info.title = self._title()
         info.created = self._created()
-        for kwel in self._keywords_els:
-            for kw in kwel.attrs.get('content', '').lower().split(','):
-                tag = kw.strip()
-                if tag:
-                    info.managed_tags.add(tag)
+        info.managed_tags = self._managed_tags()
         info.unmanaged_tags = self._unmanaged_tags.copy()
         info.refs.update(self._ref_els.keys())
 
@@ -64,6 +61,35 @@ class HTMLAccessor(Accessor):
             if not self._html_el:
                 raise ChangeError(f'File does not contain root <html> element', [edit])
         return self._html_el
+
+    def _managed_tags(self) -> Set[str]:
+        if not self._keywords_el:
+            return set()
+        return {t.strip() for t in self._keywords_el.attrs.get('content', '').lower().split(',')
+                if t.strip()}
+
+    def _add_tag(self, edit: AddTagCmd):
+        tag = edit.value.lower()
+        tags = self._managed_tags()
+        # TODO should it check all tags or just managed?
+        if tag in tags:
+            return
+        if not self._keywords_el:
+            newel = self._page.new_tag('meta')
+            newel['name' ] = 'keywords'
+            self._get_head_el(edit).append(newel)
+            self._keywords_el = newel
+        tags.add(tag)
+        self._keywords_el['content'] = ', '.join(sorted(tags))
+        self.edited = True
+
+    def _del_tag(self, edit: DelTagCmd):
+        tag = edit.value.lower()
+        tags = self._managed_tags()
+        if tag not in tags:
+            return
+        tags.remove(tag)
+        self._keywords_el['content'] = ', '.join(sorted(tags))
 
     def _title(self):
         return self._title_el and self._title_el.get_text()

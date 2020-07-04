@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from notesdir.models import SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
     MarkdownAccessor
 
@@ -133,5 +133,27 @@ published about online (see [this article](http://example.com/blahblah) and
     acc.edit(ReplaceRefCmd(path, 'http://example.com/blah', 'https://example.com/meh'))
     acc.edit(SetTitleCmd(path, 'A Close Examination of the Navel'))
     acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
+    assert acc.save()
+    assert path.read_text() == expected
+
+
+def test_change_managed_tags(fs):
+    doc = """---
+keywords:
+- one
+- two
+...
+text"""
+    expected = """---
+keywords:
+- three
+- two
+...
+text"""
+    path = Path('/fakenotes/test.md')
+    fs.create_file(path, contents=doc)
+    acc = MarkdownAccessor(path)
+    acc.edit(AddTagCmd(path, 'THREE'))
+    acc.edit(DelTagCmd(path, 'ONE'))
     assert acc.save()
     assert path.read_text() == expected
