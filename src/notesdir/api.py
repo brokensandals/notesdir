@@ -56,7 +56,7 @@ class Notesdir:
             edit_log_path = Path(edit_log_path)
 
         self.store = FSStore(set(config['paths']), DelegatingAccessor, edit_log_path=edit_log_path,
-                             filters=config.get('filters'))
+                             filters={re.compile(f) for f in config.get('filters')})
 
     def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
