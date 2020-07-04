@@ -1,22 +1,25 @@
-from io import StringIO
-from pathlib import Path
 import re
-from typing import List, Set
+from io import StringIO
+from typing import Set, Tuple
+
 import yaml
-from notesdir.accessors.base import BaseAccessor, UnsupportedChangeError
-from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
-YAML_META_RE = re.compile(r'(?ms)\A---\n(.*)\n(---|\.\.\.)\s*$')
+from notesdir.accessors.base import Accessor
+from notesdir.models import FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+
+YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*)\n(---|\.\.\.)\s*\r?\n)?(.*)')
 TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
-INLINE_REF_RE = re.compile(r'\[.*\]\((\S+)\)')
-REFSTYLE_REF_RE = re.compile(r'(?m)^\[.*\]:\s*(\S+)')
+INLINE_REF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
+REFSTYLE_REF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
 
 
-def extract_meta(doc) -> dict:
+def extract_meta(doc) -> Tuple[dict, str]:
+    meta = {}
     match = YAML_META_RE.match(doc)
-    if not match:
-        return {}
-    return yaml.safe_load(match.groups()[0])
+    if match.groups()[1]:
+        meta = yaml.safe_load(match.groups()[1])
+    body = match.groups()[3]
+    return meta, body
 
 
 def extract_tags(doc) -> Set[str]:
@@ -43,53 +46,39 @@ def replace_ref(doc: str, src: str, dest: str) -> str:
     return doc
 
 
-def set_meta(doc: str, meta: dict) -> str:
-    sio = StringIO()
-    yaml.safe_dump(meta, sio)
-    yaml_str = sio.getvalue().rstrip('\n')
-    match = YAML_META_RE.match(doc)
-    if match:
-        return f'{doc[:match.start(1)]}{yaml_str}{doc[match.end(1):]}'
-    else:
-        return f'---\n{yaml_str}\n...\n{doc}'
+class MarkdownAccessor(Accessor):
+    def _load(self):
+        text = self.path.read_text()
+        self.meta, self.body = extract_meta(text)
+        self.refs = extract_refs(self.body)
+        self.unmanaged_tags = extract_tags(self.body)
 
+    def _info(self, info: FileInfo):
+        info.title = self.meta.get('title')
+        info.created = self.meta.get('created')
+        info.managed_tags = {k.lower() for k in self.meta.get('keywords', [])}
+        info.refs = self.refs.copy()
+        info.unmanaged_tags = self.unmanaged_tags.copy()
 
-class MarkdownAccessor(BaseAccessor):
-    def parse(self, path: Path) -> FileInfo:
-        text = path.read_text()
-        meta = extract_meta(text)
-        info = FileInfo(path)
-        info.refs = extract_refs(text)
-        info.managed_tags = {k.lower() for k in meta.get('keywords', [])}
-        info.unmanaged_tags = extract_tags(text)
-        info.title = meta.get('title')
-        info.created = meta.get('created')
-        return info
+    def _save(self):
+        if self.meta:
+            sio = StringIO()
+            yaml.safe_dump(self.meta, sio)
+            text = f'---\n{sio.getvalue()}...\n{self.body}'
+        else:
+            text = self.body
+        self.path.write_text(text)
 
-    def _change(self, edits: List[FileEditCmd]) -> bool:
-        path = edits[0].path
-        orig = path.read_text()
-        changed = orig
-        for edit in edits:
-            if isinstance(edit, ReplaceRefCmd):
-                changed = replace_ref(changed, edit.original, edit.replacement)
-            elif isinstance(edit, SetTitleCmd):
-                meta = extract_meta(changed)
-                if edit.value is None:
-                    del meta['title']
-                else:
-                    meta['title'] = edit.value
-                changed = set_meta(changed, meta)
-            elif isinstance(edit, SetCreatedCmd):
-                meta = extract_meta(changed)
-                if edit.value is None:
-                    del meta['created']
-                else:
-                    meta['created'] = edit.value
-                changed = set_meta(changed, meta)
-            else:
-                raise UnsupportedChangeError(edit)
-        if not orig == changed:
-            path.write_text(changed)
-            return True
-        return False
+    def _set_title(self, edit: SetTitleCmd):
+        self.edited = self.edited or not self.meta.get('title') == edit.value
+        self.meta['title'] = edit.value
+
+    def _set_created(self, edit: SetCreatedCmd):
+        self.edited = self.edited or not self.meta.get('created') == edit.value
+        self.meta['created'] = edit.value
+
+    def _replace_ref(self, edit: ReplaceRefCmd):
+        if edit.original not in self.refs:
+            return
+        self.edited = True
+        self.body = replace_ref(self.body, edit.original, edit.replacement)

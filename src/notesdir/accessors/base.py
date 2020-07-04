@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from notesdir.models import FileInfo, FileEditCmd
+from notesdir.models import FileInfo, FileEditCmd, ReplaceRefCmd, SetCreatedCmd, SetTitleCmd
 
 
 class ParseError(Exception):
@@ -23,24 +23,75 @@ class UnsupportedChangeError(ChangeError):
         super().__init__('Unsupported edit', [edit])
 
 
-class BaseAccessor:
-    def parse(self, path: Path) -> FileInfo:
-        raise NotImplementedError()
+class Accessor:
+    def __init__(self, path: Path):
+        self.path = path
+        self._loaded = False
+        self.edited = False
 
-    def change(self, edits: List[FileEditCmd]) -> bool:
-        if len(edits) == 0:
+    def load(self):
+        try:
+            self._load()
+        except Exception as e:
+            self._loaded = False
+            raise e
+        self._loaded = True
+
+    def info(self) -> FileInfo:
+        if not self._loaded:
+            self.load()
+        info = FileInfo(self.path)
+        self._info(info)
+        return info
+
+    def edit(self, edit: FileEditCmd):
+        if not edit.path == self.path:
+            raise ValueError(f'Accessor path [{self.path}] is different from path of edit: {edit}')
+        if not self._loaded:
+            self.load()
+        self._edit(edit)
+
+    def _edit(self, edit: FileEditCmd):
+        if isinstance(edit, ReplaceRefCmd):
+            if not edit.original == edit.replacement:
+                self._replace_ref(edit)
+        elif isinstance(edit, SetTitleCmd):
+            self._set_title(edit)
+        elif isinstance(edit, SetCreatedCmd):
+            self._set_created(edit)
+
+    def save(self) -> bool:
+        if not self.edited:
             return False
-        if len({e.path for e in edits}) > 1:
-            raise ValueError(f"change() received edits for multiple paths, which is unsupported: {edits}")
-        return self._change(edits)
+        self._save()
+        self.edited = False
+        return True
 
-    def _change(self, edits: List[FileEditCmd]) -> bool:
+    def _load(self):
         raise NotImplementedError()
 
+    def _info(self, info: FileInfo):
+        raise NotImplementedError()
 
-class MiscAccessor(BaseAccessor):
-    def parse(self, path: Path) -> FileInfo:
-        return FileInfo(path)
+    def _save(self):
+        raise NotImplementedError()
 
-    def _change(self, edits: List[FileEditCmd]) -> bool:
+    def _set_title(self, edit: SetTitleCmd):
+        raise UnsupportedChangeError(edit)
+
+    def _set_created(self, edit: SetCreatedCmd):
+        raise UnsupportedChangeError(edit)
+
+    def _replace_ref(self, edit: ReplaceRefCmd):
+        raise UnsupportedChangeError(edit)
+
+
+class MiscAccessor(Accessor):
+    def _load(self):
+        pass
+
+    def _info(self, info: FileInfo):
+        pass
+
+    def _save(self):
         raise NotImplementedError()

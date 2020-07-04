@@ -1,10 +1,11 @@
 from datetime import datetime
-from pathlib import Path
-from typing import List, Optional
+from typing import Optional
+
 from PyPDF4 import PdfFileReader, PdfFileMerger
 from PyPDF4.generic import IndirectObject
-from notesdir.accessors.base import BaseAccessor, ParseError, UnsupportedChangeError
-from notesdir.models import FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd
+
+from notesdir.accessors.base import Accessor, ParseError
+from notesdir.models import FileInfo, SetTitleCmd, SetCreatedCmd
 
 
 def pdf_strptime(s: Optional[str]) -> Optional[datetime]:
@@ -34,47 +35,35 @@ def resolve_object(o):
     return o
 
 
-class PDFAccessor(BaseAccessor):
-    def parse(self, path: Path) -> FileInfo:
-        info = FileInfo(path)
-        with path.open('rb') as file:
+class PDFAccessor(Accessor):
+    def _load(self):
+        with self.path.open('rb') as file:
             try:
                 pdf = PdfFileReader(file)
-                pdfinfo = pdf.getDocumentInfo()
-                info.title = resolve_object(pdfinfo.get('/Title'))
-                info.created = pdf_strptime(resolve_object(pdfinfo.get('/CreationDate')))
-                for tag in resolve_object(pdfinfo.get('/Keywords')).split(','):
-                    tag = tag.strip()
-                    if tag:
-                        info.managed_tags.add(tag)
+                self._meta = {k: resolve_object(v) for k, v in pdf.getDocumentInfo().items()}
             except Exception as e:
-                raise ParseError('Cannot parse PDF', path, e)
-        return info
+                raise ParseError('Cannot parse PDF', self.path, e)
 
-    def _change(self, edits: List[FileEditCmd]) -> bool:
-        path = edits[0].path
+    def _info(self, info: FileInfo):
+        info.title = self._meta.get('/Title')
+        info.created = pdf_strptime(self._meta.get('/CreationDate'))
+        for tag in self._meta.get('/Keywords').split(','):
+            tag = tag.strip()
+            if tag:
+                info.managed_tags.add(tag)
+
+    def _save(self):
         merger = PdfFileMerger()
-
-        with path.open('rb') as file:
-            pdf = PdfFileReader(file)
-            oldmeta = {k: resolve_object(v) for k, v in pdf.getDocumentInfo().items()}
-            newmeta = oldmeta.copy()
-
-            for edit in edits:
-                if isinstance(edit, SetTitleCmd):
-                    newmeta['/Title'] = edit.value
-                elif isinstance(edit, SetCreatedCmd):
-                    newmeta['/CreationDate'] = pdf_strftime(edit.value)
-                else:
-                    raise UnsupportedChangeError(edit)
-
-            if oldmeta == newmeta:
-                return False
-
+        with self.path.open('rb') as file:
             merger.append(file)
-
-        merger.addMetadata(newmeta)
-        with path.open('wb') as file:
+        merger.addMetadata(self._meta)
+        with self.path.open('wb') as file:
             merger.write(file)
 
-        return True
+    def _set_title(self, edit: SetTitleCmd):
+        self.edited = self.edited or not self._meta.get('/Title') == edit.value
+        self._meta['/Title'] = edit.value
+
+    def _set_created(self, edit: SetCreatedCmd):
+        self.edited = self.edited or not pdf_strptime(self._meta.get('/CreationDate')) == edit.value
+        self._meta['/CreationDate'] = pdf_strftime(edit.value)

@@ -2,11 +2,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from notesdir.models import SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
-    MarkdownAccessor, set_meta
+    MarkdownAccessor
 
 
 def test_extract_meta_none():
-    assert extract_meta('Hi!\n---\nnope\n...') == {}
+    # The correctness of this is questionable - I think Pandoc accepts meta blocks anywhere in the document.
+    # But that doesn't sound like something I'd use.
+    assert extract_meta('Hi!\n---\nnope\n...') == ({}, 'Hi!\n---\nnope\n...')
 
 
 def test_extract_meta():
@@ -17,7 +19,7 @@ otherVal: 19
 text: regular
 """
     expected = {'title': 'foo bar', 'otherVal': 19}
-    assert extract_meta(doc) == expected
+    assert extract_meta(doc) == (expected, 'text: regular\n')
 
 
 def test_extract_tags():
@@ -78,21 +80,7 @@ def test_replace_ref_replacement_string_special_characters():
     assert replace_ref(doc, 'foo.md', '2-foo\\3.md') == expected
 
 
-def test_set_meta_none_exists():
-    doc = "This is a document.\nWith text."
-    expected = "---\ntitle: My Document\n...\nThis is a document.\nWith text."
-    meta = {'title': 'My Document'}
-    assert set_meta(doc, meta) == expected
-
-
-def test_set_meta_replace():
-    doc = "---\ntitle: My Document\n...\nThis is a document.\nWith text."
-    expected = "---\ntitle: Improved Document\n...\nThis is a document.\nWith text."
-    meta = {'title': 'Improved Document'}
-    assert set_meta(doc, meta) == expected
-
-
-def test_parse(fs):
+def test_info(fs):
     doc = """---
 title: An Examination of the Navel
 created: 2019-06-04 10:12:13-08:00
@@ -107,7 +95,7 @@ published about online (see [this article](http://example.com/blah) among many o
 """
     path = Path('/fakenotes/test.md')
     fs.create_file(path, contents=doc)
-    info = MarkdownAccessor().parse(path)
+    info = MarkdownAccessor(path).info()
     assert info.path == path
     assert info.refs == {'../Another%20Note.md', 'http://example.com/blah'}
     assert info.managed_tags == {'trulyprofound'}
@@ -139,12 +127,11 @@ published about online (see [this article](http://example.com/blahblah) and
 [this one](https://example.com/meh) among many others), ...
 """
     path = Path('/fakenotes/test.md')
-    edits = [
-        ReplaceRefCmd(path, '../Another%20Note.md', 'moved/another-note.md'),
-        ReplaceRefCmd(path, 'http://example.com/blah', 'https://example.com/meh'),
-        SetTitleCmd(path, 'A Close Examination of the Navel'),
-        SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
-    ]
     fs.create_file(path, contents=doc)
-    assert MarkdownAccessor().change(edits)
+    acc = MarkdownAccessor(path)
+    acc.edit(ReplaceRefCmd(path, '../Another%20Note.md', 'moved/another-note.md'))
+    acc.edit(ReplaceRefCmd(path, 'http://example.com/blah', 'https://example.com/meh'))
+    acc.edit(SetTitleCmd(path, 'A Close Examination of the Navel'))
+    acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
+    assert acc.save()
     assert path.read_text() == expected

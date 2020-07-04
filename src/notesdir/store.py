@@ -6,9 +6,9 @@ import json
 from os.path import relpath
 from pathlib import Path
 from tempfile import mkstemp
-from typing import Dict, List, Optional, Set
+from typing import Callable, Dict, List, Optional, Set
 from urllib.parse import ParseResult, urlparse, urlunparse, quote
-from notesdir.accessors.base import BaseAccessor
+from notesdir.accessors.base import Accessor
 from notesdir.models import FileInfo, FileEditCmd, ReplaceRefCmd, MoveCmd
 
 
@@ -152,13 +152,13 @@ class BaseStore:
 
 
 class FSStore(BaseStore):
-    def __init__(self, root: Path, accessor: BaseAccessor, *, edit_log_path: Path = None):
+    def __init__(self, root: Path, accessor_factory: Callable[[Path], Accessor], *, edit_log_path: Path = None):
         self.root = root
-        self.accessor = accessor
+        self.accessor_factory = accessor_factory
         self.edit_log_path = edit_log_path
 
     def info(self, path: Path) -> Optional[FileInfo]:
-        return self.accessor.parse(path)
+        return self.accessor_factory(path).info()
 
     def referrers(self, path: Path) -> Set[Path]:
         result = set()
@@ -182,7 +182,10 @@ class FSStore(BaseStore):
                 for edit in group:
                     edit.path.rename(edit.dest)
             else:
-                self.accessor.change(group)
+                acc = self.accessor_factory(group[0].path)
+                for edit in group:
+                    acc.edit(edit)
+                acc.save()
 
     def _log_edits(self, edit_group: List[FileEditCmd]):
         if self.edit_log_path:

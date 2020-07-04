@@ -5,17 +5,17 @@ from notesdir.models import FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 from notesdir.accessors.html import HTMLAccessor
 
 
-def test_parse_garbage(fs):
-    # Ideally this test would trigger the try-except block in the parse method,
+def test_info_garbage(fs):
+    # Ideally this test would trigger the try-except block in the load method,
     # but I don't actually know how to construct a document that does that.
     doc = '<nonsense️'
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    info = HTMLAccessor().parse(path)
+    info = HTMLAccessor(path).info()
     assert info == FileInfo(path)
 
 
-def test_parse(fs):
+def test_info(fs):
     doc = """<html>
     <head>
         <title>I Am A Strange Knot</title>
@@ -30,7 +30,7 @@ def test_parse(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    info = HTMLAccessor().parse(path)
+    info = HTMLAccessor(path).info()
     assert info.path == path
     assert info.title == 'I Am A Strange Knot'
     assert info.managed_tags == {'mind', 'philosophy', 'consciousness'}
@@ -48,11 +48,10 @@ def test_change_from_missing_attributes(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    edits = [
-        SetTitleCmd(path, 'A Delightful Note'),
-        SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8))))
-    ]
-    assert HTMLAccessor().change(edits)
+    acc = HTMLAccessor(path)
+    acc.edit(SetTitleCmd(path, 'A Delightful Note'))
+    acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
+    assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml') == BeautifulSoup(expected, 'lxml')
 
 
@@ -89,12 +88,11 @@ def test_change(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    edits = [
-        SetTitleCmd(path, 'A Delightful Note'),
-        SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))),
-        ReplaceRefCmd(path, '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'),
-        ReplaceRefCmd(path, 'http://example.com/foo.png', 'http://example.com/bar.png'),
-        ReplaceRefCmd(path, 'media/something.weird', 'content/something.cool')
-    ]
-    assert HTMLAccessor().change(edits)
+    acc = HTMLAccessor(path)
+    acc.edit(SetTitleCmd(path, 'A Delightful Note'))
+    acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
+    acc.edit(ReplaceRefCmd(path, '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'))
+    acc.edit(ReplaceRefCmd(path, 'http://example.com/foo.png', 'http://example.com/bar.png'))
+    acc.edit(ReplaceRefCmd(path, 'media/something.weird', 'content/something.cool'))
+    assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml',) == BeautifulSoup(expected, 'lxml')

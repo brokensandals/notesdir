@@ -1,25 +1,32 @@
 from pathlib import Path
-from typing import List
 
-from notesdir.accessors.base import BaseAccessor, MiscAccessor
+from notesdir.accessors.base import Accessor, MiscAccessor
 from notesdir.models import FileInfo, FileEditCmd
 from notesdir.accessors.html import HTMLAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.accessors.pdf import PDFAccessor
 
 
-class DelegatingAccessor(BaseAccessor):
-    def accessor(self, path: Path) -> BaseAccessor:
+class DelegatingAccessor(Accessor):
+    def __init__(self, path: Path):
+        super().__init__(path)
         if path.suffix == '.md':
-            return MarkdownAccessor()
+            self.accessor = MarkdownAccessor(path)
         elif path.suffix == '.html':
-            return HTMLAccessor()
+            self.accessor = HTMLAccessor(path)
         elif path.suffix == '.pdf':
-            return PDFAccessor()
-        return MiscAccessor()
+            self.accessor = PDFAccessor(path)
+        else:
+            self.accessor = MiscAccessor(path)
 
-    def parse(self, path: Path) -> FileInfo:
-        return self.accessor(path).parse(path)
+    def load(self):
+        self.accessor.load()
 
-    def _change(self, edits: List[FileEditCmd]) -> bool:
-        return self.accessor(edits[0].path).change(edits)
+    def info(self) -> FileInfo:
+        return self.accessor.info()
+
+    def edit(self, edit: FileEditCmd):
+        self.accessor.edit(edit)
+
+    def save(self) -> bool:
+        return self.accessor.save()
