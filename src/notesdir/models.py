@@ -76,5 +76,15 @@ class ReplaceRefCmd(FileEditCmd):
 
 
 @dataclass
+class AddTagCmd(FileEditCmd):
+    value: str
+
+
+@dataclass
+class DelTagCmd(FileEditCmd):
+    value: str
+
+
+@dataclass
 class MoveCmd(FileEditCmd):
     dest: Path

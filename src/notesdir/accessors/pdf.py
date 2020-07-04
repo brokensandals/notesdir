@@ -1,11 +1,11 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Set
 
 from PyPDF4 import PdfFileReader, PdfFileMerger
 from PyPDF4.generic import IndirectObject
 
 from notesdir.accessors.base import Accessor, ParseError
-from notesdir.models import FileInfo, SetTitleCmd, SetCreatedCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd
 
 
 def pdf_strptime(s: Optional[str]) -> Optional[datetime]:
@@ -44,13 +44,14 @@ class PDFAccessor(Accessor):
             except Exception as e:
                 raise ParseError('Cannot parse PDF', self.path, e)
 
+    def _tags(self):
+        split = (t.strip() for t in self._meta.get('/Keywords', '').lower().split(','))
+        return {t for t in split if t}
+
     def _info(self, info: FileInfo):
         info.title = self._meta.get('/Title')
         info.created = pdf_strptime(self._meta.get('/CreationDate'))
-        for tag in self._meta.get('/Keywords').split(','):
-            tag = tag.strip()
-            if tag:
-                info.managed_tags.add(tag)
+        info.managed_tags.update(self._tags())
 
     def _save(self):
         merger = PdfFileMerger()
@@ -59,6 +60,26 @@ class PDFAccessor(Accessor):
         merger.addMetadata(self._meta)
         with self.path.open('wb') as file:
             merger.write(file)
+
+    def _add_tag(self, edit: AddTagCmd):
+        lower = edit.value.lower()
+        tags = self._tags()
+        if lower in tags:
+            return
+        tags.add(lower)
+        self._set_tags(tags)
+
+    def _del_tag(self, edit: DelTagCmd):
+        lower = edit.value.lower()
+        tags = self._tags()
+        if lower not in tags:
+            return
+        tags.remove(lower)
+        self._set_tags(tags)
+
+    def _set_tags(self, tags: Set[str]):
+        self._meta['/Keywords'] = ', '.join(sorted(tags))
+        self.edited = True
 
     def _set_title(self, edit: SetTitleCmd):
         self.edited = self.edited or not self._meta.get('/Title') == edit.value

@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from PyPDF4 import PdfFileReader
-from notesdir.models import SetTitleCmd, SetCreatedCmd
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
 from notesdir.accessors.pdf import PDFAccessor
 
 
@@ -21,6 +21,8 @@ def test_change(fs):
     acc = PDFAccessor(path)
     acc.edit(SetTitleCmd(path, 'Why Donuts Are Great'))
     acc.edit(SetCreatedCmd(path, datetime.fromisoformat('1999-02-04T06:08:10+00:00')))
+    acc.edit(AddTagCmd(path, 'tag3'))
+    acc.edit(DelTagCmd(path, 'tag2'))
     assert acc.save()
     with path.open('rb') as file:
         pdf = PdfFileReader(file)
@@ -30,4 +32,4 @@ def test_change(fs):
     info = PDFAccessor(path).info()
     assert info.title == 'Why Donuts Are Great'
     assert info.created == datetime.fromisoformat('1999-02-04T06:08:10+00:00')
-    assert info.managed_tags == {'tag1', 'tag2'}
+    assert info.managed_tags == {'tag1', 'tag3'}
