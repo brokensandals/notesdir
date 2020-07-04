@@ -2,9 +2,11 @@ from __future__ import annotations
 import base64
 import dataclasses
 from datetime import datetime
+from glob import iglob
 import json
 from os.path import relpath
 from pathlib import Path
+import re
 from tempfile import mkstemp
 from typing import Callable, Dict, List, Optional, Set
 from urllib.parse import ParseResult, urlparse, urlunparse, quote
@@ -152,17 +154,25 @@ class BaseStore:
 
 
 class FSStore(BaseStore):
-    def __init__(self, root: Path, accessor_factory: Callable[[Path], Accessor], *, edit_log_path: Path = None):
-        self.root = root
+    def __init__(self, paths: Set[str], accessor_factory: Callable[[Path], Accessor],
+                 *, filters: Set[re.Pattern] = None, edit_log_path: Path = None):
+        self.paths = paths
+        self.filters = filters or set()
         self.accessor_factory = accessor_factory
         self.edit_log_path = edit_log_path
 
     def info(self, path: Path) -> Optional[FileInfo]:
         return self.accessor_factory(path).info()
 
+    def _paths(self):
+        for path in self.paths:
+            for child in iglob(path, recursive=True):
+                if not any(f.search(child) for f in self.filters):
+                    yield Path(child)
+
     def referrers(self, path: Path) -> Set[Path]:
         result = set()
-        for child_path in self.root.glob('**/*'):
+        for child_path in self._paths():
             if not child_path.is_file():
                 # This is a little bit of a hack to make the tests simpler -
                 # when using DelegatingAccessor it's fine to call .info on a directory,

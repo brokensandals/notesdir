@@ -9,6 +9,6 @@ def test_user_default_no_file(fs):
 
 
 def test_user_default(fs):
-    fs.create_file(os.path.expanduser('~/.notesdir.toml'), contents='root = "/foo"')
+    fs.create_file(os.path.expanduser('~/.notesdir.toml'), contents='paths = ["/foo/**/*"]')
     nd = Notesdir.user_default()
-    assert nd.config == {'root': '/foo'}
+    assert nd.config == {'paths': ['/foo/**/*']}

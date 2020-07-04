@@ -1,10 +1,9 @@
 import json
 from pathlib import Path
-from unittest.mock import call, Mock
+import re
 from urllib.parse import urlparse
 from freezegun import freeze_time
 import pytest
-from notesdir.accessors.base import Accessor
 from notesdir.models import FileInfo, SetTitleCmd, ReplaceRefCmd, MoveCmd
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.accessors.markdown import MarkdownAccessor
@@ -136,14 +135,14 @@ def test_referrers(fs):
     fs.create_file('/notes/bar/baz/no.md', contents='[3](../../foo/bogus')
     fs.create_file('/notes/r2.md', contents='[4](foo/subject.md) [5](foo/bogus)')
     fs.create_file('/notes/foo/r3.md', contents='[6](subject.md)')
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     expected = {Path(p) for p in {'/notes/bar/baz/r1.md', '/notes/r2.md', '/notes/foo/r3.md'}}
     assert store.referrers(Path('subject.md')) == expected
 
 
 def test_referrers_self(fs):
     fs.create_file('/notes/subject.md', contents='[1](subject.md)')
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     expected = {Path('/notes/subject.md')}
     assert store.referrers(Path('/notes/subject.md')) == expected
 
@@ -155,7 +154,7 @@ def test_change(fs):
              ReplaceRefCmd(Path('/notes/one.md'), 'old', 'new'),
              MoveCmd(Path('/notes/one.md'), Path('/notes/moved.md')),
              ReplaceRefCmd(Path('/notes/two.md'), 'foo', 'bar')]
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     store.change(edits)
     assert not Path('/notes/one.md').exists()
     assert Path('/notes/moved.md').read_text() == '---\ntitle: New Title\n...\n[1](new)'
@@ -165,7 +164,7 @@ def test_change(fs):
 def test_rearrange_selfreference(fs):
     doc = 'I link to [myself](one.md).'
     fs.create_file('/notes/one.md', contents=doc)
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     store.change(edits_for_rearrange(store, {Path('/notes/one.md'): Path('/notes/two.md')}))
     assert not Path('/notes/one.md').exists()
     assert Path('/notes/two.md').exists()
@@ -177,7 +176,7 @@ def test_rearrange_mutual(fs):
     doc2 = 'I link to [one](one.md).'
     fs.create_file('/notes/one.md', contents=doc1)
     fs.create_file('/notes/two.md', contents=doc2)
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     store.change(edits_for_rearrange(store, {
         Path('/notes/one.md'): Path('/notes/three.md'),
         Path('/notes/two.md'): Path('/notes/four.md')
@@ -196,7 +195,7 @@ def test_rearrange_mutual_subdirs(fs):
     fs.create_file('/notes/subdir1/one.md', contents=doc1)
     fs.create_file('/notes/two.md', contents=doc2)
     Path('/notes/subdir2').mkdir()
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     store.change(edits_for_rearrange(store, {
         Path('/notes/subdir1/one.md'): Path('/notes/one.md'),
         Path('/notes/two.md'): Path('/notes/subdir2/two.md')
@@ -214,7 +213,7 @@ def test_rearrange_swap(fs):
     doc2 = 'I link to [one](one.md).'
     fs.create_file('/notes/one.md', contents=doc1)
     fs.create_file('/notes/two.md', contents=doc2)
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     store.change(edits_for_rearrange(store, {
         Path('/notes/one.md'): Path('/notes/two.md'),
         Path('/notes/two.md'): Path('/notes/one.md')
@@ -231,7 +230,7 @@ def test_rearrange_special_characters(fs):
     fs.create_file('/notes/first doc!.md', contents=doc1)
     fs.create_file('/notes/second doc!.md', contents=doc2)
     Path('/notes/subdir').mkdir()
-    store = FSStore(Path('/notes'), MarkdownAccessor)
+    store = FSStore({'/notes/**/*'}, MarkdownAccessor)
     store.change(edits_for_rearrange(store, {
         Path('/notes/first doc!.md'): Path('/notes/subdir/new loc!.md')}))
     assert not Path('/notes/first doc!.md').exists()
@@ -250,7 +249,7 @@ def test_rearrange_folder(fs):
     fs.create_file('/notes/dir/two.md', contents=doc2)
     fs.create_file('/notes/dir/subdir/three.md', contents=doc3)
     Path('/notes/wrapper').mkdir()
-    store = FSStore(Path('/notes'), DelegatingAccessor)
+    store = FSStore({'/notes/**/*'}, DelegatingAccessor)
     store.change(edits_for_rearrange(store, {
         Path('/notes/dir'): Path('/notes/wrapper/newdir')}))
     assert not Path('/notes/dir').exists()
@@ -270,7 +269,7 @@ def test_log_edits(fs):
         ReplaceRefCmd(Path('doc1.md'), 'doc2.md', 'garbage.md'),
         MoveCmd(Path('doc2.bin'), Path('new-doc2.bin')),
     ]
-    store = FSStore(Path('/notes'), DelegatingAccessor, edit_log_path=Path('edits'))
+    store = FSStore({'/notes/**/*'}, DelegatingAccessor, edit_log_path=Path('edits'))
     store.change(edits)
     log = Path('edits').read_text().splitlines()
     assert len(log) == 2
@@ -295,4 +294,21 @@ def test_log_edits(fs):
             'dest': 'new-doc2.bin',
         }],
         'prior_base64': '/v7//w=='
+    }
+
+
+def test_paths_and_filters(fs):
+    fs.create_file('/foo/one.md')
+    fs.create_file('/foo/one.bin')
+    fs.create_file('/foo/two.md')
+    fs.create_file('/bar/one.md')
+    fs.create_file('/bar/three.md')
+    fs.create_file('/bar/three2.md')
+    store = FSStore({'/foo/*.md', '/bar/*.md'}, DelegatingAccessor,
+                    filters={re.compile(r'\/.{5}\.md')})
+    assert set(store._paths()) == {
+        Path('/foo/one.md'),
+        Path('/foo/two.md'),
+        Path('/bar/one.md'),
+        Path('/bar/three2.md')
     }
