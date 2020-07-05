@@ -5,18 +5,21 @@ from datetime import datetime
 from pathlib import Path
 from typing import Set, Callable, Optional, List
 
-from notesdir.accessors.base import Accessor
+from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd
 from notesdir.repos.base import Repo, group_edits, edit_log_json_serializer
 
 
 class DirectRepo(Repo):
-    def __init__(self, roots: Set[Path], accessor_factory: Callable[[Path], Accessor],
-                 *, filters: Set[re.Pattern] = None, edit_log_path: Path = None):
-        self.roots = roots
-        self.filters = filters or set()
-        self.accessor_factory = accessor_factory
-        self.edit_log_path = edit_log_path
+    def __init__(self, config: dict):
+        self.config = config
+        if 'roots' not in self.config:
+            raise ValueError('"roots" must be set in repo config')
+        self.roots = {Path(p) for p in self.config['roots']}
+        self.filters = {re.compile(f) for f in self.config.get('filters', [])}
+        self.accessor_factory = DelegatingAccessor
+        edit_log_path = self.config.get('edit_log_path', None)
+        self.edit_log_path = edit_log_path and Path(edit_log_path)
 
     def info(self, path: Path) -> Optional[FileInfo]:
         return self.accessor_factory(path).info()

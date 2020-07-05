@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Dict, Set
 import toml
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
-from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.rearrange import edits_for_rearrange
 from notesdir.repos.direct import DirectRepo
 
@@ -48,16 +47,9 @@ class Notesdir:
         return cls(toml.load(path))
 
     def __init__(self, config):
-        if 'roots' not in config:
-            raise Error('Config missing key "roots"')
         self.config = config
-
-        edit_log_path = config.get('edit_log_path', None)
-        if edit_log_path:
-            edit_log_path = Path(edit_log_path)
-
-        self.repo = DirectRepo({Path(r) for r in config['roots']}, DelegatingAccessor, edit_log_path=edit_log_path,
-                               filters={re.compile(f) for f in config.get('filters', [])})
+        repo_config = self.config.get('repo', {})
+        self.repo = DirectRepo(repo_config)
 
     def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
