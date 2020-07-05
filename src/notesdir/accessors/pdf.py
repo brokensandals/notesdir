@@ -40,7 +40,12 @@ class PDFAccessor(Accessor):
         with self.path.open('rb') as file:
             try:
                 pdf = PdfFileReader(file)
-                self._meta = {k: resolve_object(v) for k, v in pdf.getDocumentInfo().items()}
+                if pdf.isEncrypted:
+                    # See https://github.com/mstamy2/PyPDF2/issues/51
+                    # Some PDFs that open fine without a password in many apps, apparently
+                    # have a password of an empty string
+                    pdf.decrypt('')
+                self._meta = {k: resolve_object(v) for k, v in (pdf.getDocumentInfo() or {}).items()}
             except Exception as e:
                 raise ParseError('Cannot parse PDF', self.path, e)
 
