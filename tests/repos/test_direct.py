@@ -1,11 +1,8 @@
 import json
-import re
 from pathlib import Path
 
 from freezegun import freeze_time
 
-from notesdir.accessors.delegating import DelegatingAccessor
-from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.models import SetTitleCmd, ReplaceRefCmd, MoveCmd
 from notesdir.repos.direct import DirectRepo
 
