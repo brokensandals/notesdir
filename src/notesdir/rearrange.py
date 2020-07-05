@@ -1,29 +1,11 @@
-from __future__ import annotations
-import base64
-import dataclasses
-from datetime import datetime
-from glob import iglob
-import json
 from os.path import relpath
 from pathlib import Path
-import re
 from tempfile import mkstemp
-from typing import Callable, Dict, List, Optional, Set
-from urllib.parse import ParseResult, urlparse, urlunparse, quote
-from notesdir.accessors.base import Accessor
-from notesdir.models import FileInfo, FileEditCmd, ReplaceRefCmd, MoveCmd
+from typing import Dict, List
+from urllib.parse import ParseResult, quote, urlunparse, urlparse
 
-
-def group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
-    group = None
-    result = []
-    for edit in edits:
-        if group and edit.path == group[0].path and not isinstance(edit, MoveCmd):
-            group.append(edit)
-        else:
-            group = [edit]
-            result.append(group)
-    return result
+from notesdir.models import MoveCmd, ReplaceRefCmd
+from notesdir.repos.base import Repo
 
 
 def ref_path(src: Path, dest: Path) -> Path:
@@ -83,7 +65,7 @@ def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[MoveCmd]:
     return phase1 + phase2
 
 
-def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
+def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]):
     """Builds a list of FileEdits that will rename files and update references accordingly.
 
     The keys of the dictionary are the paths to be renamed, and the values
@@ -129,86 +111,3 @@ def edits_for_rearrange(store: BaseStore, renames: Dict[Path, Path]):
 
     edits.extend(edits_for_raw_moves(to_move))
     return edits
-
-
-def edit_log_json_serializer(val):
-    if isinstance(val, datetime):
-        return val.isoformat()
-    if isinstance(val, FileEditCmd):
-        d = dataclasses.asdict(val)
-        del d['path']
-        d['class'] = type(val).__name__
-        return d
-    return str(val)
-
-
-class BaseStore:
-    def info(self, path: Path) -> Optional[FileInfo]:
-        raise NotImplementedError()
-
-    def change(self, edits: List[FileEditCmd]):
-        raise NotImplementedError()
-
-    def referrers(self, path: Path) -> Set[Path]:
-        raise NotImplementedError()
-
-
-class FSStore(BaseStore):
-    def __init__(self, paths: Set[str], accessor_factory: Callable[[Path], Accessor],
-                 *, filters: Set[re.Pattern] = None, edit_log_path: Path = None):
-        self.paths = paths
-        self.filters = filters or set()
-        self.accessor_factory = accessor_factory
-        self.edit_log_path = edit_log_path
-
-    def info(self, path: Path) -> Optional[FileInfo]:
-        return self.accessor_factory(path).info()
-
-    def _paths(self):
-        for path in self.paths:
-            for child in iglob(path, recursive=True):
-                if not any(f.search(child) for f in self.filters):
-                    yield Path(child)
-
-    def referrers(self, path: Path) -> Set[Path]:
-        result = set()
-        for child_path in self._paths():
-            if not child_path.is_file():
-                # This is a little bit of a hack to make the tests simpler -
-                # when using DelegatingAccessor it's fine to call .info on a directory,
-                # as you'll just get an empty FileInfo back, but some of the tests use
-                # other accessors directly, where calling .info on a directory would
-                # cause an error.
-                continue
-            info = self.info(child_path)
-            if info and len(info.refs_to_path(path)) > 0:
-                result.add(child_path)
-        return result
-
-    def change(self, edits: List[FileEditCmd]):
-        for group in group_edits(edits):
-            self._log_edits(group)
-            if isinstance(group[0], MoveCmd):
-                for edit in group:
-                    edit.path.rename(edit.dest)
-            else:
-                acc = self.accessor_factory(group[0].path)
-                for edit in group:
-                    acc.edit(edit)
-                acc.save()
-
-    def _log_edits(self, edit_group: List[FileEditCmd]):
-        if self.edit_log_path:
-            path = edit_group[0].path
-            entry = {
-                'datetime': datetime.now(),
-                'path': path,
-                'edits': edit_group,
-            }
-            if path.is_file():
-                try:
-                    entry['prior_text'] = path.read_text()
-                except:
-                    entry['prior_base64'] = base64.b64encode(path.read_bytes()).decode('utf-8')
-            with self.edit_log_path.open('a+') as file:
-                print(json.dumps(entry, default=edit_log_json_serializer), file=file)
