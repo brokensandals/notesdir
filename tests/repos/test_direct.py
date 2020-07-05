@@ -17,14 +17,14 @@ def test_referrers(fs):
     fs.create_file('/notes/bar/baz/no.md', contents='[3](../../foo/bogus')
     fs.create_file('/notes/r2.md', contents='[4](foo/subject.md) [5](foo/bogus)')
     fs.create_file('/notes/foo/r3.md', contents='[6](subject.md)')
-    repo = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
     expected = {Path(p) for p in {'/notes/bar/baz/r1.md', '/notes/r2.md', '/notes/foo/r3.md'}}
     assert repo.referrers(Path('subject.md')) == expected
 
 
 def test_referrers_self(fs):
     fs.create_file('/notes/subject.md', contents='[1](subject.md)')
-    repo = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
     expected = {Path('/notes/subject.md')}
     assert repo.referrers(Path('/notes/subject.md')) == expected
 
@@ -36,7 +36,7 @@ def test_change(fs):
              ReplaceRefCmd(Path('/notes/one.md'), 'old', 'new'),
              MoveCmd(Path('/notes/one.md'), Path('/notes/moved.md')),
              ReplaceRefCmd(Path('/notes/two.md'), 'foo', 'bar')]
-    repo = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
     repo.change(edits)
     assert not Path('/notes/one.md').exists()
     assert Path('/notes/moved.md').read_text() == '---\ntitle: New Title\n...\n[1](new)'
@@ -53,7 +53,7 @@ def test_log_edits(fs):
         ReplaceRefCmd(Path('doc1.md'), 'doc2.md', 'garbage.md'),
         MoveCmd(Path('doc2.bin'), Path('new-doc2.bin')),
     ]
-    repo = DirectRepo({'/notes/**/*'}, DelegatingAccessor, edit_log_path=Path('edits'))
+    repo = DirectRepo({Path('/notes')}, DelegatingAccessor, edit_log_path=Path('edits'))
     repo.change(edits)
     log = Path('edits').read_text().splitlines()
     assert len(log) == 2
@@ -88,10 +88,10 @@ def test_paths_and_filters(fs):
     fs.create_file('/bar/one.md')
     fs.create_file('/bar/three.md')
     fs.create_file('/bar/three2.md')
-    repo = DirectRepo({'/foo/*.md', '/bar/*.md'}, DelegatingAccessor,
-                       filters={re.compile(r'\/.{5}\.md')})
+    repo = DirectRepo({Path('/foo'), Path('/bar')}, DelegatingAccessor, filters={re.compile(r'\/.{5}\.md')})
     assert set(repo._paths()) == {
         Path('/foo/one.md'),
+        Path('/foo/one.bin'),
         Path('/foo/two.md'),
         Path('/bar/one.md'),
         Path('/bar/three2.md')

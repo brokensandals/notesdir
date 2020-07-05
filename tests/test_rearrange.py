@@ -128,8 +128,8 @@ def test_path_as_ref_special_characters_into_url():
 def test_rearrange_selfreference(fs):
     doc = 'I link to [myself](one.md).'
     fs.create_file('/notes/one.md', contents=doc)
-    store = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
-    store.change(edits_for_rearrange(store, {Path('/notes/one.md'): Path('/notes/two.md')}))
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
+    repo.change(edits_for_rearrange(repo, {Path('/notes/one.md'): Path('/notes/two.md')}))
     assert not Path('/notes/one.md').exists()
     assert Path('/notes/two.md').exists()
     assert Path('/notes/two.md').read_text() == 'I link to [myself](two.md).'
@@ -140,8 +140,8 @@ def test_rearrange_mutual(fs):
     doc2 = 'I link to [one](one.md).'
     fs.create_file('/notes/one.md', contents=doc1)
     fs.create_file('/notes/two.md', contents=doc2)
-    store = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
-    store.change(edits_for_rearrange(store, {
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
+    repo.change(edits_for_rearrange(repo, {
         Path('/notes/one.md'): Path('/notes/three.md'),
         Path('/notes/two.md'): Path('/notes/four.md')
     }))
@@ -159,8 +159,8 @@ def test_rearrange_mutual_subdirs(fs):
     fs.create_file('/notes/subdir1/one.md', contents=doc1)
     fs.create_file('/notes/two.md', contents=doc2)
     Path('/notes/subdir2').mkdir()
-    store = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
-    store.change(edits_for_rearrange(store, {
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
+    repo.change(edits_for_rearrange(repo, {
         Path('/notes/subdir1/one.md'): Path('/notes/one.md'),
         Path('/notes/two.md'): Path('/notes/subdir2/two.md')
     }))
@@ -177,8 +177,8 @@ def test_rearrange_swap(fs):
     doc2 = 'I link to [one](one.md).'
     fs.create_file('/notes/one.md', contents=doc1)
     fs.create_file('/notes/two.md', contents=doc2)
-    store = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
-    store.change(edits_for_rearrange(store, {
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
+    repo.change(edits_for_rearrange(repo, {
         Path('/notes/one.md'): Path('/notes/two.md'),
         Path('/notes/two.md'): Path('/notes/one.md')
     }))
@@ -194,8 +194,8 @@ def test_rearrange_special_characters(fs):
     fs.create_file('/notes/first doc!.md', contents=doc1)
     fs.create_file('/notes/second doc!.md', contents=doc2)
     Path('/notes/subdir').mkdir()
-    store = DirectRepo({'/notes/**/*'}, MarkdownAccessor)
-    store.change(edits_for_rearrange(store, {
+    repo = DirectRepo({Path('/notes')}, MarkdownAccessor)
+    repo.change(edits_for_rearrange(repo, {
         Path('/notes/first doc!.md'): Path('/notes/subdir/new loc!.md')}))
     assert not Path('/notes/first doc!.md').exists()
     assert Path('/notes/second doc!.md').exists()
@@ -213,8 +213,8 @@ def test_rearrange_folder(fs):
     fs.create_file('/notes/dir/two.md', contents=doc2)
     fs.create_file('/notes/dir/subdir/three.md', contents=doc3)
     Path('/notes/wrapper').mkdir()
-    store = DirectRepo({'/notes/**/*'}, DelegatingAccessor)
-    store.change(edits_for_rearrange(store, {
+    repo = DirectRepo({Path('/notes')}, DelegatingAccessor)
+    repo.change(edits_for_rearrange(repo, {
         Path('/notes/dir'): Path('/notes/wrapper/newdir')}))
     assert not Path('/notes/dir').exists()
     assert Path('/notes/one.md').read_text() == 'I link to [two](wrapper/newdir/two.md).'

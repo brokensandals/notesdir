@@ -9,7 +9,7 @@ def nd_setup(fs):
     fs.cwd = '/notes/cwd'
     Path('~').expanduser().mkdir(parents=True)
     Path('~/.notesdir.toml').expanduser().write_text("""
-        paths = ["/notes/**/*"]
+        roots = ["/notes"]
     """)
 
 

@@ -2,7 +2,6 @@ import base64
 import json
 import re
 from datetime import datetime
-from glob import iglob
 from pathlib import Path
 from typing import Set, Callable, Optional, List
 
@@ -12,9 +11,9 @@ from notesdir.repos.base import Repo, group_edits, edit_log_json_serializer
 
 
 class DirectRepo(Repo):
-    def __init__(self, paths: Set[str], accessor_factory: Callable[[Path], Accessor],
+    def __init__(self, roots: Set[Path], accessor_factory: Callable[[Path], Accessor],
                  *, filters: Set[re.Pattern] = None, edit_log_path: Path = None):
-        self.paths = paths
+        self.roots = roots
         self.filters = filters or set()
         self.accessor_factory = accessor_factory
         self.edit_log_path = edit_log_path
@@ -23,10 +22,10 @@ class DirectRepo(Repo):
         return self.accessor_factory(path).info()
 
     def _paths(self):
-        for path in self.paths:
-            for child in iglob(path, recursive=True):
-                if not any(f.search(child) for f in self.filters):
-                    yield Path(child)
+        for root in self.roots:
+            for child in root.glob('**/*'):
+                if not any(f.search(str(child)) for f in self.filters):
+                    yield child
 
     def referrers(self, path: Path) -> Set[Path]:
         result = set()

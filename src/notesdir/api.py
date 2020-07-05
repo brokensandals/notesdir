@@ -48,15 +48,15 @@ class Notesdir:
         return cls(toml.load(path))
 
     def __init__(self, config):
-        if 'paths' not in config:
-            raise Error('Config missing key "paths"')
+        if 'roots' not in config:
+            raise Error('Config missing key "roots"')
         self.config = config
 
         edit_log_path = config.get('edit_log_path', None)
         if edit_log_path:
             edit_log_path = Path(edit_log_path)
 
-        self.repo = DirectRepo(set(config['paths']), DelegatingAccessor, edit_log_path=edit_log_path,
+        self.repo = DirectRepo({Path(r) for r in config['roots']}, DelegatingAccessor, edit_log_path=edit_log_path,
                                filters={re.compile(f) for f in config.get('filters', [])})
 
     def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
