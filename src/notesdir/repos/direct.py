@@ -1,12 +1,13 @@
 import base64
 import json
 import re
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Set, Optional, List
+from typing import Set, Optional, List, Dict
 
 from notesdir.accessors.delegating import DelegatingAccessor
-from notesdir.models import FileInfo, FileEditCmd, MoveCmd
+from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery
 from notesdir.repos.base import Repo, group_edits, edit_log_json_serializer
 
 
@@ -56,6 +57,26 @@ class DirectRepo(Repo):
                 for edit in group:
                     acc.edit(edit)
                 acc.save()
+
+    def query(self, query: FileQuery) -> List[FileInfo]:
+        result = []
+        for path in self._paths():
+            info = self.accessor_factory(path).info()
+            if not info:
+                continue
+            if query.include_tags and not query.include_tags.issubset(info.tags):
+                continue
+            if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):
+                continue
+            result.append(info)
+        return result
+
+    def tag_counts(self, query: FileQuery) -> Dict[str, int]:
+        result = defaultdict(int)
+        for info in self.query(query):
+            for tag in info.tags:
+                result[tag] += 1
+        return result
 
     def _log_edits(self, edit_group: List[FileEditCmd]):
         if self.edit_log_path:

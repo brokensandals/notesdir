@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from notesdir.models import FileInfo
+from notesdir.models import FileInfo, FileQuery
 
 
 def test_refs_to_path_skips_invalid_urls():
@@ -76,3 +76,11 @@ def test_path_refs(fs):
         'via-symlink',
         'file:///a%20dir/a%20file%21.md'
     }
+
+
+def test_parse_query():
+    strquery = 'tag:first+tag,second -tag:third,fourth+tag tag:fifth'
+    expected = FileQuery(
+        include_tags={'first tag', 'second', 'fifth'},
+        exclude_tags={'third', 'fourth tag'})
+    assert FileQuery.parse(strquery) == expected

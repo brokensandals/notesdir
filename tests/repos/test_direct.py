@@ -3,7 +3,7 @@ from pathlib import Path
 
 from freezegun import freeze_time
 
-from notesdir.models import SetTitleCmd, ReplaceRefCmd, MoveCmd
+from notesdir.models import SetTitleCmd, ReplaceRefCmd, MoveCmd, FileQuery
 from notesdir.repos.direct import DirectRepo
 
 
@@ -93,3 +93,33 @@ def test_paths_and_filters(fs):
         Path('/bar/one.md'),
         Path('/bar/three2.md')
     }
+
+
+def test_query(fs):
+    fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2 #tag4')
+    fs.create_file('/notes/two.md', contents='#tag1 #tag3')
+    fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
+    repo = DirectRepo({'roots': ['/notes']})
+    paths = {i.path for i in repo.query(FileQuery())}
+    assert paths == {Path('/notes/one.md'), Path('/notes/two.md'), Path('/notes/three.md')}
+    paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3'))}
+    assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
+    paths = {i.path for i in repo.query(FileQuery.parse('tag:tag1,tag4'))}
+    assert paths == {Path('/notes/one.md'), Path('/notes/three.md')}
+    assert not repo.query(FileQuery.parse('tag:bogus'))
+    paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2'))}
+    assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
+    paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2,tag4'))}
+    assert paths == {Path('/notes/two.md')}
+    assert not repo.query(FileQuery.parse('-tag:tag1'))
+    paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3 -tag:tag4'))}
+    assert paths == {Path('/notes/two.md')}
+
+
+def test_tag_counts(fs):
+    fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')
+    fs.create_file('/notes/two.md', contents='#tag1 #tag3')
+    fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
+    repo = DirectRepo({'roots': ['/notes']})
+    assert repo.tag_counts(FileQuery()) == {'tag1': 3, 'tag2': 1, 'tag3': 2, 'tag4': 1}
+    assert repo.tag_counts(FileQuery.parse('tag:tag3')) == {'tag1': 2, 'tag3': 2, 'tag4': 1}

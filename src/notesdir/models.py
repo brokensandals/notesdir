@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -84,3 +85,21 @@ class DelTagCmd(FileEditCmd):
 @dataclass
 class MoveCmd(FileEditCmd):
     dest: Path
+
+
+@dataclass
+class FileQuery:
+    include_tags: Set[str] = field(default_factory=set)
+    exclude_tags: Set[str] = field(default_factory=set)
+
+    @classmethod
+    def parse(cls, strquery: str) -> FileQuery:
+        query = cls()
+        for term in strquery.split():
+            term = term.strip()
+            lower = term.lower()
+            if lower.startswith('tag:'):
+                query.include_tags.update(unquote_plus(t) for t in lower[4:].split(','))
+            elif lower.startswith('-tag:'):
+                query.exclude_tags.update(unquote_plus(t) for t in lower[5:].split(','))
+        return query
