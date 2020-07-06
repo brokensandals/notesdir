@@ -1,0 +1,8 @@
+usage: notesdir tags-count [-h] [-p] [query]
+
+positional arguments:
+  query        query to filter files
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -p, --plain  minimize formatting of output

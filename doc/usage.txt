@@ -1,11 +1,12 @@
-usage: notesdir [-h] {mv,norm,tags-add,tags-rm} ...
+usage: notesdir [-h] {mv,norm,tags-add,tags-count,tags-rm} ...
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Commands:
-  {mv,norm,tags-add,tags-rm}
+  {mv,norm,tags-add,tags-count,tags-rm}
     mv                  move file and update references
     norm                normalize file
     tags-add            add tags to files
+    tags-count          count number of files by tag
     tags-rm             remove tags from files

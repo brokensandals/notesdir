@@ -3,7 +3,9 @@
 
 import argparse
 from pathlib import Path
+from terminaltables import AsciiTable
 from notesdir.api import Notesdir
+from notesdir.models import FileQuery
 
 
 def _mv(args, nd: Notesdir) -> int:
@@ -29,6 +31,21 @@ def _tags_add(args, nd: Notesdir) -> int:
     tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
     paths = {Path(p) for p in args.paths}
     nd.add_tags(tags, paths)
+    return 0
+
+
+def _tags_count(args, nd: Notesdir) -> int:
+    query = FileQuery.parse(args.query or '')
+    counts = nd.repo.tag_counts(query)
+    tags = sorted(counts.keys())
+    if args.plain:
+        for tag in tags:
+            print(f'{tag}\t{counts[tag]}')
+    else:
+        data = [('Tag', 'Count')] + [(t, counts[t]) for t in tags]
+        table = AsciiTable(data)
+        table.justify_columns[2] = 'right'
+        print(table.table)
     return 0
 
 
@@ -71,6 +88,13 @@ def main(args=None) -> int:
     p_tags_add.add_argument('tags', help='comma-separated list of tags', nargs=1)
     p_tags_add.add_argument('paths', help='files to add tags to', nargs='+')
     p_tags_add.set_defaults(func=_tags_add)
+
+    p_tags_count = subs.add_parser(
+        'tags-count',
+        help='count number of files by tag')
+    p_tags_count.add_argument('query', help='query to filter files', nargs='?')
+    p_tags_count.add_argument('-p', '--plain', help='minimize formatting of output', action='store_true')
+    p_tags_count.set_defaults(func=_tags_count)
 
     p_tags_rm = subs.add_parser(
         'tags-rm',
