@@ -8,7 +8,7 @@ from notesdir.accessors.base import Accessor
 from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*)\n(---|\.\.\.)\s*\r?\n)?(.*)')
-TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
+TAG_RE = re.compile(r'(\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
 INLINE_REF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
 REFSTYLE_REF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
 
@@ -22,8 +22,18 @@ def extract_meta(doc) -> Tuple[dict, str]:
     return meta, body
 
 
-def extract_tags(doc) -> Set[str]:
-    return set(t.lower() for t in TAG_RE.findall(doc))
+def extract_hashtags(doc) -> Set[str]:
+    return {t[1].lower() for t in TAG_RE.findall(doc)}
+
+
+def remove_hashtag(doc: str, tag: str) -> str:
+    # TODO probably would be better to build a customized regex like replace_ref does
+    def replace(match):
+        if match.group(2).lower() == tag:
+            return match.group(1)
+        else:
+            return match.group(0)
+    return re.sub(TAG_RE, replace, doc)
 
 
 def extract_refs(doc) -> Set[str]:
@@ -51,12 +61,12 @@ class MarkdownAccessor(Accessor):
         text = self.path.read_text()
         self.meta, self.body = extract_meta(text)
         self.refs = extract_refs(self.body)
-        self.unmanaged_tags = extract_tags(self.body)
+        self._hashtags = extract_hashtags(self.body)
 
     def _info(self, info: FileInfo):
         info.title = self.meta.get('title')
         info.created = self.meta.get('created')
-        info.tags = {k.lower() for k in self.meta.get('keywords', [])}.union(self.unmanaged_tags)
+        info.tags = {k.lower() for k in self.meta.get('keywords', [])}.union(self._hashtags)
         info.refs = self.refs.copy()
 
     def _save(self):
@@ -81,14 +91,16 @@ class MarkdownAccessor(Accessor):
 
     def _del_tag(self, edit: DelTagCmd):
         tag = edit.value.lower()
-        # TODO delete from body
-        if tag not in self.meta.get('keywords', []):
-            return
-        if len(self.meta['keywords']) == 1:
-            del self.meta['keywords']
-        else:
-            self.meta['keywords'].remove(tag)
-        self.edited = True
+        if tag in self.meta.get('keywords', []):
+            if len(self.meta['keywords']) == 1:
+                del self.meta['keywords']
+            else:
+                self.meta['keywords'].remove(tag)
+            self.edited = True
+        if tag in self._hashtags:
+            self.body = remove_hashtag(self.body, tag)
+            self._hashtags.remove(tag)
+            self.edited = True
 
     def _set_title(self, edit: SetTitleCmd):
         self.edited = self.edited or not self.meta.get('title') == edit.value

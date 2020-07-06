@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
-from notesdir.accessors.markdown import extract_meta, extract_refs, extract_tags, replace_ref,\
+from notesdir.accessors.markdown import extract_meta, extract_refs, extract_hashtags, replace_ref,\
     MarkdownAccessor
 
 
@@ -31,7 +31,7 @@ The pound#sign must be preceded by whitespace if it's not at the beginning of th
 """
     expected = set(['beginning-of-line', 'end-of-line', 'in-heading', 'numbers1234',
                     'downcased', 'hyphens-and_underscores'])
-    assert extract_tags(doc) == expected
+    assert extract_hashtags(doc) == expected
 
 
 def test_extract_refs():
@@ -154,5 +154,19 @@ text"""
     acc = MarkdownAccessor(path)
     acc.edit(AddTagCmd(path, 'THREE'))
     acc.edit(DelTagCmd(path, 'ONE'))
+    assert acc.save()
+    assert path.read_text() == expected
+
+
+def test_remove_hashtag(fs):
+    doc = '#Tag1 tag1 #tag1. tag1#tag1 #tag1 #tag2 #tag1'
+    # TODO Currently none of the whitespace around a tag is removed when the tag is, which can leave things
+    #      pretty ugly. But I'm not sure what the best approach is.
+    expected = ' tag1 . tag1#tag1  #tag2 '
+    path = Path('/fakenotes/test.md')
+    fs.create_file(path, contents=doc)
+    acc = MarkdownAccessor(path)
+    assert acc.info().tags == {'tag1', 'tag2'}
+    acc.edit(DelTagCmd(path, 'tag1'))
     assert acc.save()
     assert path.read_text() == expected
