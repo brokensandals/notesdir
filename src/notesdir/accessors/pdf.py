@@ -56,7 +56,7 @@ class PDFAccessor(Accessor):
     def _info(self, info: FileInfo):
         info.title = self._meta.get('/Title')
         info.created = pdf_strptime(self._meta.get('/CreationDate'))
-        info.managed_tags.update(self._tags())
+        info.tags.update(self._tags())
 
     def _save(self):
         merger = PdfFileMerger()

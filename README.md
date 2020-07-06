@@ -37,7 +37,6 @@
                     <li>(optional) <code>title</code> element</li>
                     <li>(optional) <code>meta name="created"</code> element</li>
                     <li>(optional) <code>meta name="keywords"</code> element</li>
-                    <li>Hashtags in the text are also interpreted as tags (in addition to the keywords).</li>
                 </ul>
             </td>
             <td>

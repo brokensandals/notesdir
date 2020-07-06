@@ -9,13 +9,9 @@ from urllib.parse import urlparse, unquote_plus
 class FileInfo:
     path: Path
     refs: Set[str] = field(default_factory=set)
-    managed_tags: Set[str] = field(default_factory=set)
-    unmanaged_tags: Set[str] = field(default_factory=set)
+    tags: Set[str] = field(default_factory=set)
     title: Optional[str] = None
     created: Optional[datetime] = None
-
-    def all_tags(self) -> Set[str]:
-        return self.managed_tags.union(self.unmanaged_tags)
 
     def path_refs(self) -> Dict[Path, Set[str]]:
         """Returns subsets of self.refs that refer to local paths.

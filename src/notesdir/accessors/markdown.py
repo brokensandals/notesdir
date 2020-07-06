@@ -56,9 +56,8 @@ class MarkdownAccessor(Accessor):
     def _info(self, info: FileInfo):
         info.title = self.meta.get('title')
         info.created = self.meta.get('created')
-        info.managed_tags = {k.lower() for k in self.meta.get('keywords', [])}
+        info.tags = {k.lower() for k in self.meta.get('keywords', [])}.union(self.unmanaged_tags)
         info.refs = self.refs.copy()
-        info.unmanaged_tags = self.unmanaged_tags.copy()
 
     def _save(self):
         if self.meta:
@@ -71,6 +70,8 @@ class MarkdownAccessor(Accessor):
 
     def _add_tag(self, edit: AddTagCmd):
         tag = edit.value.lower()
+        # TODO probably isn't great that this will duplicate a tag into the keywords when it's
+        #      already in the body as a hashtag
         self.edited = self.edited or tag not in self.meta.get('keywords', [])
         if 'keywords' in self.meta:
             self.meta['keywords'].append(tag)
@@ -80,6 +81,7 @@ class MarkdownAccessor(Accessor):
 
     def _del_tag(self, edit: DelTagCmd):
         tag = edit.value.lower()
+        # TODO delete from body
         if tag not in self.meta.get('keywords', []):
             return
         if len(self.meta['keywords']) == 1:

@@ -98,8 +98,7 @@ published about online (see [this article](http://example.com/blah) among many o
     info = MarkdownAccessor(path).info()
     assert info.path == path
     assert info.refs == {'../Another%20Note.md', 'http://example.com/blah'}
-    assert info.managed_tags == {'trulyprofound'}
-    assert info.unmanaged_tags == {'personal', 'book-draft', 'journaling'}
+    assert info.tags == {'trulyprofound', 'personal', 'book-draft', 'journaling'}
     assert info.title == 'An Examination of the Navel'
     assert info.created == datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))
 
@@ -137,7 +136,7 @@ published about online (see [this article](http://example.com/blahblah) and
     assert path.read_text() == expected
 
 
-def test_change_managed_tags(fs):
+def test_change_metadata_tags(fs):
     doc = """---
 keywords:
 - one

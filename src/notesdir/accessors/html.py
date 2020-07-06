@@ -9,7 +9,6 @@ from notesdir.accessors.base import Accessor, ChangeError, ParseError
 from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
 
 _DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
-TAG_RE = re.compile(r'(?:\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
 
 
 class HTMLAccessor(Accessor):
@@ -21,9 +20,6 @@ class HTMLAccessor(Accessor):
                 raise ParseError('Cannot parse HTML', self.path, e)
         self._title_el = self._page.find('title')
         self._keywords_el = self._page.find('meta', {'name': 'keywords'})
-        body_el = self._page.find('body')
-        if body_el:
-            self._unmanaged_tags = {t.lower() for t in TAG_RE.findall(body_el.get_text())}
         self._created_el = self._page.find('meta', {'name': 'created'})
         self._ref_els = defaultdict(list)
         for a_el in self._page.find_all('a'):
@@ -41,8 +37,7 @@ class HTMLAccessor(Accessor):
     def _info(self, info: FileInfo):
         info.title = self._title()
         info.created = self._created()
-        info.managed_tags = self._managed_tags()
-        info.unmanaged_tags = self._unmanaged_tags.copy()
+        info.tags = self._tags()
         info.refs.update(self._ref_els.keys())
 
     def _save(self):
@@ -62,7 +57,7 @@ class HTMLAccessor(Accessor):
                 raise ChangeError(f'File does not contain root <html> element', [edit])
         return self._html_el
 
-    def _managed_tags(self) -> Set[str]:
+    def _tags(self) -> Set[str]:
         if not self._keywords_el:
             return set()
         return {t.strip() for t in self._keywords_el.attrs.get('content', '').lower().split(',')
@@ -70,8 +65,7 @@ class HTMLAccessor(Accessor):
 
     def _add_tag(self, edit: AddTagCmd):
         tag = edit.value.lower()
-        tags = self._managed_tags()
-        # TODO should it check all tags or just managed?
+        tags = self._tags()
         if tag in tags:
             return
         if not self._keywords_el:
@@ -85,7 +79,7 @@ class HTMLAccessor(Accessor):
 
     def _del_tag(self, edit: DelTagCmd):
         tag = edit.value.lower()
-        tags = self._managed_tags()
+        tags = self._tags()
         if tag not in tags:
             return
         tags.remove(tag)

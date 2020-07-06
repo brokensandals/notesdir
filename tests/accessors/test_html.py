@@ -23,7 +23,7 @@ def test_info(fs):
         <meta name="created" content="2019-10-03 23:31:14 -0800"/>
     </head>
     <body>
-        Some #extra tags in the body! But <a href="#nope">this is not a tag.</a>
+        No #extra tags in the body for now! And <a href="#nope">this will never be a tag.</a>
         Here's a <a href="../Another%20Note.md">link to another note</a>, and here's
         an image: <img src="me.html.resources/A%20Picture.png" />
     </body>
@@ -33,8 +33,7 @@ def test_info(fs):
     info = HTMLAccessor(path).info()
     assert info.path == path
     assert info.title == 'I Am A Strange Knot'
-    assert info.managed_tags == {'mind', 'philosophy', 'consciousness'}
-    assert info.unmanaged_tags == {'extra'}
+    assert info.tags == {'mind', 'philosophy', 'consciousness'}
     assert info.created == datetime(2019, 10, 3, 23, 31, 14, 0, timezone(timedelta(hours=-8)))
     assert info.refs == {'../Another%20Note.md', 'me.html.resources/A%20Picture.png', '#nope'}
 
