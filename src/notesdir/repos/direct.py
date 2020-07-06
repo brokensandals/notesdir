@@ -27,7 +27,7 @@ class DirectRepo(Repo):
 
     def _paths(self):
         for root in self.roots:
-            for child in root.glob('**/*'):
+            for child in root.resolve().glob('**/*'):
                 if not any(f.search(str(child)) for f in self.filters):
                     yield child
 

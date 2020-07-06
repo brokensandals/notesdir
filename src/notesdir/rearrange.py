@@ -93,6 +93,8 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]):
         info = store.info(src)
         if info:
             for target, refs in info.path_refs().items():
+                if not target:
+                    continue
                 if target in all_moves:
                     target = all_moves[target]
                 for ref in refs:

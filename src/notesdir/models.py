@@ -14,7 +14,7 @@ class FileInfo:
     title: Optional[str] = None
     created: Optional[datetime] = None
 
-    def path_refs(self) -> Dict[Path, Set[str]]:
+    def path_refs(self) -> Dict[Optional[Path], Set[str]]:
         """Returns subsets of self.refs that refer to local paths.
 
         Each key of the result is a local path, and the value is the subset of refs
@@ -24,7 +24,7 @@ class FileInfo:
         differ in the fragment or query string of the URL.
 
         Refs that cannot be parsed as URLs or that do not refer to local paths will
-        not appear in the result.
+        appear under the key None.
         """
         result = {}
         for ref in self.refs:
@@ -38,9 +38,15 @@ class FileInfo:
                     if src in result:
                         result[src].add(ref)
                     else:
-                        result[src] = set([ref])
+                        result[src] = {ref}
+                    continue
             except ValueError:
                 pass
+
+            if None in result:
+                result[None].add(ref)
+            else:
+                result[None] = {ref}
         return result
 
     def refs_to_path(self, dest: Path) -> Set[str]:

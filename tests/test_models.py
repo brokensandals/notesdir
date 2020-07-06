@@ -76,6 +76,7 @@ def test_path_refs(fs):
         'via-symlink',
         'file:///a%20dir/a%20file%21.md'
     }
+    assert info.path_refs()[None] == {'file://otherhost/a%20dir/a%20file%21.md'}
 
 
 def test_parse_query():

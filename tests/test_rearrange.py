@@ -208,7 +208,7 @@ def test_rearrange_special_characters(fs):
 def test_rearrange_folder(fs):
     doc1 = 'I link to [two](dir/two.md).'
     doc2 = 'I link to [three](subdir/three.md).'
-    doc3 = 'I link to [one](../../one.md).'
+    doc3 = 'I link to [one](../../one.md) and [the web](https://example.com).'
     fs.create_file('/notes/one.md', contents=doc1)
     fs.create_file('/notes/dir/two.md', contents=doc2)
     fs.create_file('/notes/dir/subdir/three.md', contents=doc3)
@@ -220,4 +220,4 @@ def test_rearrange_folder(fs):
     assert Path('/notes/one.md').read_text() == 'I link to [two](wrapper/newdir/two.md).'
     assert Path('/notes/wrapper/newdir/two.md').read_text() == 'I link to [three](subdir/three.md).'
     assert (Path('/notes/wrapper/newdir/subdir/three.md').read_text()
-            == 'I link to [one](../../../one.md).')
+            == 'I link to [one](../../../one.md) and [the web](https://example.com).')
