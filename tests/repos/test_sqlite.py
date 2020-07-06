@@ -7,7 +7,7 @@ from notesdir.repos.sqlite import SqliteRepo
 CONFIG = {'roots': ['/notes'], 'cache': ':memory:'}
 
 
-def test_init(fs):
+def test_init():
     repo = SqliteRepo(CONFIG)
     repo.close()
 
@@ -47,7 +47,12 @@ I link to [two](two.md) and [three](../otherdir/three.md#heading) and have #two 
 def test_refresh(fs):
     repo = SqliteRepo(CONFIG)
     path = Path('/notes/one.md')
-    fs.create_file(path, contents='#hello')
+    fs.create_file(path, contents='#hello [link](foo.md)')
     assert repo.info(path) is None
     repo.refresh()
-    assert repo.info(path) == FileInfo(path, tags={'hello'})
+    assert repo.info(path) == FileInfo(path, tags={'hello'}, refs={'foo.md'})
+    repo.refresh()
+    path.write_text('#goodbye')
+    assert repo.info(path) == FileInfo(path, tags={'hello'}, refs={'foo.md'})
+    repo.refresh()
+    assert repo.info(path) == FileInfo(path, tags={'goodbye'})
