@@ -224,3 +224,34 @@ def test_tags_count(fs, capsys):
     assert cli.main(['tags-count', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
     assert out
+
+
+def test_query(fs, capsys):
+    nd_setup(fs)
+    doc1 = """---
+title: A Test File
+created: 2012-03-04 05:06:07
+keywords:
+- has space
+- cool
+...
+This is a test doc."""
+    doc2 = 'Another #test doc.'
+    path1 = '/notes/cwd/subdir/one.md'
+    path2 = '/notes/two.md'
+    fs.create_file(path1, contents=doc1)
+    fs.create_file(path2, contents=doc2)
+    assert cli.main(['q', '-p']) == 0
+    out, err = capsys.readouterr()
+    assert out == ('../two.md\t\t\ttest\n'
+                   'subdir/one.md\tA Test File\t2012-03-04T05:06:07\tcool, has%20space\n')
+    assert cli.main(['q']) == 0
+    out, err = capsys.readouterr()
+    assert out
+
+    assert cli.main(['q', '-p', 'tag:has+space']) == 0
+    out, err = capsys.readouterr()
+    assert out == 'subdir/one.md\tA Test File\t2012-03-04T05:06:07\tcool, has%20space\n'
+    assert cli.main(['q', 'tag:has+space']) == 0
+    out, err = capsys.readouterr()
+    assert out

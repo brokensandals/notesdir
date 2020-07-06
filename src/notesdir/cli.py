@@ -2,7 +2,10 @@
 
 
 import argparse
+from operator import itemgetter
+from os.path import relpath
 from pathlib import Path
+from urllib.parse import quote
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
 from notesdir.models import FileQuery
@@ -56,6 +59,27 @@ def _tags_rm(args, nd: Notesdir) -> int:
     return 0
 
 
+def _q(args, nd: Notesdir) -> int:
+    query = FileQuery.parse(args.query or '')
+    infos = nd.repo.query(query)
+    cwd = Path.cwd().resolve()
+    data = [(str(relpath(i.path.resolve(), cwd)),
+             i.title or '',
+             i.created.isoformat() if i.created else '',
+             ', '.join(quote(t) for t in sorted(i.tags)))
+            for i in infos]
+    data.sort(key=itemgetter(0))
+    if args.plain:
+        for row in data:
+            print('\t'.join(row))
+    else:
+        data.insert(0, ('Path', 'Title', 'Created', 'Tags'))
+        table = AsciiTable(data)
+        table.justify_columns[3] = 'right'
+        print(table.table)
+    return 0
+
+
 def main(args=None) -> int:
     """Runs the tool and returns its exit code.
 
@@ -102,6 +126,13 @@ def main(args=None) -> int:
     p_tags_rm.add_argument('tags', help='comma-separated list of tags', nargs=1)
     p_tags_rm.add_argument('paths', help='files to remove tags from', nargs='+')
     p_tags_rm.set_defaults(func=_tags_rm)
+
+    p_q = subs.add_parser(
+        'q',
+        help='query for files')
+    p_q.add_argument('query', nargs='?')
+    p_q.add_argument('-p', '--plain', help='minimize formatting of output', action='store_true')
+    p_q.set_defaults(func=_q)
 
     args = parser.parse_args(args)
     if not args.func:

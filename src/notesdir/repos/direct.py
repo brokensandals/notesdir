@@ -61,6 +61,10 @@ class DirectRepo(Repo):
     def query(self, query: FileQuery) -> List[FileInfo]:
         result = []
         for path in self._paths():
+            # TODO doing an is_file check here seems a bit hacky, need a more well-defined way of
+            #      determining what counts as an entry or not
+            if not path.is_file():
+                continue
             info = self.accessor_factory(path).info()
             if not info:
                 continue
