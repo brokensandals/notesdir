@@ -59,6 +59,12 @@ SQL_INSERT_FILE = ('INSERT INTO files (path, existent, stat_ctime, stat_mtime, s
 SqlInsertFileRow = namedtuple('SqlInsertFileRow', ['path', 'existent', 'stat_ctime', 'stat_mtime', 'stat_size',
                                                    'title', 'created'])
 
+SQL_UPDATE_FILE = ('UPDATE files SET existent = ?, stat_ctime = ?, stat_mtime = ?, stat_size = ?,'
+                   ' title = ?, created = ?'
+                   ' WHERE id = ?')
+SqlUpdateFileRow = namedtuple('SqlUpdateFileRow', ['existent', 'stat_ctime', 'stat_mtime', 'stat_size',
+                                                   'title', 'created', 'id'])
+
 
 class SqliteRepo(DirectRepo):
     def __init__(self, config: dict):
@@ -79,14 +85,12 @@ class SqliteRepo(DirectRepo):
         cursor.execute(SQL_ALL_FOR_REFRESH)
         prior_rows = (SqlAllForRefreshRow(*r) for r in cursor.fetchall())
         prior_rows_by_path = {r.path: r for r in prior_rows}
-        found_paths = set()
 
         ids_by_path = {}
         refs_to_add = []
 
         for path in self._paths():
             pathstr = str(path)
-            found_paths.add(pathstr)
             stat = path.stat()
             row = prior_rows_by_path.get(pathstr)
             if (row and row.stat_ctime == stat.st_ctime
@@ -98,9 +102,17 @@ class SqliteRepo(DirectRepo):
                 file_id = row.id
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))
                 cursor.execute('DELETE FROM file_refs WHERE referrer_id = ?', (file_id,))
+                updrow = SqlUpdateFileRow(id=file_id,
+                                          existent=path.is_file(),
+                                          stat_ctime=stat.st_ctime,
+                                          stat_mtime=stat.st_mtime,
+                                          stat_size=stat.st_size,
+                                          title=info.title,
+                                          created=info.created)
+                cursor.execute(SQL_UPDATE_FILE, updrow)
             else:
                 newrow = SqlInsertFileRow(path=pathstr,
-                                          existent=True,
+                                          existent=path.is_file(),
                                           stat_ctime=stat.st_ctime,
                                           stat_mtime=stat.st_mtime,
                                           stat_size=stat.st_size,
@@ -119,12 +131,18 @@ class SqliteRepo(DirectRepo):
             if referent_path:
                 referent_id = ids_by_path.get(referent_path)
                 if not referent_id:
+                    prior_row = prior_rows_by_path.get(referent_path)
+                    if prior_row:
+                        referent_id = prior_row.id
+                if not referent_id:
                     cursor.execute('INSERT INTO files (path, existent) VALUES (?, FALSE)', (referent_path,))
                     referent_id = cursor.lastrowid
                     ids_by_path[referent_path] = referent_id
             cursor.executemany('INSERT INTO file_refs (referrer_id, referent_id, ref)'
                                ' VALUES (?, ?, ?)',
                                ((referrer_id, referent_id, ref) for ref in refs))
+
+        self.connection.commit()
 
     def info(self, path: Path) -> Optional[FileInfo]:
         cursor = self.connection.cursor()
