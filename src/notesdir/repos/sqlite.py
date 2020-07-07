@@ -2,8 +2,8 @@ from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 import sqlite3
-from typing import Optional, Set
-from notesdir.models import FileInfo
+from typing import Optional, Set, List
+from notesdir.models import FileInfo, FileEditCmd
 from notesdir.repos.direct import DirectRepo
 
 
@@ -142,6 +142,17 @@ class SqliteRepo(DirectRepo):
         info.refs = {r[0] for r in cursor.fetchall()}
         return info
 
+    def _infos(self):
+        # TODO This is super lazy and inefficient.
+        #      I should instead get as much info in the initial query as I can,
+        #      and avoid doing lookups by path.
+        #      It's also super lazy and inefficient that I just rely on the superclass's implementations
+        #      of query() etc.
+        cursor = self.connection.cursor()
+        cursor.execute('SELECT path FROM files WHERE existent = TRUE')
+        for (path,) in cursor:
+            yield self.info(Path(path))
+
     def referrers(self, path: Path) -> Set[Path]:
         cursor = self.connection.cursor()
         path = path.resolve()
@@ -152,6 +163,13 @@ class SqliteRepo(DirectRepo):
                        ' WHERE referents.path = ?',
                        (str(path),))
         return {Path(r[0]) for r in cursor.fetchall()}
+
+    def change(self, edits: List[FileEditCmd]):
+        try:
+            super().change(edits)
+        finally:
+            # TODO only refresh necessary files
+            self.refresh()
 
     def clear(self):
         self.connection.executescript(SQL_CLEAR)

@@ -31,19 +31,21 @@ class DirectRepo(Repo):
                 if not any(f.search(str(child)) for f in self.filters):
                     yield child
 
+    def _infos(self):
+        for path in self._paths():
+            # TODO doing an is_file check here seems a bit hacky, need a more well-defined way of
+            #      determining what counts as an entry or not
+            if not path.is_file():
+                continue
+            info = self.info(path)
+            if info:
+                yield info
+
     def referrers(self, path: Path) -> Set[Path]:
         result = set()
-        for child_path in self._paths():
-            if not child_path.is_file():
-                # This is a little bit of a hack to make the tests simpler -
-                # when using DelegatingAccessor it's fine to call .info on a directory,
-                # as you'll just get an empty FileInfo back, but some of the tests use
-                # other accessors directly, where calling .info on a directory would
-                # cause an error.
-                continue
-            info = self.info(child_path)
-            if info and len(info.refs_to_path(path)) > 0:
-                result.add(child_path)
+        for info in self._infos():
+            if len(info.refs_to_path(path)) > 0:
+                result.add(info.path)
         return result
 
     def change(self, edits: List[FileEditCmd]):
@@ -60,14 +62,7 @@ class DirectRepo(Repo):
 
     def query(self, query: FileQuery) -> List[FileInfo]:
         result = []
-        for path in self._paths():
-            # TODO doing an is_file check here seems a bit hacky, need a more well-defined way of
-            #      determining what counts as an entry or not
-            if not path.is_file():
-                continue
-            info = self.accessor_factory(path).info()
-            if not info:
-                continue
+        for info in self._infos():
             if query.include_tags and not query.include_tags.issubset(info.tags):
                 continue
             if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):

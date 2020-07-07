@@ -6,7 +6,6 @@ from typing import Dict, Set
 import toml
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
 from notesdir.rearrange import edits_for_rearrange
-from notesdir.repos.direct import DirectRepo
 
 
 def filename_for_title(title: str) -> str:
@@ -49,7 +48,12 @@ class Notesdir:
     def __init__(self, config):
         self.config = config
         repo_config = self.config.get('repo', {})
-        self.repo = DirectRepo(repo_config)
+        if 'cache' in repo_config:
+            from notesdir.repos.sqlite import SqliteRepo
+            self.repo = SqliteRepo(repo_config)
+        else:
+            from notesdir.repos.direct import DirectRepo
+            self.repo = DirectRepo(repo_config)
 
     def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
