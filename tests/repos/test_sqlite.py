@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from notesdir.models import FileInfo, FileQuery
+from notesdir.models import FileInfo, FileQuery, SetTitleCmd, ReplaceRefCmd, MoveCmd
 from notesdir.repos.sqlite import SqliteRepo
 
 
@@ -86,3 +86,37 @@ def test_tag_counts(fs):
     repo = SqliteRepo(CONFIG)
     assert repo.tag_counts(FileQuery()) == {'tag1': 3, 'tag2': 1, 'tag3': 2, 'tag4': 1}
     assert repo.tag_counts(FileQuery.parse('tag:tag3')) == {'tag1': 2, 'tag3': 2, 'tag4': 1}
+
+
+def test_change(fs):
+    fs.cwd = '/notes'
+    path1 = Path('/notes/one.md')
+    path2 = Path('/notes/two.md')
+    path3 = Path('/notes/moved.md')
+    fs.create_file(path1, contents='[1](old)')
+    fs.create_file(path2, contents='[2](foo)')
+    edits = [SetTitleCmd(path1, 'New Title'),
+             ReplaceRefCmd(path1, 'old', 'new'),
+             MoveCmd(path1, path3),
+             ReplaceRefCmd(path2, 'foo', 'bar')]
+    repo = SqliteRepo(CONFIG)
+    repo.change(edits)
+    assert not path1.exists()
+    assert path3.read_text() == '---\ntitle: New Title\n...\n[1](new)'
+    assert path2.read_text() == '[2](bar)'
+    assert repo.info(path1) is None
+    assert repo.info(path3) == FileInfo(path3, title='New Title', refs={'new'})
+    assert repo.info(path2) == FileInfo(path2, refs={'bar'})
+    assert repo.info(Path('old')) is None
+    assert repo.info(Path('foo')) is None
+    assert repo.info(Path('new')) is None
+    assert repo.info(Path('bar')) is None
+    assert repo.referrers(Path('old')) == set()
+    assert repo.referrers(Path('foo')) == set()
+    assert repo.referrers(Path('new')) == {path3}
+    assert repo.referrers(Path('bar')) == {path2}
+    # regression test for bug where refresh removed entries for files that were referred to
+    # only by files that had not been changed
+    repo.refresh()
+    assert repo.referrers(Path('new')) == {path3}
+    assert repo.referrers(Path('bar')) == {path2}

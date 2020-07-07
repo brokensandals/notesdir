@@ -85,12 +85,14 @@ class SqliteRepo(DirectRepo):
         cursor.execute(SQL_ALL_FOR_REFRESH)
         prior_rows = (SqlAllForRefreshRow(*r) for r in cursor.fetchall())
         prior_rows_by_path = {r.path: r for r in prior_rows}
+        found_paths = set()
 
         ids_by_path = {}
         refs_to_add = []
 
         for path in self._paths():
             pathstr = str(path)
+            found_paths.add(pathstr)
             stat = path.stat()
             row = prior_rows_by_path.get(pathstr)
             if (row and row.stat_ctime == stat.st_ctime
@@ -129,6 +131,7 @@ class SqliteRepo(DirectRepo):
         for referrer_id, referent_path, refs in refs_to_add:
             referent_id = None
             if referent_path:
+                found_paths.add(referent_path)
                 referent_id = ids_by_path.get(referent_path)
                 if not referent_id:
                     prior_row = prior_rows_by_path.get(referent_path)
@@ -141,6 +144,23 @@ class SqliteRepo(DirectRepo):
             cursor.executemany('INSERT INTO file_refs (referrer_id, referent_id, ref)'
                                ' VALUES (?, ?, ?)',
                                ((referrer_id, referent_id, ref) for ref in refs))
+
+        ids_to_delete = [prior_rows_by_path[p].id for p in set(prior_rows_by_path.keys()).difference(found_paths)]
+        for id_to_delete in ids_to_delete:
+            cursor.execute('SELECT COUNT(*) FROM file_refs WHERE referent_id = ?', (id_to_delete,))
+            if cursor.fetchone()[0] == 0:
+                cursor.execute('DELETE FROM files WHERE id = ?', (id_to_delete,))
+            else:
+                updrow = SqlUpdateFileRow(id=id_to_delete,
+                                          existent=False,
+                                          stat_ctime=None,
+                                          stat_mtime=None,
+                                          stat_size=None,
+                                          title=None,
+                                          created=None)
+                cursor.execute(SQL_UPDATE_FILE, updrow)
+            cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (id_to_delete,))
+            cursor.execute('DELETE FROM file_refs WHERE referrer_id = ?', (id_to_delete,))
 
         self.connection.commit()
 
