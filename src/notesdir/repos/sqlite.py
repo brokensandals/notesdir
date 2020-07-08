@@ -105,7 +105,7 @@ class SqliteRepo(DirectRepo):
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))
                 cursor.execute('DELETE FROM file_refs WHERE referrer_id = ?', (file_id,))
                 updrow = SqlUpdateFileRow(id=file_id,
-                                          existent=path.is_file(),
+                                          existent=True,
                                           stat_ctime=stat.st_ctime,
                                           stat_mtime=stat.st_mtime,
                                           stat_size=stat.st_size,
@@ -114,7 +114,7 @@ class SqliteRepo(DirectRepo):
                 cursor.execute(SQL_UPDATE_FILE, updrow)
             else:
                 newrow = SqlInsertFileRow(path=pathstr,
-                                          existent=path.is_file(),
+                                          existent=True,
                                           stat_ctime=stat.st_ctime,
                                           stat_mtime=stat.st_mtime,
                                           stat_size=stat.st_size,

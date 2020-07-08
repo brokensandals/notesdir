@@ -67,7 +67,8 @@ def _q(args, nd: Notesdir) -> int:
              i.title or '',
              i.created.isoformat() if i.created else '',
              ', '.join(quote(t) for t in sorted(i.tags)))
-            for i in infos]
+            for i in infos
+            if i.path.is_file()]
     data.sort(key=itemgetter(0))
     if args.plain:
         for row in data:

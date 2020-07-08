@@ -17,26 +17,25 @@ class DirectRepo(Repo):
         if 'roots' not in self.config:
             raise ValueError('"roots" must be set in repo config')
         self.roots = {Path(p) for p in self.config['roots']}
-        self.filters = {re.compile(f) for f in self.config.get('filters', [])}
+        self.noparse = {re.compile(f) for f in self.config.get('noparse', [])}
         self.accessor_factory = DelegatingAccessor
         edit_log_path = self.config.get('edit_log_path', None)
         self.edit_log_path = edit_log_path and Path(edit_log_path)
 
     def info(self, path: Path) -> Optional[FileInfo]:
+        if not path.exists():
+            return None
+        if any(f.search(str(path)) for f in self.noparse):
+            return FileInfo(path)
         return self.accessor_factory(path).info()
 
     def _paths(self):
         for root in self.roots:
             for child in root.resolve().glob('**/*'):
-                if not any(f.search(str(child)) for f in self.filters):
-                    yield child
+                yield child
 
     def _infos(self):
         for path in self._paths():
-            # TODO doing an is_file check here seems a bit hacky, need a more well-defined way of
-            #      determining what counts as an entry or not
-            if not path.is_file():
-                continue
             info = self.info(path)
             if info:
                 yield info

@@ -120,3 +120,23 @@ def test_change(fs):
     repo.refresh()
     assert repo.referrers(Path('new')) == {path3}
     assert repo.referrers(Path('bar')) == {path2}
+
+
+def test_noparse(fs):
+    path1 = Path('/notes/one.md')
+    path2 = Path('/notes/skip.md')
+    path3 = Path('/notes/moved.md')
+    fs.create_file(path1, contents='I have #tags and a [link](skip.md).')
+    fs.create_file(path2, contents='I #also have #tags.')
+    repo = SqliteRepo({**CONFIG, 'noparse': ['skip']})
+    assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'skip.md'})
+    assert repo.info(path2) == FileInfo(path2)
+    assert repo.info(path3) is None
+    assert repo.referrers(path2) == {path1}
+    assert repo.query(FileQuery(include_tags={'also'})) == []
+    repo.change([ReplaceRefCmd(path1, original='skip.md', replacement='moved.md'), MoveCmd(path2, path3)])
+    assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'moved.md'})
+    assert repo.info(path2) is None
+    assert repo.info(path3) == FileInfo(path3, tags={'also', 'tags'})
+    assert repo.referrers(path3) == {path1}
+    assert repo.query(FileQuery(include_tags={'also'})) == [repo.info(path3)]
