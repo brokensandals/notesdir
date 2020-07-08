@@ -151,3 +151,12 @@ class Notesdir:
                 raise FileNotFoundError(f'File does not exist: {path}')
             edits = [DelTagCmd(path, t.lower()) for t in tags]
             self.repo.change(edits)
+
+    def close(self):
+        self.repo.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.repo.close()

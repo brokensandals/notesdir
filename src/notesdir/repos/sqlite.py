@@ -214,3 +214,10 @@ class SqliteRepo(DirectRepo):
 
     def close(self):
         self.connection.close()
+        self.connection = None
+
+    def __enter__(self):
+        self.connect()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

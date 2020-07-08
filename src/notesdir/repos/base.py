@@ -22,6 +22,9 @@ class Repo:
     def tag_counts(self, query: FileQuery) -> Dict[str, int]:
         raise NotImplementedError()
 
+    def close(self):
+        pass
+
 
 def group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
     group = None
