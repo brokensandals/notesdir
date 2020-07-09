@@ -1,8 +1,9 @@
 from collections import namedtuple
 from datetime import datetime
+from os import PathLike
 from pathlib import Path
 import sqlite3
-from typing import Optional, Set, List
+from typing import Optional, Set, List, Union
 from notesdir.models import FileInfo, FileEditCmd
 from notesdir.repos.direct import DirectRepo
 
@@ -164,7 +165,8 @@ class SqliteRepo(DirectRepo):
 
         self.connection.commit()
 
-    def info(self, path: Path) -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike]) -> Optional[FileInfo]:
+        path = Path(path)
         cursor = self.connection.cursor()
         cursor.execute('SELECT id, title, created FROM files WHERE path = ? AND existent = TRUE',
                        (str(path.resolve()),))
@@ -191,7 +193,8 @@ class SqliteRepo(DirectRepo):
         for (path,) in cursor:
             yield self.info(Path(path))
 
-    def referrers(self, path: Path) -> Set[Path]:
+    def referrers(self, path: Union[str, bytes, PathLike]) -> Set[Path]:
+        path = Path(path)
         cursor = self.connection.cursor()
         path = path.resolve()
         cursor.execute('SELECT referrers.path'

@@ -3,6 +3,7 @@ import json
 import re
 from collections import defaultdict
 from datetime import datetime
+from os import PathLike
 from pathlib import Path
 from typing import Set, Optional, List, Dict, Union
 
@@ -22,7 +23,8 @@ class DirectRepo(Repo):
         edit_log_path = self.config.get('edit_log_path', None)
         self.edit_log_path = edit_log_path and Path(edit_log_path)
 
-    def info(self, path: Path) -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike]) -> Optional[FileInfo]:
+        path = Path(path)
         if not path.exists():
             return None
         if any(f.search(str(path)) for f in self.noparse):
@@ -40,7 +42,8 @@ class DirectRepo(Repo):
             if info:
                 yield info
 
-    def referrers(self, path: Path) -> Set[Path]:
+    def referrers(self, path: Union[str, bytes, PathLike]) -> Set[Path]:
+        path = Path(path)
         result = set()
         for info in self._infos():
             if len(info.refs_to_path(path)) > 0:

@@ -21,8 +21,7 @@ def _mv(args, nd: Notesdir) -> int:
 
 
 def _norm(args, nd: Notesdir) -> int:
-    path = Path(args.path[0])
-    moves = nd.normalize(path)
+    moves = nd.normalize(args.path[0])
     if moves:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
@@ -31,8 +30,7 @@ def _norm(args, nd: Notesdir) -> int:
 
 def _tags_add(args, nd: Notesdir) -> int:
     tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
-    paths = {Path(p) for p in args.paths}
-    nd.add_tags(tags, paths)
+    nd.add_tags(tags, args.paths)
     return 0
 
 
@@ -53,8 +51,7 @@ def _tags_count(args, nd: Notesdir) -> int:
 
 def _tags_rm(args, nd: Notesdir) -> int:
     tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
-    paths = {Path(p) for p in args.paths}
-    nd.remove_tags(tags, paths)
+    nd.remove_tags(tags, args.paths)
     return 0
 
 

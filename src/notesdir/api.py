@@ -2,7 +2,8 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from datetime import datetime
-from typing import Dict, Set
+from os import PathLike
+from typing import Dict, Set, Union
 import toml
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
 from notesdir.rearrange import edits_for_rearrange
@@ -55,7 +56,8 @@ class Notesdir:
             from notesdir.repos.direct import DirectRepo
             self.repo = DirectRepo(repo_config)
 
-    def move(self, src: Path, dest: Path, *, creation_folders=False) -> Dict[Path, Path]:
+    def move(self, src: Union[str, bytes, PathLike], dest: Union[str, bytes, PathLike], *, creation_folders=False)\
+            -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
 
         If dest is a directory, src will be moved into it, using src's filename.
@@ -71,6 +73,8 @@ class Notesdir:
 
         Returns a dict mapping paths of files that were moved, to their final paths.
         """
+        src = Path(src)
+        dest = Path(dest)
         if not src.exists():
             raise FileNotFoundError(f'File does not exist: {src}')
         if dest.is_dir():
@@ -102,7 +106,7 @@ class Notesdir:
 
         return moves
 
-    def normalize(self, path: Path) -> Dict[Path, Path]:
+    def normalize(self, path: Union[str, bytes, PathLike]) -> Dict[Path, Path]:
         """Updates metadata and/or moves a file to adhere to conventions.
 
         If the file does not have a title, one is set based on the filename.
@@ -114,6 +118,7 @@ class Notesdir:
 
         Returns a dict mapping paths of files that were moved, to their final paths.
         """
+        path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f'File does not exist: {path}')
         info = self.repo.info(path)
@@ -140,14 +145,16 @@ class Notesdir:
 
         return moves
 
-    def add_tags(self, tags: Set[str], paths: Set[Path]):
+    def add_tags(self, tags: Set[str], paths: Set[Union[str, bytes, PathLike]]):
+        paths = {Path(p) for p in paths}
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(f'File does not exist: {path}')
             edits = [AddTagCmd(path, t.lower()) for t in tags]
             self.repo.change(edits)
 
-    def remove_tags(self, tags: Set[str], paths: Set[Path]):
+    def remove_tags(self, tags: Set[str], paths: Set[Union[str, bytes, PathLike]]):
+        paths = {Path(p) for p in paths}
         for path in paths:
             if not path.exists():
                 raise FileNotFoundError(f'File does not exist: {path}')

@@ -1,5 +1,6 @@
 import dataclasses
 from datetime import datetime
+from os import PathLike
 from pathlib import Path
 from typing import Dict, Optional, List, Set, Union
 
@@ -7,13 +8,13 @@ from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery
 
 
 class Repo:
-    def info(self, path: Path) -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike]) -> Optional[FileInfo]:
         raise NotImplementedError()
 
     def change(self, edits: List[FileEditCmd]):
         raise NotImplementedError()
 
-    def referrers(self, path: Path) -> Set[Path]:
+    def referrers(self, path: Union[str, bytes, PathLike]) -> Set[Path]:
         raise NotImplementedError()
 
     def query(self, query: Union[str, FileQuery]) -> List[FileInfo]:
