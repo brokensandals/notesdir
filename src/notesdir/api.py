@@ -30,6 +30,15 @@ class Error(Exception):
 
 
 class Notesdir:
+    """Main entry point for working programmatically with your collection of notes.
+
+    Generally, you should get an instance using the :meth:`Notesdir.for_user` method.
+
+    This contains various methods such as :meth:`Notesdir.move` and :meth:`Notesdir.normalize`
+    for performing high-level operations. The :attr:`repo` attribute, which is an instance of
+    :class:`notesdir.repos.base.Repo`, provides additional operations, some lower-level.
+    """
+
     @classmethod
     def user_config_path(cls) -> Path:
         """Returns the Path to the user's config file, ~/.notesdir.toml"""
@@ -146,6 +155,12 @@ class Notesdir:
         return moves
 
     def add_tags(self, tags: Set[str], paths: Set[Union[str, bytes, PathLike]]):
+        """Adds (if not already present) the given set of tags to each of the given files.
+
+        If some of the files are of unknown types or types for which tags are
+        not supported, an UnsupportedChangeError will be raised. In that case,
+        the tags may or may not have been added to some or all of the other files.
+        """
         paths = {Path(p) for p in paths}
         for path in paths:
             if not path.exists():
@@ -154,6 +169,12 @@ class Notesdir:
             self.repo.change(edits)
 
     def remove_tags(self, tags: Set[str], paths: Set[Union[str, bytes, PathLike]]):
+        """Removes (if present) the given set of tags from each of the given files.
+
+        If some of the files are of unknown types or types for which tags are
+        not supported, an UnsupportedChangeError will be raised. In that case,
+        the tags may or may not have been removed from some or all of the other files.
+        """
         paths = {Path(p) for p in paths}
         for path in paths:
             if not path.exists():
@@ -162,6 +183,7 @@ class Notesdir:
             self.repo.change(edits)
 
     def close(self):
+        """Closes the associated repo and releases any other resources."""
         self.repo.close()
 
     def __enter__(self):
