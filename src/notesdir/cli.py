@@ -108,21 +108,21 @@ def main(args=None) -> int:
     p_norm.set_defaults(func=_norm)
 
     p_tags_add = subs.add_parser(
-        'tags-add',
+        't+',
         help='add tags to files')
     p_tags_add.add_argument('tags', help='comma-separated list of tags', nargs=1)
     p_tags_add.add_argument('paths', help='files to add tags to', nargs='+')
     p_tags_add.set_defaults(func=_tags_add)
 
     p_tags_count = subs.add_parser(
-        'tags-count',
+        'tc',
         help='count number of files by tag')
     p_tags_count.add_argument('query', help='query to filter files', nargs='?')
     p_tags_count.add_argument('-p', '--plain', help='minimize formatting of output', action='store_true')
     p_tags_count.set_defaults(func=_tags_count)
 
     p_tags_rm = subs.add_parser(
-        'tags-rm',
+        't-',
         help='remove tags from files')
     p_tags_rm.add_argument('tags', help='comma-separated list of tags', nargs=1)
     p_tags_rm.add_argument('paths', help='files to remove tags from', nargs='+')

@@ -1,4 +1,4 @@
-usage: notesdir tags-count [-h] [-p] [query]
+usage: notesdir tc [-h] [-p] [query]
 
 positional arguments:
   query        query to filter files

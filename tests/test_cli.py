@@ -200,9 +200,9 @@ some text"""
 def test_tags(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/foo.md')
-    assert cli.main(['tags-add', 'One,two, , three', 'foo.md']) == 0
+    assert cli.main(['t+', 'One,two, , three', 'foo.md']) == 0
     assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- one\n- three\n- two\n...\n'
-    assert cli.main(['tags-rm', 'oNe,tWo', 'foo.md']) == 0
+    assert cli.main(['t-', 'oNe,tWo', 'foo.md']) == 0
     assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- three\n...\n'
 
 
@@ -211,17 +211,17 @@ def test_tags_count(fs, capsys):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')
     fs.create_file('/notes/two.md', contents='#tag1 #tag3')
     fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
-    assert cli.main(['tags-count', '-p']) == 0
+    assert cli.main(['tc', '-p']) == 0
     out, err = capsys.readouterr()
     assert out == 'tag1\t3\ntag2\t1\ntag3\t2\ntag4\t1\n'
-    assert cli.main(['tags-count']) == 0
+    assert cli.main(['tc']) == 0
     out, err = capsys.readouterr()
     assert out
 
-    assert cli.main(['tags-count', '-p', 'tag:tag3']) == 0
+    assert cli.main(['tc', '-p', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
     assert out == 'tag1\t2\ntag3\t2\ntag4\t1\n'
-    assert cli.main(['tags-count', 'tag:tag3']) == 0
+    assert cli.main(['tc', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
     assert out
 

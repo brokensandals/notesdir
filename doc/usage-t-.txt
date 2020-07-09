@@ -1,8 +1,8 @@
-usage: notesdir tags-add [-h] tags paths [paths ...]
+usage: notesdir t- [-h] tags paths [paths ...]
 
 positional arguments:
   tags        comma-separated list of tags
-  paths       files to add tags to
+  paths       files to remove tags from
 
 optional arguments:
   -h, --help  show this help message and exit
