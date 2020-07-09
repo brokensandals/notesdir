@@ -8,7 +8,6 @@ from pathlib import Path
 from urllib.parse import quote
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
-from notesdir.models import FileQuery
 
 
 def _mv(args, nd: Notesdir) -> int:
@@ -38,7 +37,7 @@ def _tags_add(args, nd: Notesdir) -> int:
 
 
 def _tags_count(args, nd: Notesdir) -> int:
-    query = FileQuery.parse(args.query or '')
+    query = args.query or ''
     counts = nd.repo.tag_counts(query)
     tags = sorted(counts.keys())
     if args.plain:
@@ -60,7 +59,7 @@ def _tags_rm(args, nd: Notesdir) -> int:
 
 
 def _q(args, nd: Notesdir) -> int:
-    query = FileQuery.parse(args.query or '')
+    query = args.query or ''
     infos = nd.repo.query(query)
     cwd = Path.cwd().resolve()
     data = [(str(relpath(i.path.resolve(), cwd)),

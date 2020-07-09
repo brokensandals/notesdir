@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Set, Optional, Dict
+from typing import Set, Optional, Dict, Union
 from urllib.parse import urlparse, unquote_plus
 
 
@@ -99,7 +99,9 @@ class FileQuery:
     exclude_tags: Set[str] = field(default_factory=set)
 
     @classmethod
-    def parse(cls, strquery: str) -> FileQuery:
+    def parse(cls, strquery: Union[str, FileQuery]) -> FileQuery:
+        if isinstance(strquery, FileQuery):
+            return strquery
         query = cls()
         for term in strquery.split():
             term = term.strip()

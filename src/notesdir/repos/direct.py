@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Set, Optional, List, Dict
+from typing import Set, Optional, List, Dict, Union
 
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery
@@ -59,7 +59,8 @@ class DirectRepo(Repo):
                     acc.edit(edit)
                 acc.save()
 
-    def query(self, query: FileQuery) -> List[FileInfo]:
+    def query(self, query: Union[str, FileQuery]) -> List[FileInfo]:
+        query = FileQuery.parse(query)
         result = []
         for info in self._infos():
             if query.include_tags and not query.include_tags.issubset(info.tags):
@@ -69,7 +70,8 @@ class DirectRepo(Repo):
             result.append(info)
         return result
 
-    def tag_counts(self, query: FileQuery) -> Dict[str, int]:
+    def tag_counts(self, query: Union[str, FileQuery]) -> Dict[str, int]:
+        query = FileQuery.parse(query)
         result = defaultdict(int)
         for info in self.query(query):
             for tag in info.tags:
