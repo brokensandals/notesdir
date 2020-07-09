@@ -135,5 +135,5 @@ def main(args=None) -> int:
     if not args.func:
         parser.print_help()
         return 1
-    with Notesdir.user_default() as nd:
+    with Notesdir.for_user() as nd:
         return args.func(args, nd)

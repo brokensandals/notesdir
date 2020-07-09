@@ -36,7 +36,7 @@ class Notesdir:
         return Path.home().joinpath('.notesdir.toml')
 
     @classmethod
-    def user_default(cls) -> Notesdir:
+    def for_user(cls) -> Notesdir:
         """Creates an instance with config loaded from user_config_path().
 
         Raises Error if there is not a file at that path.
