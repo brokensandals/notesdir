@@ -84,8 +84,8 @@ class Notesdir:
 
         basename = dest.name
         prefix = 2
-        existing = [p.name for p in dest.parent.iterdir()]
-        while True in (n.startswith(dest.name) for n in existing):
+        existing = [p.name.lower() for p in dest.parent.iterdir()]
+        while True in (n.lower().startswith(dest.name) for n in existing):
             dest = dest.with_name(f'{prefix}-{basename}')
             prefix += 1
 
@@ -94,6 +94,8 @@ class Notesdir:
         resdir = src.with_name(f'{src.name}.resources')
         if resdir.exists():
             moves[resdir] = dest.with_name(f'{dest.name}.resources')
+            if moves[resdir].exists():
+                raise Error(f'Directory already exists: {moves[resdir]}')
 
         edits = edits_for_rearrange(self.repo, moves)
         self.repo.change(edits)
