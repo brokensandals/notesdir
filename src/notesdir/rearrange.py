@@ -1,10 +1,10 @@
 from os.path import relpath
 from pathlib import Path
 from tempfile import mkstemp
-from typing import Dict, Iterator
+from typing import Dict, Iterator, Set
 from urllib.parse import ParseResult, quote, urlunparse, urlparse
 
-from notesdir.models import FileInfo, MoveCmd, ReplaceRefCmd, FileEditCmd
+from notesdir.models import MoveCmd, ReplaceRefCmd, FileEditCmd, FileInfoReq
 from notesdir.repos.base import Repo
 
 
@@ -64,20 +64,12 @@ def edits_for_raw_moves(renames: Dict[Path, Path]) -> Iterator[MoveCmd]:
     yield from phase2
 
 
-def edits_for_path_replacement(referrer: FileInfo, original: Path, replacement: Path) -> Iterator[ReplaceRefCmd]:
-    """Yields commands to replace one file's references to a path with references to another path.
-
-    For example, if the referrer contains links to "/foo/bar.md" and "/foo/bar.md#section2"
-    and original is "/foo/bar.md" and replacement is "/foo/new.md", yields commands for
-    updating those links to "/foo/new.md" and "/foo/new.md#section2" respectively.
-
-    Note that this will not update references to children of the given original path, e.g. "/foo/bar.md/baz".
-    """
-    path = referrer.path
-    for ref in referrer.refs_to_path(original):
+def edits_for_path_replacement(referrer: Path, refs: Set[str], replacement: Path) -> Iterator[ReplaceRefCmd]:
+    """Yields commands to replace a file's references to a path with references to another path."""
+    for ref in refs:
         url = urlparse(ref)
-        newref = path_as_ref(ref_path(path, replacement), url)
-        yield ReplaceRefCmd(path, ref, newref)
+        newref = path_as_ref(ref_path(referrer, replacement), url)
+        yield ReplaceRefCmd(referrer, ref, newref)
 
 
 def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> Iterator[FileEditCmd]:
@@ -104,7 +96,7 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> Iterator[File
                 all_moves[path] = dest.joinpath(path.relative_to(src))
 
     for src, dest in all_moves.items():
-        info = store.info(src)
+        info = store.info(src, FileInfoReq(path=True, refs=True, referrers=True))
         if info:
             for target, refs in info.path_refs().items():
                 if not target:
@@ -116,10 +108,9 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> Iterator[File
                     newref = path_as_ref(ref_path(dest, target), url)
                     if not ref == newref:
                         yield ReplaceRefCmd(src, ref, newref)
-        for referrer in store.referrers(src):
+        for referrer, refs in info.referrers.items():
             if referrer.resolve() in all_moves:
                 continue
-            info = store.info(referrer)
-            yield from edits_for_path_replacement(info, src, dest)
+            yield from edits_for_path_replacement(referrer, refs, dest)
 
     yield from edits_for_raw_moves(to_move)

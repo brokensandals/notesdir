@@ -5,7 +5,7 @@ from datetime import datetime
 from os import PathLike
 from typing import Dict, Set, Union
 import toml
-from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
@@ -74,12 +74,11 @@ class Notesdir:
         No files are moved, and this method does not care whether or not the original or replacement paths
         refer to actual files.
         """
-        original = Path(original)
+        info = self.repo.info(original, FileInfoReq(path=True, referrers=True))
         replacement = Path(replacement)
         edits = []
-        for referrer in self.repo.referrers(original):
-            info = self.repo.info(referrer)
-            edits.extend(edits_for_path_replacement(info, original, replacement))
+        for referrer, refs in info.referrers.items():
+            edits.extend(edits_for_path_replacement(referrer, refs, replacement))
         if edits:
             self.repo.change(edits)
 

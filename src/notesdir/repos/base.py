@@ -5,20 +5,19 @@ from pathlib import Path
 from typing import Dict, Optional, List, Union, Iterator
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
-    DelTagCmd, ReplaceRefCmd
+    DelTagCmd, ReplaceRefCmd, FileInfoReq
 
 
 class Repo:
-    def info(self, path: Union[str, bytes, PathLike]) -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal())\
+            -> Optional[FileInfo]:
         raise NotImplementedError()
 
     def change(self, edits: List[FileEditCmd]):
         raise NotImplementedError()
 
-    def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
-        raise NotImplementedError()
-
-    def query(self, query: Union[str, FileQuery] = FileQuery()) -> Iterator[FileInfo]:
+    def query(self, query: Union[str, FileQuery] = FileQuery(), fields: FileInfoReq = FileInfoReq.internal())\
+            -> Iterator[FileInfo]:
         raise NotImplementedError()
 
     def tag_counts(self, query: Union[str, FileQuery] = FileQuery()) -> Dict[str, int]:

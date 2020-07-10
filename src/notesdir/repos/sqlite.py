@@ -1,10 +1,11 @@
 from collections import namedtuple
 from datetime import datetime
+import dataclasses
 from os import PathLike
 from pathlib import Path
 import sqlite3
 from typing import Optional, List, Union, Iterator
-from notesdir.models import FileInfo, FileEditCmd
+from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery
 from notesdir.repos.direct import DirectRepo
 
 
@@ -165,45 +166,55 @@ class SqliteRepo(DirectRepo):
 
         self.connection.commit()
 
-    def info(self, path: Union[str, bytes, PathLike]) -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal())\
+            -> Optional[FileInfo]:
         path = Path(path)
         cursor = self.connection.cursor()
-        cursor.execute('SELECT id, title, created FROM files WHERE path = ? AND existent = TRUE',
+        cursor.execute('SELECT id, title, created FROM files WHERE path = ?',
                        (str(path.resolve()),))
         file_row = cursor.fetchone()
-        if not file_row:
-            return None
         info = FileInfo(path)
-        info.title = file_row[1]
-        info.created = file_row[2] and datetime.fromisoformat(file_row[2])
-        cursor.execute('SELECT tag FROM file_tags WHERE file_id = ?', (file_row[0],))
-        info.tags = {r[0] for r in cursor.fetchall()}
-        cursor.execute('SELECT ref FROM file_refs WHERE referrer_id = ?', (file_row[0],))
-        info.refs = {r[0] for r in cursor.fetchall()}
+        if file_row:
+            file_id = file_row[0]
+            info.title = file_row[1]
+            info.created = file_row[2] and datetime.fromisoformat(file_row[2])
+            if fields.tags:
+                cursor.execute('SELECT tag FROM file_tags WHERE file_id = ?', (file_id,))
+                info.tags = {r[0] for r in cursor}
+            if fields.refs:
+                cursor.execute('SELECT ref FROM file_refs WHERE referrer_id = ?', (file_id,))
+                info.refs = {r[0] for r in cursor}
+            if fields.referrers:
+                cursor.execute('SELECT referrers.path, file_refs.ref'
+                               ' FROM files referrers'
+                               '  INNER JOIN file_refs ON referrers.id = file_refs.referrer_id'
+                               ' WHERE file_refs.referent_id = ?',
+                               (file_id,))
+                for referrer, ref in cursor:
+                    referrer = Path(referrer)
+                    if referrer not in info.referrers:
+                        info.referrers[referrer] = {ref}
+                    else:
+                        info.referrers[referrer].add(ref)
         return info
 
-    def _infos(self) -> Iterator[FileInfo]:
-        # TODO This is super lazy and inefficient.
-        #      I should instead get as much info in the initial query as I can,
-        #      and avoid doing lookups by path.
-        #      It's also super lazy and inefficient that I just rely on the superclass's implementations
-        #      of query() etc.
+    def query(self, query: Union[str, FileQuery] = FileQuery(), fields: FileInfoReq = FileInfoReq.internal())\
+            -> Iterator[FileInfo]:
         cursor = self.connection.cursor()
         cursor.execute('SELECT path FROM files WHERE existent = TRUE')
+        # TODO: Obviously, this is super lazy and inefficient. We should do as much filtering and data loading in
+        #       the query as we reasonably can.
+        fields = dataclasses.replace(fields, tags=(fields.tags or query.include_tags or query.exclude_tags))
         for (path,) in cursor:
-            yield self.info(Path(path))
-
-    def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
-        path = Path(path)
-        cursor = self.connection.cursor()
-        path = path.resolve()
-        cursor.execute('SELECT DISTINCT(referrers.path)'
-                       ' FROM files referrers'
-                       '  INNER JOIN file_refs ON referrers.id = file_refs.referrer_id'
-                       '  INNER JOIN files referents ON referents.id = file_refs.referent_id'
-                       ' WHERE referents.path = ?',
-                       (str(path),))
-        return (Path(r[0]) for r in cursor.fetchall())
+            info = self.info(Path(path), fields)
+            if not info:
+                # TODO log warning
+                continue
+            if query.include_tags and not query.include_tags.issubset(info.tags):
+                continue
+            if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):
+                continue
+            yield info
 
     def change(self, edits: List[FileEditCmd]):
         try:

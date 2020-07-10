@@ -1,4 +1,5 @@
 import base64
+import dataclasses
 import json
 import re
 from collections import defaultdict
@@ -8,7 +9,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Union, Iterator
 
 from notesdir.accessors.delegating import DelegatingAccessor
-from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery
+from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq
 from notesdir.repos.base import Repo, group_edits, edit_log_json_serializer
 
 
@@ -23,30 +24,22 @@ class DirectRepo(Repo):
         edit_log_path = self.config.get('edit_log_path', None)
         self.edit_log_path = edit_log_path and Path(edit_log_path)
 
-    def info(self, path: Union[str, bytes, PathLike]) -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal())\
+            -> Optional[FileInfo]:
         path = Path(path)
-        if not path.exists():
-            return None
-        if any(f.search(str(path)) for f in self.noparse):
-            return FileInfo(path)
-        return self.accessor_factory(path).info()
 
-    def _paths(self) -> Iterator[Path]:
-        for root in self.roots:
-            for child in root.resolve().glob('**/*'):
-                yield child
+        if any(f.search(str(path)) for f in self.noparse) or not path.exists():
+            info = FileInfo(path)
+        else:
+            info = self.accessor_factory(path).info()
 
-    def _infos(self) -> Iterator[FileInfo]:
-        for path in self._paths():
-            info = self.info(path)
-            if info:
-                yield info
+        if fields.referrers:
+            for other in self.query(fields=FileInfoReq(path=True, refs=True)):
+                refs = other.refs_to_path(path)
+                if refs:
+                    info.referrers[other.path] = refs
 
-    def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
-        path = Path(path)
-        for info in self._infos():
-            if len(info.refs_to_path(path)) > 0:
-                yield info.path
+        return info
 
     def change(self, edits: List[FileEditCmd]):
         for group in group_edits(edits):
@@ -60,9 +53,19 @@ class DirectRepo(Repo):
                     acc.edit(edit)
                 acc.save()
 
-    def query(self, query: Union[str, FileQuery] = FileQuery()) -> Iterator[FileInfo]:
+    def _paths(self) -> Iterator[Path]:
+        for root in self.roots:
+            for child in root.resolve().glob('**/*'):
+                yield child
+
+    def query(self, query: Union[str, FileQuery] = FileQuery(), fields: FileInfoReq = FileInfoReq.internal())\
+            -> Iterator[FileInfo]:
+        fields = dataclasses.replace(fields, tags=(fields.tags or query.include_tags or query.exclude_tags))
         query = FileQuery.parse(query)
-        for info in self._infos():
+        for path in self._paths():
+            info = self.info(path, fields)
+            if not info:
+                continue
             if query.include_tags and not query.include_tags.issubset(info.tags):
                 continue
             if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):
@@ -72,7 +75,7 @@ class DirectRepo(Repo):
     def tag_counts(self, query: Union[str, FileQuery] = FileQuery()) -> Dict[str, int]:
         query = FileQuery.parse(query)
         result = defaultdict(int)
-        for info in self.query(query):
+        for info in self.query(query, FileInfoReq(path=True, tags=True)):
             for tag in info.tags:
                 result[tag] += 1
         return result

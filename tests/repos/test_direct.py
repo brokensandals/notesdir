@@ -3,7 +3,7 @@ from pathlib import Path
 
 from freezegun import freeze_time
 
-from notesdir.models import SetTitleCmd, ReplaceRefCmd, MoveCmd, FileQuery, FileInfo
+from notesdir.models import SetTitleCmd, ReplaceRefCmd, MoveCmd, FileQuery, FileInfo, FileInfoReq
 from notesdir.repos.direct import DirectRepo
 
 
@@ -18,7 +18,7 @@ def test_info_directory(fs):
 def test_info_nonexistent(fs):
     path = Path('/notes/foo')
     repo = DirectRepo({'roots': ['/notes']})
-    assert repo.info(path) is None
+    assert repo.info(path) == FileInfo(path)
 
 
 def test_referrers(fs):
@@ -29,15 +29,21 @@ def test_referrers(fs):
     fs.create_file('/notes/r2.md', contents='[4](foo/subject.md) [5](foo/bogus)')
     fs.create_file('/notes/foo/r3.md', contents='[6](subject.md)')
     repo = DirectRepo({'roots': ['/notes']})
-    expected = {Path(p) for p in {'/notes/bar/baz/r1.md', '/notes/r2.md', '/notes/foo/r3.md'}}
-    assert sorted(list(repo.referrers(Path('subject.md')))) == sorted(expected)
+    info = repo.info(Path('subject.md'), FileInfoReq(referrers=True))
+    expected = {
+        Path('/notes/bar/baz/r1.md'): {'../../foo/subject.md'},
+        Path('/notes/r2.md'): {'foo/subject.md'},
+        Path('/notes/foo/r3.md'): {'subject.md'}
+    }
+    assert info.referrers == expected
 
 
 def test_referrers_self(fs):
     fs.create_file('/notes/subject.md', contents='[1](subject.md)')
     repo = DirectRepo({'roots': ['/notes']})
-    expected = [Path('/notes/subject.md')]
-    assert list(repo.referrers(Path('/notes/subject.md'))) == expected
+    info = repo.info(Path('/notes/subject.md'), FileInfoReq(referrers=True))
+    expected = {Path('/notes/subject.md'): {'subject.md'}}
+    assert info.referrers == expected
 
 
 def test_change(fs):
@@ -130,13 +136,12 @@ def test_noparse(fs):
     fs.create_file(path2, contents='I #also have #tags.')
     repo = DirectRepo({'roots': ['/notes'], 'noparse': ['skip']})
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'skip.md'})
-    assert repo.info(path2) == FileInfo(path2)
-    assert repo.info(path3) is None
-    assert list(repo.referrers(path2)) == [path1]
+    assert (repo.info(path2, FileInfoReq.full()) == FileInfo(path2, referrers={path1: {'skip.md'}}))
+    assert repo.info(path3) == FileInfo(path3)
     assert not list(repo.query(FileQuery(include_tags={'also'})))
     repo.change([ReplaceRefCmd(path1, original='skip.md', replacement='moved.md'), MoveCmd(path2, path3)])
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'moved.md'})
-    assert repo.info(path2) is None
-    assert repo.info(path3) == FileInfo(path3, tags={'also', 'tags'})
-    assert list(repo.referrers(path3)) == [path1]
+    assert repo.info(path2, FileInfoReq.full()) == FileInfo(path2)
+    assert (repo.info(path3, FileInfoReq.full())
+            == FileInfo(path3, tags={'also', 'tags'}, referrers={path1: {'moved.md'}}))
     assert list(repo.query(FileQuery(include_tags={'also'}))) == [repo.info(path3)]

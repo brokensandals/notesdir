@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from pathlib import Path
 from typing import Set, Optional, Dict, Union
@@ -13,6 +13,7 @@ class FileInfo:
     tags: Set[str] = field(default_factory=set)
     title: Optional[str] = None
     created: Optional[datetime] = None
+    referrers: Dict[Path, Set[str]] = field(default_factory=dict)
 
     def path_refs(self) -> Dict[Optional[Path], Set[str]]:
         """Returns subsets of self.refs that refer to local paths.
@@ -55,6 +56,24 @@ class FileInfo:
         The path is resolved first to account for symlinks or relative paths.
         """
         return self.path_refs().get(dest.resolve(), set())
+
+
+@dataclass
+class FileInfoReq:
+    @classmethod
+    def internal(cls) -> FileInfoReq:
+        return cls(path=True, refs=True, tags=True, title=True, created=True)
+
+    @classmethod
+    def full(cls) -> FileInfoReq:
+        return replace(cls.internal(), referrers=True)
+
+    path: bool = False
+    refs: bool = False
+    tags: bool = False
+    title: bool = False
+    created: bool = False
+    referrers: bool = False
 
 
 @dataclass
