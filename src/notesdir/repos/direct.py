@@ -60,7 +60,7 @@ class DirectRepo(Repo):
                     acc.edit(edit)
                 acc.save()
 
-    def query(self, query: Union[str, FileQuery]) -> Iterator[FileInfo]:
+    def query(self, query: Union[str, FileQuery] = FileQuery()) -> Iterator[FileInfo]:
         query = FileQuery.parse(query)
         for info in self._infos():
             if query.include_tags and not query.include_tags.issubset(info.tags):
@@ -69,7 +69,7 @@ class DirectRepo(Repo):
                 continue
             yield info
 
-    def tag_counts(self, query: Union[str, FileQuery]) -> Dict[str, int]:
+    def tag_counts(self, query: Union[str, FileQuery] = FileQuery()) -> Dict[str, int]:
         query = FileQuery.parse(query)
         result = defaultdict(int)
         for info in self.query(query):

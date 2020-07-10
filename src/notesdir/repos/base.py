@@ -18,10 +18,10 @@ class Repo:
     def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
         raise NotImplementedError()
 
-    def query(self, query: Union[str, FileQuery]) -> Iterator[FileInfo]:
+    def query(self, query: Union[str, FileQuery] = FileQuery()) -> Iterator[FileInfo]:
         raise NotImplementedError()
 
-    def tag_counts(self, query: Union[str, FileQuery]) -> Dict[str, int]:
+    def tag_counts(self, query: Union[str, FileQuery] = FileQuery()) -> Dict[str, int]:
         raise NotImplementedError()
 
     def close(self):
