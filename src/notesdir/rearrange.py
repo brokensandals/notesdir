@@ -1,10 +1,10 @@
 from os.path import relpath
 from pathlib import Path
 from tempfile import mkstemp
-from typing import Dict, List
+from typing import Dict, List, Iterator
 from urllib.parse import ParseResult, quote, urlunparse, urlparse
 
-from notesdir.models import MoveCmd, ReplaceRefCmd
+from notesdir.models import FileInfo, MoveCmd, ReplaceRefCmd, FileEditCmd
 from notesdir.repos.base import Repo
 
 
@@ -65,7 +65,23 @@ def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[MoveCmd]:
     return phase1 + phase2
 
 
-def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]):
+def edits_for_path_replacement(referrer: FileInfo, original: Path, replacement: Path) -> Iterator[ReplaceRefCmd]:
+    """Yields commands to replace one file's references to a path with references to another path.
+
+    For example, if the referrer contains links to "/foo/bar.md" and "/foo/bar.md#section2"
+    and original is "/foo/bar.md" and replacement is "/foo/new.md", yields commands for
+    updating those links to "/foo/new.md" and "/foo/new.md#section2" respectively.
+
+    Note that this will not update references to children of the given original path, e.g. "/foo/bar.md/baz".
+    """
+    path = referrer.path
+    for ref in referrer.refs_to_path(original):
+        url = urlparse(ref)
+        newref = path_as_ref(ref_path(path, replacement), url)
+        yield ReplaceRefCmd(path, ref, newref)
+
+
+def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> List[FileEditCmd]:
     """Builds a list of FileEdits that will rename files and update references accordingly.
 
     The keys of the dictionary are the paths to be renamed, and the values
@@ -106,10 +122,7 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]):
             if referrer.resolve() in all_moves:
                 continue
             info = store.info(referrer)
-            for ref in info.refs_to_path(src):
-                url = urlparse(ref)
-                newref = path_as_ref(ref_path(referrer, dest), url)
-                edits.append(ReplaceRefCmd(referrer, ref, newref))
+            edits.extend(edits_for_path_replacement(info, src, dest))
 
     edits.extend(edits_for_raw_moves(to_move))
     return edits

@@ -6,7 +6,7 @@ from os import PathLike
 from typing import Dict, Set, Union
 import toml
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd
-from notesdir.rearrange import edits_for_rearrange
+from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
 def filename_for_title(title: str) -> str:
@@ -64,6 +64,24 @@ class Notesdir:
         else:
             from notesdir.repos.direct import DirectRepo
             self.repo = DirectRepo(repo_config)
+
+    def replace_path_refs(self, original: Union[str, bytes, PathLike], replacement: Union[str, bytes, PathLike]):
+        """Finds and replaces references to the original path with references to the new path.
+
+        Note that this does not currently replace references to children of the original path - e.g.,
+        if original is "/foo/bar", a lnik to "/foo/bar/baz" will not be updated.
+
+        No files are moved, and this method does not care whether or not the original or replacement paths
+        refer to actual files.
+        """
+        original = Path(original)
+        replacement = Path(replacement)
+        edits = []
+        for referrer in self.repo.referrers(original):
+            info = self.repo.info(referrer)
+            edits.extend(edits_for_path_replacement(info, original, replacement))
+        if edits:
+            self.repo.change(edits)
 
     def move(self, src: Union[str, bytes, PathLike], dest: Union[str, bytes, PathLike], *, creation_folders=False)\
             -> Dict[Path, Path]:
