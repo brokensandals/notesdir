@@ -200,6 +200,7 @@ class SqliteRepo(DirectRepo):
 
     def query(self, query: Union[str, FileQuery] = FileQuery(), fields: FileInfoReq = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
+        query = FileQuery.parse(query)
         cursor = self.connection.cursor()
         cursor.execute('SELECT path FROM files WHERE existent = TRUE')
         # TODO: Obviously, this is super lazy and inefficient. We should do as much filtering and data loading in
