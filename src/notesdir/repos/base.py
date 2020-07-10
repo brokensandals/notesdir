@@ -2,15 +2,14 @@ import dataclasses
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Dict, Optional, List, Union, Iterator
+from typing import Dict, List, Union, Iterator
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
     DelTagCmd, ReplaceRefCmd, FileInfoReq
 
 
 class Repo:
-    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal())\
-            -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal()) -> FileInfo:
         raise NotImplementedError()
 
     def change(self, edits: List[FileEditCmd]):

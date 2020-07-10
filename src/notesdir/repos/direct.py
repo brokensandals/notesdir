@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Optional, List, Dict, Union, Iterator
+from typing import List, Dict, Union, Iterator
 
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq
@@ -24,8 +24,7 @@ class DirectRepo(Repo):
         edit_log_path = self.config.get('edit_log_path', None)
         self.edit_log_path = edit_log_path and Path(edit_log_path)
 
-    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal())\
-            -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal()) -> FileInfo:
         path = Path(path)
 
         if any(f.search(str(path)) for f in self.noparse) or not path.exists():

@@ -4,7 +4,7 @@ import dataclasses
 from os import PathLike
 from pathlib import Path
 import sqlite3
-from typing import Optional, List, Union, Iterator
+from typing import List, Union, Iterator
 from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery
 from notesdir.repos.direct import DirectRepo
 
@@ -166,8 +166,7 @@ class SqliteRepo(DirectRepo):
 
         self.connection.commit()
 
-    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal())\
-            -> Optional[FileInfo]:
+    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal()) -> FileInfo:
         path = Path(path)
         cursor = self.connection.cursor()
         cursor.execute('SELECT id, title, created FROM files WHERE path = ?',
