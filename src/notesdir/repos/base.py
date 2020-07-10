@@ -2,7 +2,7 @@ import dataclasses
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Dict, Optional, List, Set, Union
+from typing import Dict, Optional, List, Union, Iterator
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
     DelTagCmd, ReplaceRefCmd
@@ -15,10 +15,10 @@ class Repo:
     def change(self, edits: List[FileEditCmd]):
         raise NotImplementedError()
 
-    def referrers(self, path: Union[str, bytes, PathLike]) -> Set[Path]:
+    def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
         raise NotImplementedError()
 
-    def query(self, query: Union[str, FileQuery]) -> List[FileInfo]:
+    def query(self, query: Union[str, FileQuery]) -> Iterator[FileInfo]:
         raise NotImplementedError()
 
     def tag_counts(self, query: Union[str, FileQuery]) -> Dict[str, int]:

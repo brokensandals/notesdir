@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Set, Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Iterator
 
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery
@@ -31,24 +31,22 @@ class DirectRepo(Repo):
             return FileInfo(path)
         return self.accessor_factory(path).info()
 
-    def _paths(self):
+    def _paths(self) -> Iterator[Path]:
         for root in self.roots:
             for child in root.resolve().glob('**/*'):
                 yield child
 
-    def _infos(self):
+    def _infos(self) -> Iterator[FileInfo]:
         for path in self._paths():
             info = self.info(path)
             if info:
                 yield info
 
-    def referrers(self, path: Union[str, bytes, PathLike]) -> Set[Path]:
+    def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
         path = Path(path)
-        result = set()
         for info in self._infos():
             if len(info.refs_to_path(path)) > 0:
-                result.add(info.path)
-        return result
+                yield info.path
 
     def change(self, edits: List[FileEditCmd]):
         for group in group_edits(edits):
@@ -62,16 +60,14 @@ class DirectRepo(Repo):
                     acc.edit(edit)
                 acc.save()
 
-    def query(self, query: Union[str, FileQuery]) -> List[FileInfo]:
+    def query(self, query: Union[str, FileQuery]) -> Iterator[FileInfo]:
         query = FileQuery.parse(query)
-        result = []
         for info in self._infos():
             if query.include_tags and not query.include_tags.issubset(info.tags):
                 continue
             if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):
                 continue
-            result.append(info)
-        return result
+            yield info
 
     def tag_counts(self, query: Union[str, FileQuery]) -> Dict[str, int]:
         query = FileQuery.parse(query)

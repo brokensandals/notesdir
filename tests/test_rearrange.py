@@ -3,8 +3,6 @@ from urllib.parse import urlparse
 
 import pytest
 
-from notesdir.accessors.delegating import DelegatingAccessor
-from notesdir.accessors.markdown import MarkdownAccessor
 from notesdir.rearrange import ref_path, path_as_ref, edits_for_rearrange
 from notesdir.repos.direct import DirectRepo
 

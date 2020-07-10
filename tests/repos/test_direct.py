@@ -30,14 +30,14 @@ def test_referrers(fs):
     fs.create_file('/notes/foo/r3.md', contents='[6](subject.md)')
     repo = DirectRepo({'roots': ['/notes']})
     expected = {Path(p) for p in {'/notes/bar/baz/r1.md', '/notes/r2.md', '/notes/foo/r3.md'}}
-    assert repo.referrers(Path('subject.md')) == expected
+    assert sorted(list(repo.referrers(Path('subject.md')))) == sorted(expected)
 
 
 def test_referrers_self(fs):
     fs.create_file('/notes/subject.md', contents='[1](subject.md)')
     repo = DirectRepo({'roots': ['/notes']})
-    expected = {Path('/notes/subject.md')}
-    assert repo.referrers(Path('/notes/subject.md')) == expected
+    expected = [Path('/notes/subject.md')]
+    assert list(repo.referrers(Path('/notes/subject.md'))) == expected
 
 
 def test_change(fs):
@@ -103,12 +103,12 @@ def test_query(fs):
     assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag1,tag4'))}
     assert paths == {Path('/notes/one.md'), Path('/notes/three.md')}
-    assert not repo.query(FileQuery.parse('tag:bogus'))
+    assert not list(repo.query(FileQuery.parse('tag:bogus')))
     paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2'))}
     assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
     paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2,tag4'))}
     assert paths == {Path('/notes/two.md')}
-    assert not repo.query(FileQuery.parse('-tag:tag1'))
+    assert not list(repo.query(FileQuery.parse('-tag:tag1')))
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3 -tag:tag4'))}
     assert paths == {Path('/notes/two.md')}
 
@@ -132,11 +132,11 @@ def test_noparse(fs):
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'skip.md'})
     assert repo.info(path2) == FileInfo(path2)
     assert repo.info(path3) is None
-    assert repo.referrers(path2) == {path1}
-    assert repo.query(FileQuery(include_tags={'also'})) == []
+    assert list(repo.referrers(path2)) == [path1]
+    assert not list(repo.query(FileQuery(include_tags={'also'})))
     repo.change([ReplaceRefCmd(path1, original='skip.md', replacement='moved.md'), MoveCmd(path2, path3)])
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'moved.md'})
     assert repo.info(path2) is None
     assert repo.info(path3) == FileInfo(path3, tags={'also', 'tags'})
-    assert repo.referrers(path3) == {path1}
-    assert repo.query(FileQuery(include_tags={'also'})) == [repo.info(path3)]
+    assert list(repo.referrers(path3)) == [path1]
+    assert list(repo.query(FileQuery(include_tags={'also'}))) == [repo.info(path3)]

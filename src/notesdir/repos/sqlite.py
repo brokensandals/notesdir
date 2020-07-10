@@ -3,7 +3,7 @@ from datetime import datetime
 from os import PathLike
 from pathlib import Path
 import sqlite3
-from typing import Optional, Set, List, Union
+from typing import Optional, List, Union, Iterator
 from notesdir.models import FileInfo, FileEditCmd
 from notesdir.repos.direct import DirectRepo
 
@@ -182,7 +182,7 @@ class SqliteRepo(DirectRepo):
         info.refs = {r[0] for r in cursor.fetchall()}
         return info
 
-    def _infos(self):
+    def _infos(self) -> Iterator[FileInfo]:
         # TODO This is super lazy and inefficient.
         #      I should instead get as much info in the initial query as I can,
         #      and avoid doing lookups by path.
@@ -193,17 +193,17 @@ class SqliteRepo(DirectRepo):
         for (path,) in cursor:
             yield self.info(Path(path))
 
-    def referrers(self, path: Union[str, bytes, PathLike]) -> Set[Path]:
+    def referrers(self, path: Union[str, bytes, PathLike]) -> Iterator[Path]:
         path = Path(path)
         cursor = self.connection.cursor()
         path = path.resolve()
-        cursor.execute('SELECT referrers.path'
+        cursor.execute('SELECT DISTINCT(referrers.path)'
                        ' FROM files referrers'
                        '  INNER JOIN file_refs ON referrers.id = file_refs.referrer_id'
                        '  INNER JOIN files referents ON referents.id = file_refs.referent_id'
                        ' WHERE referents.path = ?',
                        (str(path),))
-        return {Path(r[0]) for r in cursor.fetchall()}
+        return (Path(r[0]) for r in cursor.fetchall())
 
     def change(self, edits: List[FileEditCmd]):
         try:

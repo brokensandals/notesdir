@@ -39,9 +39,9 @@ I link to [two](two.md) and [three](../otherdir/three.md#heading) and have #two 
     assert repo.info(path2) == FileInfo(path2, title='Note 3')
     assert repo.info(path3) is None
 
-    assert repo.referrers(path1) == set()
-    assert repo.referrers(path2) == {path1}
-    assert repo.referrers(path3) == {path1}
+    assert not list(repo.referrers(path1))
+    assert list(repo.referrers(path2)) == [path1]
+    assert list(repo.referrers(path3)) == [path1]
 
 
 def test_refresh(fs):
@@ -69,12 +69,12 @@ def test_query(fs):
     assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag1,tag4'))}
     assert paths == {Path('/notes/one.md'), Path('/notes/three.md')}
-    assert not repo.query(FileQuery.parse('tag:bogus'))
+    assert not list(repo.query(FileQuery.parse('tag:bogus')))
     paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2'))}
     assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
     paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2,tag4'))}
     assert paths == {Path('/notes/two.md')}
-    assert not repo.query(FileQuery.parse('-tag:tag1'))
+    assert not list(repo.query(FileQuery.parse('-tag:tag1')))
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3 -tag:tag4'))}
     assert paths == {Path('/notes/two.md')}
 
@@ -111,15 +111,15 @@ def test_change(fs):
     assert repo.info(Path('foo')) is None
     assert repo.info(Path('new')) is None
     assert repo.info(Path('bar')) is None
-    assert repo.referrers(Path('old')) == set()
-    assert repo.referrers(Path('foo')) == set()
-    assert repo.referrers(Path('new')) == {path3}
-    assert repo.referrers(Path('bar')) == {path2}
+    assert not list(repo.referrers(Path('old')))
+    assert not list(repo.referrers(Path('foo')))
+    assert list(repo.referrers(Path('new'))) == [path3]
+    assert list(repo.referrers(Path('bar'))) == [path2]
     # regression test for bug where refresh removed entries for files that were referred to
     # only by files that had not been changed
     repo.refresh()
-    assert repo.referrers(Path('new')) == {path3}
-    assert repo.referrers(Path('bar')) == {path2}
+    assert list(repo.referrers(Path('new'))) == [path3]
+    assert list(repo.referrers(Path('bar'))) == [path2]
 
 
 def test_noparse(fs):
@@ -132,11 +132,11 @@ def test_noparse(fs):
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'skip.md'})
     assert repo.info(path2) == FileInfo(path2)
     assert repo.info(path3) is None
-    assert repo.referrers(path2) == {path1}
-    assert repo.query(FileQuery(include_tags={'also'})) == []
+    assert list(repo.referrers(path2)) == [path1]
+    assert not list(repo.query(FileQuery(include_tags={'also'})))
     repo.change([ReplaceRefCmd(path1, original='skip.md', replacement='moved.md'), MoveCmd(path2, path3)])
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, refs={'moved.md'})
     assert repo.info(path2) is None
     assert repo.info(path3) == FileInfo(path3, tags={'also', 'tags'})
-    assert repo.referrers(path3) == {path1}
-    assert repo.query(FileQuery(include_tags={'also'})) == [repo.info(path3)]
+    assert list(repo.referrers(path3)) == [path1]
+    assert list(repo.query(FileQuery(include_tags={'also'}))) == [repo.info(path3)]

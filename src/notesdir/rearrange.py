@@ -1,7 +1,7 @@
 from os.path import relpath
 from pathlib import Path
 from tempfile import mkstemp
-from typing import Dict, List, Iterator
+from typing import Dict, Iterator
 from urllib.parse import ParseResult, quote, urlunparse, urlparse
 
 from notesdir.models import FileInfo, MoveCmd, ReplaceRefCmd, FileEditCmd
@@ -41,15 +41,14 @@ def path_as_ref(path: Path, into_url: ParseResult = None) -> str:
     return urlpath
 
 
-def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[MoveCmd]:
-    """Builds a list of Moves that will rename a set of files/folders.
+def edits_for_raw_moves(renames: Dict[Path, Path]) -> Iterator[MoveCmd]:
+    """Yields commands that will rename a set of files/folders.
 
     The keys of the dictionary are the paths to be renamed, and the values
     are what they should be renamed to. If a path appears as both a key and
     as a value, it will be moved to a temporary file as an intermediate
     step.
     """
-    phase1 = []
     phase2 = []
     resolved = {s.resolve(): d.resolve() for s, d in renames.items()}
     dests = set(resolved.values())
@@ -57,12 +56,12 @@ def edits_for_raw_moves(renames: Dict[Path, Path]) -> List[MoveCmd]:
         if dest in resolved and dest.exists():
             file, tmp = mkstemp(prefix=str(dest.name), dir=dest.parent)
             tmp = Path(tmp)
-            phase1.append(MoveCmd(dest, tmp))
+            yield MoveCmd(dest, tmp)
             phase2.append(MoveCmd(tmp, resolved[dest]))
     for src, dest in resolved.items():
         if src not in dests and src.exists():
-            phase1.append(MoveCmd(src, dest))
-    return phase1 + phase2
+            yield MoveCmd(src, dest)
+    yield from phase2
 
 
 def edits_for_path_replacement(referrer: FileInfo, original: Path, replacement: Path) -> Iterator[ReplaceRefCmd]:
@@ -81,8 +80,8 @@ def edits_for_path_replacement(referrer: FileInfo, original: Path, replacement: 
         yield ReplaceRefCmd(path, ref, newref)
 
 
-def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> List[FileEditCmd]:
-    """Builds a list of FileEdits that will rename files and update references accordingly.
+def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> Iterator[FileEditCmd]:
+    """Yields commands that will rename files and update references accordingly.
 
     The keys of the dictionary are the paths to be renamed, and the values
     are what they should be renamed to. (If a path appears as both a key and
@@ -96,7 +95,6 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> List[FileEdit
     Source paths may be directories; the directory as a whole will be moved, and references
     to/from all files/folders within it will be updated too.
     """
-    edits = []
     to_move = {s.resolve(): d.resolve() for s, d in renames.items()}
     all_moves = {}
     for src, dest in to_move.items():
@@ -117,12 +115,11 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> List[FileEdit
                     url = urlparse(ref)
                     newref = path_as_ref(ref_path(dest, target), url)
                     if not ref == newref:
-                        edits.append(ReplaceRefCmd(src, ref, newref))
+                        yield ReplaceRefCmd(src, ref, newref)
         for referrer in store.referrers(src):
             if referrer.resolve() in all_moves:
                 continue
             info = store.info(referrer)
-            edits.extend(edits_for_path_replacement(info, src, dest))
+            yield from edits_for_path_replacement(info, src, dest)
 
-    edits.extend(edits_for_raw_moves(to_move))
-    return edits
+    yield from edits_for_raw_moves(to_move)
