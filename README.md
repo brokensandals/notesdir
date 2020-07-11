@@ -16,10 +16,12 @@ This is a command-line tool to help you manage notes that are stored as regular 
   The Python API can be imported into your own scripts.
   The CLI commands also have options to print output as JSON.
 
-## Contents
+## Functionality
 
-1. [Setup](#setup)
-1. [File Type Support](#file-type-support)
+- Link management: update references to and from a file when moving it; show links and backlinks for a file.
+- Metadata management: store title, true creation date, and tags in each file via mechanisms appropriate to the file type; display metadata in unified format.
+- Querying: look for files with or without specific tags.
+- Templating: write [Mako](https://www.makotemplates.org/) templates for quickly creating new notes.
 
 ## Setup
 
