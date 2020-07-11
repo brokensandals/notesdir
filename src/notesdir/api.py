@@ -2,10 +2,9 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from datetime import datetime
-from os import PathLike
-from typing import Dict, Set, Union
+from typing import Dict, Set
 import toml
-from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
@@ -65,7 +64,7 @@ class Notesdir:
             from notesdir.repos.direct import DirectRepo
             self.repo = DirectRepo(repo_config)
 
-    def replace_path_refs(self, original: Union[str, bytes, PathLike], replacement: Union[str, bytes, PathLike]):
+    def replace_path_refs(self, original: PathIsh, replacement: PathIsh):
         """Finds and replaces references to the original path with references to the new path.
 
         Note that this does not currently replace references to children of the original path - e.g.,
@@ -82,8 +81,7 @@ class Notesdir:
         if edits:
             self.repo.change(edits)
 
-    def move(self, src: Union[str, bytes, PathLike], dest: Union[str, bytes, PathLike], *, creation_folders=False)\
-            -> Dict[Path, Path]:
+    def move(self, src: PathIsh, dest: PathIsh, *, creation_folders=False) -> Dict[Path, Path]:
         """Moves a file or directory and updates references to/from it appropriately.
 
         If dest is a directory, src will be moved into it, using src's filename.
@@ -132,7 +130,7 @@ class Notesdir:
 
         return moves
 
-    def normalize(self, path: Union[str, bytes, PathLike]) -> Dict[Path, Path]:
+    def normalize(self, path: PathIsh) -> Dict[Path, Path]:
         """Updates metadata and/or moves a file to adhere to conventions.
 
         If the file does not have a title, one is set based on the filename.
@@ -171,7 +169,7 @@ class Notesdir:
 
         return moves
 
-    def add_tags(self, tags: Set[str], paths: Set[Union[str, bytes, PathLike]]):
+    def add_tags(self, tags: Set[str], paths: Set[PathIsh]):
         """Adds (if not already present) the given set of tags to each of the given files.
 
         If some of the files are of unknown types or types for which tags are
@@ -185,7 +183,7 @@ class Notesdir:
             edits = [AddTagCmd(path, t.lower()) for t in tags]
             self.repo.change(edits)
 
-    def remove_tags(self, tags: Set[str], paths: Set[Union[str, bytes, PathLike]]):
+    def remove_tags(self, tags: Set[str], paths: Set[PathIsh]):
         """Removes (if present) the given set of tags from each of the given files.
 
         If some of the files are of unknown types or types for which tags are

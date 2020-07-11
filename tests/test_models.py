@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from notesdir.models import FileInfo, FileQuery
+from notesdir.models import FileInfo, FileQuery, FileInfoReq
 
 
 def test_refs_to_path_skips_invalid_urls():
@@ -85,3 +85,10 @@ def test_parse_query():
         include_tags={'first tag', 'second', 'fifth'},
         exclude_tags={'third', 'fourth tag'})
     assert FileQuery.parse(strquery) == expected
+
+
+def test_parse_info_req():
+    expected = FileInfoReq(path=True, referrers=True)
+    assert FileInfoReq.parse('path,referrers') == expected
+    assert FileInfoReq.parse(['path', 'referrers']) == expected
+    assert FileInfoReq.parse(expected) == expected

@@ -4,12 +4,12 @@ import json
 import re
 from collections import defaultdict
 from datetime import datetime
-from os import PathLike
 from pathlib import Path
-from typing import List, Dict, Union, Iterator
+from typing import List, Dict, Iterator
 
 from notesdir.accessors.delegating import DelegatingAccessor
-from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq
+from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, PathIsh, FileInfoReqIsh,\
+    FileQueryIsh
 from notesdir.repos.base import Repo, group_edits, edit_log_json_serializer
 
 
@@ -24,8 +24,9 @@ class DirectRepo(Repo):
         edit_log_path = self.config.get('edit_log_path', None)
         self.edit_log_path = edit_log_path and Path(edit_log_path)
 
-    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal()) -> FileInfo:
+    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         path = Path(path)
+        fields = FileInfoReq.parse(fields)
 
         if any(f.search(str(path)) for f in self.noparse) or not path.exists():
             info = FileInfo(path)
@@ -57,9 +58,10 @@ class DirectRepo(Repo):
             for child in root.resolve().glob('**/*'):
                 yield child
 
-    def query(self, query: Union[str, FileQuery] = FileQuery(), fields: FileInfoReq = FileInfoReq.internal())\
+    def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
-        fields = dataclasses.replace(fields, tags=(fields.tags or query.include_tags or query.exclude_tags))
+        fields = dataclasses.replace(FileInfoReq.parse(fields),
+                                     tags=(fields.tags or query.include_tags or query.exclude_tags))
         query = FileQuery.parse(query)
         for path in self._paths():
             info = self.info(path, fields)
@@ -71,7 +73,7 @@ class DirectRepo(Repo):
                 continue
             yield info
 
-    def tag_counts(self, query: Union[str, FileQuery] = FileQuery()) -> Dict[str, int]:
+    def tag_counts(self, query: FileQueryIsh = FileQuery()) -> Dict[str, int]:
         query = FileQuery.parse(query)
         result = defaultdict(int)
         for info in self.query(query, FileInfoReq(path=True, tags=True)):

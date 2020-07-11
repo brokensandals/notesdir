@@ -1,9 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import datetime
+from os import PathLike
 from pathlib import Path
-from typing import Set, Optional, Dict, Union
+from typing import Set, Optional, Dict, Union, Iterable
 from urllib.parse import urlparse, unquote_plus
+
+
+PathIsh = Union[str, bytes, PathLike]
 
 
 @dataclass
@@ -61,6 +65,14 @@ class FileInfo:
 @dataclass
 class FileInfoReq:
     @classmethod
+    def parse(cls, val: FileInfoReqIsh) -> FileInfoReq:
+        if isinstance(val, FileInfoReq):
+            return val
+        if isinstance(val, str):
+            return cls.parse(s for s in val.split(',') if s.strip())
+        return cls(**{k: True for k in val})
+
+    @classmethod
     def internal(cls) -> FileInfoReq:
         return cls(path=True, refs=True, tags=True, title=True, created=True)
 
@@ -74,6 +86,9 @@ class FileInfoReq:
     title: bool = False
     created: bool = False
     referrers: bool = False
+
+
+FileInfoReqIsh = Union[str, Iterable[str], FileInfoReq]
 
 
 @dataclass
@@ -130,3 +145,6 @@ class FileQuery:
             elif lower.startswith('-tag:'):
                 query.exclude_tags.update(unquote_plus(t) for t in lower[5:].split(','))
         return query
+
+
+FileQueryIsh = Union[str, FileQuery]

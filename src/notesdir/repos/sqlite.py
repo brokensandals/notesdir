@@ -1,11 +1,10 @@
 from collections import namedtuple
 from datetime import datetime
 import dataclasses
-from os import PathLike
 from pathlib import Path
 import sqlite3
-from typing import List, Union, Iterator
-from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery
+from typing import List, Iterator
+from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh, PathIsh
 from notesdir.repos.direct import DirectRepo
 
 
@@ -166,8 +165,9 @@ class SqliteRepo(DirectRepo):
 
         self.connection.commit()
 
-    def info(self, path: Union[str, bytes, PathLike], fields: FileInfoReq = FileInfoReq.internal()) -> FileInfo:
+    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         path = Path(path)
+        fields = FileInfoReq.parse(fields)
         cursor = self.connection.cursor()
         cursor.execute('SELECT id, title, created FROM files WHERE path = ?',
                        (str(path.resolve()),))
@@ -197,14 +197,15 @@ class SqliteRepo(DirectRepo):
                         info.referrers[referrer].add(ref)
         return info
 
-    def query(self, query: Union[str, FileQuery] = FileQuery(), fields: FileInfoReq = FileInfoReq.internal())\
+    def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
         query = FileQuery.parse(query)
         cursor = self.connection.cursor()
         cursor.execute('SELECT path FROM files WHERE existent = TRUE')
         # TODO: Obviously, this is super lazy and inefficient. We should do as much filtering and data loading in
         #       the query as we reasonably can.
-        fields = dataclasses.replace(fields, tags=(fields.tags or query.include_tags or query.exclude_tags))
+        fields = dataclasses.replace(FileInfoReq.parse(fields),
+                                     tags=(fields.tags or query.include_tags or query.exclude_tags))
         for (path,) in cursor:
             info = self.info(Path(path), fields)
             if not info:
