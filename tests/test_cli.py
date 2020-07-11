@@ -115,7 +115,7 @@ title: tags
 All current tags: best-green, bright-green, green, happy, melancholy, sad"""
     assert Path('/notes/cwd/tags.md.resources').is_dir()
 
-    template3 = """<% from pathlib import Path; directives.dest = Path('/notes/cool-note.md') %>"""
+    template3 = """<% directives.dest = template_path.parent.parent.joinpath('cool-note.md') %>"""
     fs.create_file('/notes/templates/self-namer.md.mako', contents=template3)
     assert cli.main(['c', 'self-namer', 'unimportant.md']) == 0
     out, err = capsys.readouterr()

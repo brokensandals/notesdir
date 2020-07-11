@@ -246,7 +246,7 @@ class Notesdir:
             raise FileNotFoundError(f'Template does not exist: {template_name}')
         template = Template(filename=str(template_path.resolve()))
         td = TemplateDirectives(dest=Path(dest) if dest is not None else None)
-        content = template.render(nd=self, directives=td)
+        content = template.render(nd=self, directives=td, template_path=template_path)
         if not td.dest:
             name, suffix = template_path.name.split('.', 1)[:2]
             suffix = re.sub(r'[\.^]mako', '', suffix)
