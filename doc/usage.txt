@@ -1,13 +1,14 @@
-usage: notesdir [-h] {mv,norm,t+,tc,t-,q} ...
+usage: notesdir [-h] {i,q,mv,norm,t+,tc,t-} ...
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Commands:
-  {mv,norm,t+,tc,t-,q}
+  {i,q,mv,norm,t+,tc,t-}
+    i                   show file info
+    q                   query for files
     mv                  move file and update references
     norm                normalize file
     t+                  add tags to files
     tc                  count number of files by tag
     t-                  remove tags from files
-    q                   query for files

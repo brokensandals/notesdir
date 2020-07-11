@@ -1,8 +1,8 @@
-usage: notesdir tc [-h] [-p] [query]
+usage: notesdir tc [-h] [-j] [query]
 
 positional arguments:
-  query        query to filter files
+  query       query to filter files
 
 optional arguments:
-  -h, --help   show this help message and exit
-  -p, --plain  minimize formatting of output
+  -h, --help  show this help message and exit
+  -j, --json  minimize formatting of output

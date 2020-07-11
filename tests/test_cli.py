@@ -1,8 +1,11 @@
+from datetime import datetime
+import json
 from pathlib import Path
 import re
 from freezegun import freeze_time
 import pytest
 from notesdir import cli
+from notesdir.models import FileInfo
 
 
 def nd_setup(fs):
@@ -28,6 +31,46 @@ def test_help(capsys):
         cap = capsys.readouterr()
         doc.joinpath(f'usage-{cmd}.txt').write_text(
             re.sub(r'\S*pytest\S*', 'notesdir', cap.out))
+
+
+def test_i(fs, capsys):
+    nd_setup(fs)
+    path1 = Path('/notes/cwd/one.md')
+    path2 = Path('/notes/cwd/two.md')
+    doc1 = """---
+title: A Note
+created: 2001-02-03 04:05:06
+...
+I have #some #boring-tags and [a link](two.md#heading)."""
+    doc2 = """I link to [one](one.md)."""
+    fs.create_file(path1, contents=doc1)
+    fs.create_file(path2, contents=doc2)
+    assert cli.main(['i', 'one.md']) == 0
+    out, err = capsys.readouterr()
+    assert out == """path: one.md
+title: A Note
+created: 2001-02-03 04:05:06
+tags: boring-tags, some
+refs:
+\ttwo.md#heading -> /notes/cwd/two.md
+referrers:
+\t/notes/cwd/two.md
+"""
+    assert cli.main(['i', '-f', 'title,tags', 'one.md']) == 0
+    out, err = capsys.readouterr()
+    assert out == "title: A Note\ntags: boring-tags, some\n"
+    assert cli.main(['i', '-j', 'one.md']) == 0
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {
+        'path': 'one.md',
+        'title': 'A Note',
+        'created': '2001-02-03T04:05:06',
+        'tags': ['boring-tags', 'some'],
+        'refs': ['two.md#heading'],
+        'referrers': {
+            '/notes/cwd/two.md': ['one.md']
+        }
+    }
 
 
 def test_mv_file(fs, capsys):
@@ -211,16 +254,16 @@ def test_tags_count(fs, capsys):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')
     fs.create_file('/notes/two.md', contents='#tag1 #tag3')
     fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
-    assert cli.main(['tc', '-p']) == 0
+    assert cli.main(['tc', '-j']) == 0
     out, err = capsys.readouterr()
-    assert out == 'tag1\t3\ntag2\t1\ntag3\t2\ntag4\t1\n'
+    assert json.loads(out) == {'tag1': 3, 'tag2': 1, 'tag3': 2, 'tag4': 1}
     assert cli.main(['tc']) == 0
     out, err = capsys.readouterr()
     assert out
 
-    assert cli.main(['tc', '-p', 'tag:tag3']) == 0
+    assert cli.main(['tc', '-j', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
-    assert out == 'tag1\t2\ntag3\t2\ntag4\t1\n'
+    assert json.loads(out) == {'tag1': 2, 'tag3': 2, 'tag4': 1}
     assert cli.main(['tc', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
     assert out
@@ -241,17 +284,20 @@ This is a test doc."""
     path2 = '/notes/two.md'
     fs.create_file(path1, contents=doc1)
     fs.create_file(path2, contents=doc2)
-    assert cli.main(['q', '-p']) == 0
+    assert cli.main(['q', '-j']) == 0
     out, err = capsys.readouterr()
-    assert out == ('../two.md\t\t\ttest\n'
-                   'subdir/one.md\tA Test File\t2012-03-04T05:06:07\tcool, has%20space\n')
+    expected1 = FileInfo(path=path1,
+                         title='A Test File',
+                         created=datetime(2012, 3, 4, 5, 6, 7),
+                         tags=['cool', 'has space']).as_json()
+    assert json.loads(out) == [expected1, FileInfo(path=path2, tags=['test']).as_json()]
     assert cli.main(['q']) == 0
     out, err = capsys.readouterr()
     assert out
 
-    assert cli.main(['q', '-p', 'tag:has+space']) == 0
+    assert cli.main(['q', '-j', 'tag:has+space']) == 0
     out, err = capsys.readouterr()
-    assert out == 'subdir/one.md\tA Test File\t2012-03-04T05:06:07\tcool, has%20space\n'
+    assert json.loads(out) == [expected1]
     assert cli.main(['q', 'tag:has+space']) == 0
     out, err = capsys.readouterr()
     assert out

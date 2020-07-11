@@ -61,6 +61,17 @@ class FileInfo:
         """
         return self.path_refs().get(dest.resolve(), set())
 
+    def as_json(self) -> dict:
+        """Returns a dict representing the instance, suitable for serializing as json."""
+        return {
+            'path': str(self.path),
+            'title': self.title,
+            'created': self.created.isoformat() if self.created else None,
+            'tags': sorted(self.tags),
+            'refs': sorted(self.refs),
+            'referrers': {str(referrer): [r for r in sorted(refs)] for referrer, refs in self.referrers.items()}
+        }
+
 
 @dataclass
 class FileInfoReq:

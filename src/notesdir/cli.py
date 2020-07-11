@@ -2,12 +2,44 @@
 
 
 import argparse
-from operator import itemgetter
+import dataclasses
+import json
+from operator import itemgetter, attrgetter
 from os.path import relpath
 from pathlib import Path
 from urllib.parse import quote
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
+from notesdir.models import FileInfoReq
+
+
+def _i(args, nd: Notesdir) -> int:
+    fields = FileInfoReq.parse(args.fields[0]) if args.fields else FileInfoReq.full()
+    info = nd.repo.info(args.path[0], fields)
+    if args.json:
+        print(json.dumps(info.as_json()))
+    else:
+        if fields.path:
+            print(f'path: {info.path}')
+        if fields.title:
+            print(f'title: {info.title}')
+        if fields.created:
+            print(f'created: {info.created}')
+        if fields.tags:
+            print(f'tags: {", ".join(sorted(info.tags))}')
+        if fields.refs:
+            print('refs:')
+            for referent, refs in info.path_refs().items():
+                for ref in refs:
+                    line = f'\t{ref}'
+                    if referent:
+                        line += f' -> {referent}'
+                    print(line)
+        if fields.referrers:
+            print('referrers:')
+            for referrer, refs in info.referrers.items():
+                print(f'\t{referrer}')
+    return 0
 
 
 def _mv(args, nd: Notesdir) -> int:
@@ -37,11 +69,10 @@ def _tags_add(args, nd: Notesdir) -> int:
 def _tags_count(args, nd: Notesdir) -> int:
     query = args.query or ''
     counts = nd.repo.tag_counts(query)
-    tags = sorted(counts.keys())
-    if args.plain:
-        for tag in tags:
-            print(f'{tag}\t{counts[tag]}')
+    if args.json:
+        print(json.dumps(counts))
     else:
+        tags = sorted(counts.keys())
         data = [('Tag', 'Count')] + [(t, counts[t]) for t in tags]
         table = AsciiTable(data)
         table.justify_columns[2] = 'right'
@@ -57,19 +88,19 @@ def _tags_rm(args, nd: Notesdir) -> int:
 
 def _q(args, nd: Notesdir) -> int:
     query = args.query or ''
-    infos = nd.repo.query(query)
+    infos = [i for i in nd.repo.query(query) if i.path.is_file()]
     cwd = Path.cwd().resolve()
-    data = [(str(relpath(i.path.resolve(), cwd)),
-             i.title or '',
-             i.created.isoformat() if i.created else '',
-             ', '.join(quote(t) for t in sorted(i.tags)))
-            for i in infos
-            if i.path.is_file()]
-    data.sort(key=itemgetter(0))
-    if args.plain:
-        for row in data:
-            print('\t'.join(row))
+    if args.json:
+        infos.sort(key=attrgetter('path'))
+        print(json.dumps([i.as_json() for i in infos]))
     else:
+        # TODO make sorting / path resolution consistent with json output
+        data = [(str(relpath(i.path.resolve(), cwd)),
+                 i.title or '',
+                 i.created.isoformat() if i.created else '',
+                 ', '.join(quote(t) for t in sorted(i.tags)))
+                for i in infos]
+        data.sort(key=itemgetter(0))
         data.insert(0, ('Path', 'Title', 'Created', 'Tags'))
         table = AsciiTable(data)
         table.justify_columns[3] = 'right'
@@ -83,10 +114,25 @@ def main(args=None) -> int:
     args may be an array of string command-line arguments; if absent,
     the process's arguments are used.
     """
+    fields_help = f'({",".join(f.name for f in dataclasses.fields(FileInfoReq))})'
+
     parser = argparse.ArgumentParser()
     parser.set_defaults(func=None)
 
     subs = parser.add_subparsers(title='Commands')
+
+    p_i = subs.add_parser('i', help='show file info')
+    p_i.add_argument('-f', '--fields', nargs=1, help=f'comma-separated list of fields to show {fields_help}')
+    p_i.add_argument('-j', '--json', action='store_true', help='output as json')
+    p_i.add_argument('path', nargs=1)
+    p_i.set_defaults(func=_i)
+
+    p_q = subs.add_parser(
+        'q',
+        help='query for files')
+    p_q.add_argument('query', nargs='?')
+    p_q.add_argument('-j', '--json', help='output as json', action='store_true')
+    p_q.set_defaults(func=_q)
 
     p_mv = subs.add_parser(
         'mv',
@@ -114,7 +160,7 @@ def main(args=None) -> int:
         'tc',
         help='count number of files by tag')
     p_tags_count.add_argument('query', help='query to filter files', nargs='?')
-    p_tags_count.add_argument('-p', '--plain', help='minimize formatting of output', action='store_true')
+    p_tags_count.add_argument('-j', '--json', help='minimize formatting of output', action='store_true')
     p_tags_count.set_defaults(func=_tags_count)
 
     p_tags_rm = subs.add_parser(
@@ -123,13 +169,6 @@ def main(args=None) -> int:
     p_tags_rm.add_argument('tags', help='comma-separated list of tags', nargs=1)
     p_tags_rm.add_argument('paths', help='files to remove tags from', nargs='+')
     p_tags_rm.set_defaults(func=_tags_rm)
-
-    p_q = subs.add_parser(
-        'q',
-        help='query for files')
-    p_q.add_argument('query', nargs='?')
-    p_q.add_argument('-p', '--plain', help='minimize formatting of output', action='store_true')
-    p_q.set_defaults(func=_q)
 
     args = parser.parse_args(args)
     if not args.func:
