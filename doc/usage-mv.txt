@@ -1,4 +1,4 @@
-usage: notesdir mv [-h] [-c] src dest
+usage: notesdir mv [-h] [-c] [-j] src dest
 
 positional arguments:
   src                   file or folder to move
@@ -9,3 +9,4 @@ optional arguments:
   -c, --creation-folders
                         insert folders like 2020/06 based on creation date of
                         src
+  -j, --json            output as json

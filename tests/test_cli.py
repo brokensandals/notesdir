@@ -146,7 +146,7 @@ def test_mv_with_resources(fs, capsys):
     fs.create_file('/notes/cwd/bar.md', contents='This is a [bad idea](foo.md.resources/blah.txt).')
     fs.create_file('/notes/dir/foo.md', contents='I conflict!')
     Path('/notes/dir').mkdir(exist_ok=True, parents=True)
-    assert cli.main(['mv', 'foo.md', '../dir']) == 0
+    assert cli.main(['mv', '-j', 'foo.md', '../dir']) == 0
     assert not Path('/notes/cwd/foo.md').exists()
     assert not Path('/notes/cwd/foo.md.resources').exists()
     assert Path('/notes/dir/foo.md').read_text() == 'I conflict!'
@@ -154,8 +154,7 @@ def test_mv_with_resources(fs, capsys):
     assert Path('/notes/dir/2-foo.md.resources/blah.txt').read_text() == 'Yo'
     assert Path('/notes/cwd/bar.md').read_text() == 'This is a [bad idea](../dir/2-foo.md.resources/blah.txt).'
     out, err = capsys.readouterr()
-    assert 'Moved foo.md to ../dir/2-foo.md' in out
-    assert 'Moved foo.md.resources to ../dir/2-foo.md.resources' in out
+    assert json.loads(out) == {'foo.md': '../dir/2-foo.md', 'foo.md.resources': '../dir/2-foo.md.resources'}
 
 
 def test_mv_creation_folders(fs, capsys):
@@ -216,11 +215,11 @@ title: Foo Bar! Hooray!
 some text"""
     nd_setup(fs)
     fs.create_file('/notes/cwd/foobar.md', contents=doc)
-    assert cli.main(['norm', 'foobar.md']) == 0
+    assert cli.main(['norm', '-j', 'foobar.md']) == 0
     assert not Path('/notes/cwd/foobar.md').exists()
     assert Path('/notes/cwd/foo-bar-hooray.md').read_text() == doc
     out, err = capsys.readouterr()
-    assert 'Moved foobar.md to foo-bar-hooray.md' in out
+    assert json.loads(out) == {'foobar.md': 'foo-bar-hooray.md'}
 
 
 def test_norm_move_and_set_title(fs, capsys):

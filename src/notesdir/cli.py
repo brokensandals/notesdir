@@ -46,7 +46,9 @@ def _mv(args, nd: Notesdir) -> int:
     src = Path(args.src[0])
     dest = Path(args.dest[0])
     moves = nd.move(src, dest, creation_folders=args.creation_folders)
-    if not moves == {src: dest}:
+    if args.json:
+        print(json.dumps({str(k): str(v) for k, v in moves.items()}))
+    elif not moves == {src: dest}:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
     return 0
@@ -54,7 +56,9 @@ def _mv(args, nd: Notesdir) -> int:
 
 def _norm(args, nd: Notesdir) -> int:
     moves = nd.normalize(args.path[0])
-    if moves:
+    if args.json:
+        print(json.dumps({str(k): str(v) for k, v in moves.items()}))
+    elif moves:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
     return 0
@@ -141,12 +145,14 @@ def main(args=None) -> int:
     p_mv.add_argument('dest', help='new filename or new parent folder', nargs=1)
     p_mv.add_argument('-c', '--creation-folders', action='store_true',
                       help='insert folders like 2020/06 based on creation date of src')
+    p_mv.add_argument('-j', '--json', action='store_true', help='output as json')
     p_mv.set_defaults(func=_mv)
 
     p_norm = subs.add_parser(
         'norm',
         help='normalize file')
     p_norm.add_argument('path', help='file to normalize', nargs=1)
+    p_norm.add_argument('-j', '--json', action='store_true', help='output as json')
     p_norm.set_defaults(func=_norm)
 
     p_tags_add = subs.add_parser(
