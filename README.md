@@ -6,6 +6,7 @@ This is a command-line tool to help you manage notes that are stored as regular 
 
 - You can use any editors you want.
 - Notes don't all have to be the same file format.
+  Notesdir can currently parse and update Markdown, HTML, and PDFs, and any other file types can coexist peacefully.
 - You can organize your files however you want, and reorganize them at will.
 - Your notes should remain completely usable without notesdir.
   In particular, links between notes are just regular relative file paths which can be followed by many text editors, terminals, and browsers.
@@ -17,7 +18,49 @@ This is a command-line tool to help you manage notes that are stored as regular 
 
 ## Contents
 
+1. [Setup](#setup)
 1. [File Type Support](#file-type-support)
+
+## Setup
+
+1. [Install Python 3.7 or greater](https://www.python.org/)
+2. Run `pip3 install notesdir`
+3. Create a `.notesdir.toml` file in your home directory:
+
+```toml
+# The following line is optional. Add it if you want to create note templates;
+# it's a list of file globs indicating where your template files will be.
+templates = ["/Users/jacob/Zettel/*/templates/*.mako"]
+
+[repo]
+# The next line is the only strictly required one. It's a list of directories
+# containing your notes. Directories are searched recursively, so for example if
+# you list "/Users/jacob/Zettel" you do not need to list "/Users/jacob/Zettel/personal".
+roots = ["/Users/jacob/Zettel"]
+
+# The next line is optional, but it's very important if you have hundreds or thousands
+# of notes. It causes notesdir to keep a cache of note metadata at the specified location.
+# The cache is updated each time you run a notesdir command, by comparing file modification
+# times against the cached values. It's always safe to delete the cache file; it will just
+# be rebuilt the next time you run notesdir.
+cache = "/Users/jacob/local-only/notesdir-cache.sqlite3"
+
+# This is an optional list of regular expressions that will be matched against
+# the paths of files inside the the roots you specified above. Notesdir will not
+# attempt to parse metadata from any files that match any of these.
+# The 'resources' regex is recommended if you follow the convention of, for example,
+# putting attachments for the note "foo.md" in a folder called "foo.md.resources".
+# Skipping parsing for those attachments can improve performance, and likely doesn't
+# hurt since you probably only care about the metadata attached to the note itself.
+noparse = ["\\.resources(\\/.*)?$", "\\.icloud$"]
+```
+
+That's it!
+You can run `notesdir q` to print a list of everything Notesdir currently knows about your notes.
+(It may take a while the first time while it builds the cache.)
+
+There may or may not be much beyond the filenames.
+Keep reading to see how you can populate more metadata & make use of it.
 
 ## File Type Support
 
