@@ -1,5 +1,24 @@
 # notesdir
 
+This is a command-line tool to help you manage notes that are stored as regular files.
+
+## Philosophy
+
+- You can use any editors you want.
+- Notes don't all have to be the same file format.
+- You can organize your files however you want, and reorganize them at will.
+- Your notes should remain completely usable without notesdir.
+  In particular, links between notes are just regular relative file paths which can be followed by many text editors, terminals, and browsers.
+- You should be able to use just the features of notesdir that you want.
+  It tries to be more of a library than a framework.
+- Notesdir's functionality is all easy to use programmatically.
+  The Python API can be imported into your own scripts.
+  The CLI commands also have options to print output as JSON.
+
+## Contents
+
+1. [File Type Support](#file-type-support)
+
 ## File Type Support
 
 <table>
