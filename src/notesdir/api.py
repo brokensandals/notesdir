@@ -1,10 +1,12 @@
 from __future__ import annotations
+from glob import glob
 from pathlib import Path
 import re
 from datetime import datetime
-from typing import Dict, Set
+from typing import Dict, Set, Optional
+from mako.template import Template
 import toml
-from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
@@ -22,6 +24,16 @@ def guess_created(path: Path) -> datetime:
         return datetime.utcfromtimestamp(stat.st_birthtime)
     except AttributeError:
         return datetime.utcfromtimestamp(stat.st_ctime)
+
+
+def find_available_name(dest: Path) -> Path:
+    basename = dest.name
+    prefix = 2
+    existing = [p.name.lower() for p in dest.parent.iterdir()]
+    while True in (n.lower().startswith(dest.name.lower()) for n in existing):
+        dest = dest.with_name(f'{prefix}-{basename}')
+        prefix += 1
+    return dest
 
 
 class Error(Exception):
@@ -110,12 +122,7 @@ class Notesdir:
             destdir.mkdir(parents=True, exist_ok=True)
             dest = destdir.joinpath(dest.name)
 
-        basename = dest.name
-        prefix = 2
-        existing = [p.name.lower() for p in dest.parent.iterdir()]
-        while True in (n.lower().startswith(dest.name) for n in existing):
-            dest = dest.with_name(f'{prefix}-{basename}')
-            prefix += 1
+        dest = find_available_name(dest)
 
         moves = {src: dest}
         # TODO this should probably be configurable
@@ -196,6 +203,63 @@ class Notesdir:
                 raise FileNotFoundError(f'File does not exist: {path}')
             edits = [DelTagCmd(path, t.lower()) for t in tags]
             self.repo.change(edits)
+
+    def templates_by_name(self) -> Dict[str, Path]:
+        """Returns paths of note templates that are known based on the config.
+
+        The name is the part of the filename before any `.` character. If multiple templates
+        have the same name, the one whose path is lexicographically first will appear in the dict.
+        """
+        if 'templates' not in self.config:
+            return {}
+        paths = [Path(p) for g in self.config['templates'] for p in glob(g, recursive=True) if Path(p).is_file()]
+        paths.sort()
+        return {p.name.split('.')[0].lower(): p for p in paths}
+
+    def template_for_name(self, name: str) -> Optional[Path]:
+        """Returns the path to the template for the given name, if one is found.
+
+        If treating the name as a relative or absolute path leads to a file, that file is used.
+        Otherwise, the name is looked up from :meth:`Notesdir.templates_by_name`, case-insensitively.
+        Returns None if a matching template cannot be found.
+        """
+        path = Path(name)
+        if path.is_file():
+            return path
+        else:
+            return self.templates_by_name().get(name.lower())
+
+    def create(self, template_name: PathIsh, dest: PathIsh = None) -> Path:
+        """Creates a new file using the specified template.
+
+        If the template name is a str, it will be looked up using template_for_name.
+
+        Raises :class:`FileNotFoundError` if the template cannot be found.
+
+        If dest is not given, a target file name will be generated. Regardless, the :meth:`Notesdir.norm` method
+        will be used to normalize the final filename.
+
+        Returns the path of the created file.
+        """
+        template_path = self.template_for_name(template_name) if isinstance(template_name, str) else Path(template_name)
+        if not (template_path and template_path.is_file()):
+            raise FileNotFoundError(f'Template does not exist: {template_name}')
+        template = Template(filename=str(template_path.resolve()))
+        td = TemplateDirectives(dest=Path(dest) if dest is not None else None)
+        content = template.render(nd=self, directives=td)
+        if not td.dest:
+            name, suffix = template_path.name.split('.', 1)[:2]
+            suffix = re.sub(r'[\.^]mako', '', suffix)
+            td.dest = Path(f'{name}.{suffix}')
+        td.dest = find_available_name(td.dest)
+        td.dest.write_text(content)
+        changed = {td.dest}
+        if td.create_resources_dir:
+            resdir = td.dest.with_name(f'{td.dest.name}.resources')
+            resdir.mkdir()
+            changed.add(resdir)
+        self.repo.refresh(changed)
+        return self.normalize(td.dest).get(td.dest, td.dest)
 
     def close(self):
         """Closes the associated repo and releases any other resources."""

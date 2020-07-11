@@ -42,6 +42,11 @@ def _i(args, nd: Notesdir) -> int:
     return 0
 
 
+def _c(args, nd: Notesdir) -> int:
+    print(nd.create(args.template[0], args.dest))
+    return 0
+
+
 def _mv(args, nd: Notesdir) -> int:
     src = Path(args.src[0])
     dest = Path(args.dest[0])
@@ -137,6 +142,11 @@ def main(args=None) -> int:
     p_q.add_argument('query', nargs='?')
     p_q.add_argument('-j', '--json', help='output as json', action='store_true')
     p_q.set_defaults(func=_q)
+
+    p_c = subs.add_parser('c', help='create file from template')
+    p_c.add_argument('template', nargs=1, help='name or path of template')
+    p_c.add_argument('dest', nargs='?', help='suggested destination filename')
+    p_c.set_defaults(func=_c)
 
     p_mv = subs.add_parser(
         'mv',

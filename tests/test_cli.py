@@ -10,9 +10,11 @@ from notesdir.models import FileInfo
 
 def nd_setup(fs):
     fs.cwd = '/notes/cwd'
+    Path(fs.cwd).mkdir(parents=True)
     Path('~').expanduser().mkdir(parents=True)
     Path('~/.notesdir.toml').expanduser().write_text("""
         repo.roots = ["/notes"]
+        templates = ["/notes/templates/*.mako"]
     """)
 
 
@@ -71,6 +73,55 @@ referrers:
             '/notes/cwd/two.md': ['one.md']
         }
     }
+
+
+@freeze_time('2012-05-02T03:04:05Z')
+def test_c(fs, capsys):
+    template = """<% from datetime import datetime %>\
+---
+title: Testing in ${datetime.now().strftime('%B %Y')}
+...
+Nothing to see here, move along."""
+    nd_setup(fs)
+    fs.create_file('/notes/templates/simple.md.mako', contents=template)
+    assert cli.main(['c', 'simple']) == 0
+    out, err = capsys.readouterr()
+    assert out == 'testing-in-may-2012.md\n'
+    assert Path('/notes/cwd/testing-in-may-2012.md').read_text() == """---
+created: 2012-05-02 03:04:05
+title: Testing in May 2012
+...
+Nothing to see here, move along."""
+    assert not Path('/notes/cwd/testing-in-may-2012.md.resources').exists()
+    assert cli.main(['c', 'simple', 'this-is-not-the-final-name.md']) == 0
+    # the supplied dest is not very effective here because the template sets a title which will be used by norm() to
+    # reset the filename
+    out, err = capsys.readouterr()
+    assert out == '2-testing-in-may-2012.md\n'
+    assert Path('/notes/cwd/2-testing-in-may-2012.md').exists()
+
+    template2 = """<% directives.create_resources_dir = True %>\
+All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
+    fs.create_file('/notes/other-template.md.mako', contents=template2)
+    fs.create_file('/notes/one.md', contents='#happy #sad #melancholy')
+    fs.create_file('/notes/two.md', contents='#green #bright-green #best-green')
+    assert cli.main(['c', '../other-template.md.mako', 'tags.md']) == 0
+    out, err = capsys.readouterr()
+    assert out == 'tags.md\n'
+    assert Path('/notes/cwd/tags.md').read_text() == """---
+created: 2012-05-02 03:04:05
+title: tags
+...
+All current tags: best-green, bright-green, green, happy, melancholy, sad"""
+    assert Path('/notes/cwd/tags.md.resources').is_dir()
+
+    template3 = """<% from pathlib import Path; directives.dest = Path('/notes/cool-note.md') %>"""
+    fs.create_file('/notes/templates/self-namer.md.mako', contents=template3)
+    assert cli.main(['c', 'self-namer', 'unimportant.md']) == 0
+    out, err = capsys.readouterr()
+    assert out == '/notes/cool-note.md\n'
+    assert Path('/notes/cool-note.md').is_file()
+    assert not Path('unimportant.md').exists()
 
 
 def test_mv_file(fs, capsys):

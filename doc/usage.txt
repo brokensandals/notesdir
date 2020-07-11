@@ -1,12 +1,13 @@
-usage: notesdir [-h] {i,q,mv,norm,t+,tc,t-} ...
+usage: notesdir [-h] {i,q,c,mv,norm,t+,tc,t-} ...
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Commands:
-  {i,q,mv,norm,t+,tc,t-}
+  {i,q,c,mv,norm,t+,tc,t-}
     i                   show file info
     q                   query for files
+    c                   create file from template
     mv                  move file and update references
     norm                normalize file
     t+                  add tags to files

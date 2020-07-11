@@ -1,7 +1,7 @@
 import dataclasses
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Iterator
+from typing import Dict, List, Iterator, Set
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
     DelTagCmd, ReplaceRefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh, PathIsh
@@ -12,6 +12,9 @@ class Repo:
         raise NotImplementedError()
 
     def change(self, edits: List[FileEditCmd]):
+        raise NotImplementedError()
+
+    def refresh(self, only: Set[PathIsh]):
         raise NotImplementedError()
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\

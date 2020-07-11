@@ -1,0 +1,8 @@
+usage: notesdir c [-h] template [dest]
+
+positional arguments:
+  template    name or path of template
+  dest        suggested destination filename
+
+optional arguments:
+  -h, --help  show this help message and exit

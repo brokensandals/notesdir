@@ -159,3 +159,9 @@ class FileQuery:
 
 
 FileQueryIsh = Union[str, FileQuery]
+
+
+@dataclass
+class TemplateDirectives:
+    dest: Optional[Path] = None
+    create_resources_dir: bool = False

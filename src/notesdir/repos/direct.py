@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Iterator
+from typing import List, Dict, Iterator, Set
 
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, PathIsh, FileInfoReqIsh,\
@@ -52,6 +52,9 @@ class DirectRepo(Repo):
                 for edit in group:
                     acc.edit(edit)
                 acc.save()
+
+    def refresh(self, only: Set[PathIsh] = None):
+        pass
 
     def _paths(self) -> Iterator[Path]:
         for root in self.roots:

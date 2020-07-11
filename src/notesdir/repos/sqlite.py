@@ -3,7 +3,7 @@ from datetime import datetime
 import dataclasses
 from pathlib import Path
 import sqlite3
-from typing import List, Iterator
+from typing import List, Iterator, Set
 from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh, PathIsh
 from notesdir.repos.direct import DirectRepo
 
@@ -81,7 +81,8 @@ class SqliteRepo(DirectRepo):
         self.connection = sqlite3.connect(self.db_path)
         self.connection.executescript(SQL_CREATE_SCHEMA)
 
-    def refresh(self):
+    def refresh(self, only: Set[PathIsh] = None):
+        # TODO support `only`
         cursor = self.connection.cursor()
         cursor.execute(SQL_ALL_FOR_REFRESH)
         prior_rows = (SqlAllForRefreshRow(*r) for r in cursor.fetchall())
