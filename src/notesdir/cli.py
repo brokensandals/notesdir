@@ -117,12 +117,7 @@ def _q(args, nd: Notesdir) -> int:
     return 0
 
 
-def main(args=None) -> int:
-    """Runs the tool and returns its exit code.
-
-    args may be an array of string command-line arguments; if absent,
-    the process's arguments are used.
-    """
+def argparser() -> argparse.ArgumentParser:
     fields_help = f'({",".join(f.name for f in dataclasses.fields(FileInfoReq))})'
 
     parser = argparse.ArgumentParser()
@@ -186,6 +181,16 @@ def main(args=None) -> int:
     p_tags_rm.add_argument('paths', help='files to remove tags from', nargs='+')
     p_tags_rm.set_defaults(func=_tags_rm)
 
+    return parser
+
+
+def main(args=None) -> int:
+    """Runs the tool and returns its exit code.
+
+    args may be an array of string command-line arguments; if absent,
+    the process's arguments are used.
+    """
+    parser = argparser()
     args = parser.parse_args(args)
     if not args.func:
         parser.print_help()

@@ -4,3 +4,4 @@ Contents
 .. toctree::
 
    index
+   cli

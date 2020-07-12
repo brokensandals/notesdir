@@ -3,3 +3,4 @@ pytest
 pyfakefs
 sphinx
 sphinxcontrib-fulltoc
+sphinx-argparse
