@@ -38,7 +38,7 @@ def test_extract_hrefs():
     doc = """A link to [some file](some-file). A link from [a ref].
 [a ref]: foo/bar/baz%20blah.txt whatever
 An ![image link](/foo/my.png)"""
-    expected = set(['some-file', 'foo/bar/baz%20blah.txt', '/foo/my.png'])
+    expected = ['some-file', '/foo/my.png', 'foo/bar/baz%20blah.txt']
     assert extract_hrefs(doc) == expected
 
 

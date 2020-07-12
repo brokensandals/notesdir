@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS file_links (
     FOREIGN KEY(referent_id) REFERENCES files(id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS file_links_referrer_id_ref ON file_links (referrer_id, href);
+CREATE INDEX IF NOT EXISTS file_links_referrer_id_href ON file_links (referrer_id, href);
 CREATE INDEX IF NOT EXISTS file_links_referrer_id_referent_id ON file_links (referrer_id, referent_id);
 CREATE INDEX IF NOT EXISTS file_links_referent_id_referrer_id ON file_links (referent_id, referrer_id);
 """

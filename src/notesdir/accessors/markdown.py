@@ -1,6 +1,6 @@
 import re
 from io import StringIO
-from typing import Set, Tuple
+from typing import Set, Tuple, List
 
 import yaml
 
@@ -36,8 +36,8 @@ def remove_hashtag(doc: str, tag: str) -> str:
     return re.sub(TAG_RE, replace, doc)
 
 
-def extract_hrefs(doc) -> Set[str]:
-    return set(INLINE_HREF_RE.findall(doc) + REFSTYLE_HREF_RE.findall(doc))
+def extract_hrefs(doc) -> List[str]:
+    return INLINE_HREF_RE.findall(doc) + REFSTYLE_HREF_RE.findall(doc)
 
 
 def replace_href(doc: str, src: str, dest: str) -> str:

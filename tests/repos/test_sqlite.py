@@ -44,6 +44,16 @@ I link to [two](two.md) and [three](../otherdir/three.md#heading) and have #two 
                                                             backlinks=[LinkInfo(path1, '../otherdir/three.md#heading')])
 
 
+def test_duplicate_links(fs):
+    doc = """I link to [two](two.md) [two](two.md) times."""
+    path1 = Path('/notes/one.md')
+    path2 = Path('/notes/two.md')
+    fs.create_file(path1, contents=doc)
+    repo = SqliteRepo(CONFIG)
+    assert repo.info(path1).links == [LinkInfo(path1, 'two.md'), LinkInfo(path1, 'two.md')]
+    assert repo.info(path2, 'backlinks').backlinks == [LinkInfo(path1, 'two.md'), LinkInfo(path1, 'two.md')]
+
+
 def test_refresh(fs):
     repo = SqliteRepo(CONFIG)
     path = Path('/notes/one.md')
