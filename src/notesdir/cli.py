@@ -106,7 +106,6 @@ def _q(args, nd: Notesdir) -> int:
         fields = FileInfoReq.parse(args.fields[0])
     else:
         fields = FileInfoReq(path=True, tags=True, title=True, created=True)
-    cwd = Path.cwd().resolve()
     if args.json:
         infos.sort(key=attrgetter('path'))
         print(json.dumps([i.as_json() for i in infos]))
