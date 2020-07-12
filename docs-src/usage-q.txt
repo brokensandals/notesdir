@@ -1,8 +1,0 @@
-usage: notesdir q [-h] [-j] [query]
-
-positional arguments:
-  query
-
-optional arguments:
-  -h, --help  show this help message and exit
-  -j, --json  output as json

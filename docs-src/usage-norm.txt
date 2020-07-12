@@ -1,8 +1,0 @@
-usage: notesdir norm [-h] [-j] path
-
-positional arguments:
-  path        file to normalize
-
-optional arguments:
-  -h, --help  show this help message and exit
-  -j, --json  output as json

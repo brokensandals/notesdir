@@ -1,8 +1,0 @@
-usage: notesdir t- [-h] tags paths [paths ...]
-
-positional arguments:
-  tags        comma-separated list of tags
-  paths       files to remove tags from
-
-optional arguments:
-  -h, --help  show this help message and exit
