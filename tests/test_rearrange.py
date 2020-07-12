@@ -3,78 +3,78 @@ from urllib.parse import urlparse
 
 import pytest
 
-from notesdir.rearrange import ref_path, path_as_ref, edits_for_rearrange
+from notesdir.rearrange import href_path, path_as_href, edits_for_rearrange
 from notesdir.repos.direct import DirectRepo
 
 
 def test_ref_path_same_file():
     src = Path('foo/bar')
     dest = Path('foo/bar')
-    assert ref_path(src, dest) == Path('bar')
+    assert href_path(src, dest) == Path('bar')
 
 
 def test_ref_path_same_dir():
     src = Path('foo/bar')
     dest = Path('foo/baz')
-    assert ref_path(src, dest) == Path('baz')
+    assert href_path(src, dest) == Path('baz')
 
 
 def test_ref_path_sibling_descendant():
     src = Path('foo/bar')
     dest = Path('foo/baz/meh')
-    assert ref_path(src, dest) == Path('baz/meh')
+    assert href_path(src, dest) == Path('baz/meh')
 
 
 def test_ref_path_common_ancestor():
     src = Path('foo/bar/baz')
     dest = Path('foo/meh')
-    assert ref_path(src, dest) == Path('../meh')
+    assert href_path(src, dest) == Path('../meh')
 
 
 def test_ref_path_root_is_only_common_ancestor():
     src = Path('/foo/bar')
     dest = Path('/baz/meh')
-    assert ref_path(src, dest) == Path('../baz/meh')
+    assert href_path(src, dest) == Path('../baz/meh')
 
 
 def test_ref_path_root_is_only_common_ancestor_relative(fs):
     src = Path('foo/bar')
     dest = Path('baz/meh')
     fs.cwd = '/'
-    assert ref_path(src, dest) == Path('../baz/meh')
+    assert href_path(src, dest) == Path('../baz/meh')
 
 
 def test_ref_path_child():
     src = Path('foo')
     dest = Path('foo/bar')
-    assert ref_path(src, dest) == Path('foo/bar')
+    assert href_path(src, dest) == Path('foo/bar')
 
 
 def test_ref_path_parent():
     src = Path('foo/bar')
     dest = Path('foo')
-    assert ref_path(src, dest) == Path('.')
+    assert href_path(src, dest) == Path('.')
 
 
 def test_ref_path_relative_to_absolute(fs):
     src = Path('foo/bar')
     dest = Path('/somewhere/beta/file')
     fs.cwd = '/somewhere/alpha'
-    assert ref_path(src, dest) == Path('../../beta/file')
+    assert href_path(src, dest) == Path('../../beta/file')
 
 
 def test_ref_path_absolute_to_relative(fs):
     src = Path('/somewhere/beta/file')
     dest = Path('foo/bar')
     fs.cwd = '/somewhere/alpha'
-    assert ref_path(src, dest) == Path('../alpha/foo/bar')
+    assert href_path(src, dest) == Path('../alpha/foo/bar')
 
 
 def test_ref_path_symlinks(fs):
     src = Path('/foo/bar/baz')
     dest = Path('/whatever/hello')
     fs.create_symlink('/whatever', '/foo/meh')
-    assert ref_path(src, dest) == Path('../meh/hello')
+    assert href_path(src, dest) == Path('../meh/hello')
 
 
 def test_ref_path_symlinks_relative(fs):
@@ -82,45 +82,45 @@ def test_ref_path_symlinks_relative(fs):
     dest = Path('whatever/hello')
     fs.create_symlink('/cwd/whatever', '/cwd/foo/meh')
     fs.cwd = '/cwd'
-    assert ref_path(src, dest) == Path('../meh/hello')
+    assert href_path(src, dest) == Path('../meh/hello')
 
 
 def test_path_as_ref_absolute():
-    assert path_as_ref(Path('/foo/bar/baz')) == '/foo/bar/baz'
+    assert path_as_href(Path('/foo/bar/baz')) == '/foo/bar/baz'
 
 
 def test_path_as_ref_relative():
-    assert path_as_ref(Path('../bar/baz')) == '../bar/baz'
+    assert path_as_href(Path('../bar/baz')) == '../bar/baz'
 
 
 def test_path_as_ref_absolute_into_url():
     parts = urlparse('/foo/bar/baz#f?k=v')
-    assert path_as_ref(Path('/meh/ok'), parts) == '/meh/ok#f?k=v'
+    assert path_as_href(Path('/meh/ok'), parts) == '/meh/ok#f?k=v'
 
 
 def test_path_as_ref_relative_into_url():
     parts = urlparse('/foo/bar/baz#f?k=v')
-    assert path_as_ref(Path('../meh/ok'), parts) == '../meh/ok#f?k=v'
+    assert path_as_href(Path('../meh/ok'), parts) == '../meh/ok#f?k=v'
 
 
 def test_path_as_ref_absolute_into_url_with_scheme():
     parts = urlparse('file://localhost/foo/bar/baz')
-    assert path_as_ref(Path('/meh/ok'), parts) == 'file://localhost/meh/ok'
+    assert path_as_href(Path('/meh/ok'), parts) == 'file://localhost/meh/ok'
 
 
 def test_path_as_ref_relative_into_url_with_scheme():
     parts = urlparse('file://localhost/foo/bar/baz')
     with pytest.raises(ValueError):
-        path_as_ref(Path('../meh/ok'), parts)
+        path_as_href(Path('../meh/ok'), parts)
 
 
 def test_path_as_ref_special_characters():
-    assert path_as_ref(Path('/a dir/a file!.md')) == '/a%20dir/a%20file%21.md'
+    assert path_as_href(Path('/a dir/a file!.md')) == '/a%20dir/a%20file%21.md'
 
 
 def test_path_as_ref_special_characters_into_url():
     parts = urlparse('/foo/bar/baz#f?k=v')
-    assert path_as_ref(Path('/a dir/a file!.md'), parts) == '/a%20dir/a%20file%21.md#f?k=v'
+    assert path_as_href(Path('/a dir/a file!.md'), parts) == '/a%20dir/a%20file%21.md#f?k=v'
 
 
 def test_rearrange_selfreference(fs):

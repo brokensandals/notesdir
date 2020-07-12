@@ -76,20 +76,21 @@ class Notesdir:
             from notesdir.repos.direct import DirectRepo
             self.repo = DirectRepo(repo_config)
 
-    def replace_path_refs(self, original: PathIsh, replacement: PathIsh):
-        """Finds and replaces references to the original path with references to the new path.
+    def replace_path_hrefs(self, original: PathIsh, replacement: PathIsh):
+        """Finds and replaces links to the original path with links to the new path.
 
-        Note that this does not currently replace references to children of the original path - e.g.,
-        if original is "/foo/bar", a lnik to "/foo/bar/baz" will not be updated.
+        Note that this does not currently replace links to children of the original path - e.g.,
+        if original is "/foo/bar", a link to "/foo/bar/baz" will not be updated.
 
         No files are moved, and this method does not care whether or not the original or replacement paths
         refer to actual files.
         """
-        info = self.repo.info(original, FileInfoReq(path=True, referrers=True))
+        info = self.repo.info(original, FileInfoReq(path=True, backlinks=True))
         replacement = Path(replacement)
         edits = []
-        for referrer, refs in info.referrers.items():
-            edits.extend(edits_for_path_replacement(referrer, refs, replacement))
+        for link in info.backlinks:
+            # TODO group links from the same referrer for this call
+            edits.extend(edits_for_path_replacement(link.referrer, {link.href}, replacement))
         if edits:
             self.repo.change(edits)
 

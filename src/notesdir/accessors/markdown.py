@@ -5,12 +5,12 @@ from typing import Set, Tuple
 import yaml
 
 from notesdir.accessors.base import Accessor
-from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceHrefCmd, LinkInfo
 
 YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*)\n(---|\.\.\.)\s*\r?\n)?(.*)')
 TAG_RE = re.compile(r'(\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
-INLINE_REF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
-REFSTYLE_REF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
+INLINE_HREF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
+REFSTYLE_HREF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
 
 
 def extract_meta(doc) -> Tuple[dict, str]:
@@ -36,11 +36,11 @@ def remove_hashtag(doc: str, tag: str) -> str:
     return re.sub(TAG_RE, replace, doc)
 
 
-def extract_refs(doc) -> Set[str]:
-    return set(INLINE_REF_RE.findall(doc) + REFSTYLE_REF_RE.findall(doc))
+def extract_hrefs(doc) -> Set[str]:
+    return set(INLINE_HREF_RE.findall(doc) + REFSTYLE_HREF_RE.findall(doc))
 
 
-def replace_ref(doc: str, src: str, dest: str) -> str:
+def replace_href(doc: str, src: str, dest: str) -> str:
     escaped_src = re.escape(src)
 
     def inline_replacement(match):
@@ -60,14 +60,14 @@ class MarkdownAccessor(Accessor):
     def _load(self):
         text = self.path.read_text()
         self.meta, self.body = extract_meta(text)
-        self.refs = extract_refs(self.body)
+        self.hrefs = extract_hrefs(self.body)
         self._hashtags = extract_hashtags(self.body)
 
     def _info(self, info: FileInfo):
         info.title = self.meta.get('title')
         info.created = self.meta.get('created')
         info.tags = {k.lower() for k in self.meta.get('keywords', [])}.union(self._hashtags)
-        info.refs = self.refs.copy()
+        info.links = [LinkInfo(self.path, r) for r in sorted(self.hrefs)]
 
     def _save(self):
         if self.meta:
@@ -110,8 +110,8 @@ class MarkdownAccessor(Accessor):
         self.edited = self.edited or not self.meta.get('created') == edit.value
         self.meta['created'] = edit.value
 
-    def _replace_ref(self, edit: ReplaceRefCmd):
-        if edit.original not in self.refs:
+    def _replace_href(self, edit: ReplaceHrefCmd):
+        if edit.original not in self.hrefs:
             return
         self.edited = True
-        self.body = replace_ref(self.body, edit.original, edit.replacement)
+        self.body = replace_href(self.body, edit.original, edit.replacement)

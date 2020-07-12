@@ -1,6 +1,7 @@
 import base64
 import dataclasses
 import json
+from operator import attrgetter
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -25,7 +26,7 @@ class DirectRepo(Repo):
         self.edit_log_path = edit_log_path and Path(edit_log_path)
 
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
-        path = Path(path)
+        path = Path(path).resolve()
         fields = FileInfoReq.parse(fields)
 
         if any(f.search(str(path)) for f in self.noparse) or not path.exists():
@@ -33,11 +34,10 @@ class DirectRepo(Repo):
         else:
             info = self.accessor_factory(path).info()
 
-        if fields.referrers:
-            for other in self.query(fields=FileInfoReq(path=True, refs=True)):
-                refs = other.refs_to_path(path)
-                if refs:
-                    info.referrers[other.path] = refs
+        if fields.backlinks:
+            for other in self.query(fields=FileInfoReq(path=True, links=True)):
+                info.backlinks.extend(link for link in other.links if link.referent() == path)
+            info.backlinks.sort(key=attrgetter('referrer', 'href'))
 
         return info
 

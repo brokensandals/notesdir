@@ -6,7 +6,8 @@ from typing import Set
 from bs4 import BeautifulSoup, Tag
 
 from notesdir.accessors.base import Accessor, ChangeError, ParseError
-from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, SetTitleCmd, SetCreatedCmd, ReplaceHrefCmd,\
+    LinkInfo
 
 _DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 
@@ -21,15 +22,15 @@ class HTMLAccessor(Accessor):
         self._title_el = self._page.find('title')
         self._keywords_el = self._page.find('meta', {'name': 'keywords'})
         self._created_el = self._page.find('meta', {'name': 'created'})
-        self._ref_els = defaultdict(list)
+        self._link_els = defaultdict(list)
         for a_el in self._page.find_all('a'):
             href = a_el.attrs.get('href', None)
             if href:
-                self._ref_els[href].append(a_el)
+                self._link_els[href].append(a_el)
         for source_el in self._page.find_all(['img', 'video', 'audio', 'source']):
             src = source_el.attrs.get('src', None)
             if src:
-                self._ref_els[src].append(source_el)
+                self._link_els[src].append(source_el)
             # TODO srcset attribute
         self._head_el = None
         self._html_el = None
@@ -38,7 +39,7 @@ class HTMLAccessor(Accessor):
         info.title = self._title()
         info.created = self._created()
         info.tags = self._tags()
-        info.refs.update(self._ref_els.keys())
+        info.links = [LinkInfo(self.path, href) for href in sorted(self._link_els.keys())]
 
     def _save(self):
         self.path.write_text(str(self._page))
@@ -113,12 +114,12 @@ class HTMLAccessor(Accessor):
             self._created_el = newel
         self._created_el['content'] = edit.value.strftime(_DATE_FORMAT)
 
-    def _replace_ref(self, edit: ReplaceRefCmd):
-        if edit.original not in self._ref_els:
+    def _replace_href(self, edit: ReplaceHrefCmd):
+        if edit.original not in self._link_els:
             return False
         self.edited = True
-        for ref_el in self._ref_els[edit.original]:
-            if ref_el.attrs.get('href', None) == edit.original:
-                ref_el.attrs['href'] = edit.replacement
-            if ref_el.attrs.get('src', None) == edit.original:
-                ref_el.attrs['src'] = edit.replacement
+        for link_el in self._link_els[edit.original]:
+            if link_el.attrs.get('href', None) == edit.original:
+                link_el.attrs['href'] = edit.replacement
+            if link_el.attrs.get('src', None) == edit.original:
+                link_el.attrs['src'] = edit.replacement

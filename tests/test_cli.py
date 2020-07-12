@@ -1,9 +1,7 @@
 from datetime import datetime
 import json
 from pathlib import Path
-import re
 from freezegun import freeze_time
-import pytest
 from notesdir import cli
 from notesdir.models import FileInfo
 
@@ -32,13 +30,13 @@ I have #some #boring-tags and [a link](two.md#heading)."""
     fs.create_file(path2, contents=doc2)
     assert cli.main(['i', 'one.md']) == 0
     out, err = capsys.readouterr()
-    assert out == """path: one.md
+    assert out == """path: /notes/cwd/one.md
 title: A Note
 created: 2001-02-03 04:05:06
 tags: boring-tags, some
-refs:
+links:
 \ttwo.md#heading -> /notes/cwd/two.md
-referrers:
+backlinks:
 \t/notes/cwd/two.md
 """
     assert cli.main(['i', '-f', 'title,tags', 'one.md']) == 0
@@ -47,14 +45,12 @@ referrers:
     assert cli.main(['i', '-j', 'one.md']) == 0
     out, err = capsys.readouterr()
     assert json.loads(out) == {
-        'path': 'one.md',
+        'path': '/notes/cwd/one.md',
         'title': 'A Note',
         'created': '2001-02-03T04:05:06',
         'tags': ['boring-tags', 'some'],
-        'refs': ['two.md#heading'],
-        'referrers': {
-            '/notes/cwd/two.md': ['one.md']
-        }
+        'links': [{'referrer': '/notes/cwd/one.md', 'href': 'two.md#heading', 'referent': '/notes/cwd/two.md'}],
+        'backlinks': [{'referrer': '/notes/cwd/two.md', 'href': 'one.md', 'referent': '/notes/cwd/one.md'}]
     }
 
 

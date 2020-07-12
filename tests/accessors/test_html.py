@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from bs4 import BeautifulSoup
-from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceRefCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceHrefCmd, LinkInfo
 from notesdir.accessors.html import HTMLAccessor
 
 
@@ -35,7 +35,8 @@ def test_info(fs):
     assert info.title == 'I Am A Strange Knot'
     assert info.tags == {'mind', 'philosophy', 'consciousness'}
     assert info.created == datetime(2019, 10, 3, 23, 31, 14, 0, timezone(timedelta(hours=-8)))
-    assert info.refs == {'../Another%20Note.md', 'me.html.resources/A%20Picture.png', '#nope'}
+    assert info.links == [LinkInfo(path, href)
+                          for href in sorted(['../Another%20Note.md', 'me.html.resources/A%20Picture.png', '#nope'])]
 
 
 def test_change_from_missing_attributes(fs):
@@ -90,9 +91,9 @@ def test_change(fs):
     acc = HTMLAccessor(path)
     acc.edit(SetTitleCmd(path, 'A Delightful Note'))
     acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
-    acc.edit(ReplaceRefCmd(path, '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'))
-    acc.edit(ReplaceRefCmd(path, 'http://example.com/foo.png', 'http://example.com/bar.png'))
-    acc.edit(ReplaceRefCmd(path, 'media/something.weird', 'content/something.cool'))
+    acc.edit(ReplaceHrefCmd(path, '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'))
+    acc.edit(ReplaceHrefCmd(path, 'http://example.com/foo.png', 'http://example.com/bar.png'))
+    acc.edit(ReplaceHrefCmd(path, 'media/something.weird', 'content/something.cool'))
     assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml',) == BeautifulSoup(expected, 'lxml')
 

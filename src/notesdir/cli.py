@@ -27,18 +27,18 @@ def _i(args, nd: Notesdir) -> int:
             print(f'created: {info.created}')
         if fields.tags:
             print(f'tags: {", ".join(sorted(info.tags))}')
-        if fields.refs:
-            print('refs:')
-            for referent, refs in info.path_refs().items():
-                for ref in refs:
-                    line = f'\t{ref}'
-                    if referent:
-                        line += f' -> {referent}'
-                    print(line)
-        if fields.referrers:
-            print('referrers:')
-            for referrer, refs in info.referrers.items():
-                print(f'\t{referrer}')
+        if fields.links:
+            print('links:')
+            for link in info.links:
+                line = f'\t{link.href}'
+                referent = link.referent()
+                if referent:
+                    line += f' -> {referent}'
+                print(line)
+        if fields.backlinks:
+            print('backlinks:')
+            for link in info.backlinks:
+                print(f'\t{link.referrer}')
     return 0
 
 

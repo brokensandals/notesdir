@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, ReplaceRefCmd, SetCreatedCmd, SetTitleCmd
+from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, ReplaceHrefCmd, SetCreatedCmd, SetTitleCmd
 
 
 class ParseError(Exception):
@@ -56,9 +56,9 @@ class Accessor:
             self._add_tag(edit)
         elif isinstance(edit, DelTagCmd):
             self._del_tag(edit)
-        elif isinstance(edit, ReplaceRefCmd):
+        elif isinstance(edit, ReplaceHrefCmd):
             if not edit.original == edit.replacement:
-                self._replace_ref(edit)
+                self._replace_href(edit)
         elif isinstance(edit, SetCreatedCmd):
             self._set_created(edit)
         elif isinstance(edit, SetTitleCmd):
@@ -92,7 +92,7 @@ class Accessor:
     def _set_created(self, edit: SetCreatedCmd):
         raise UnsupportedChangeError(edit)
 
-    def _replace_ref(self, edit: ReplaceRefCmd):
+    def _replace_href(self, edit: ReplaceHrefCmd):
         raise UnsupportedChangeError(edit)
 
 

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Iterator, Set
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
-    DelTagCmd, ReplaceRefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh, PathIsh
+    DelTagCmd, ReplaceHrefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh, PathIsh
 
 
 class Repo:
@@ -43,9 +43,9 @@ class Repo:
         """Convenience method equivalent to calling change with one SetTitleCmd."""
         self.change([SetTitleCmd(Path(path), title)])
 
-    def replace_ref(self, path: PathIsh, original: str, replacement: str):
+    def replace_href(self, path: PathIsh, original: str, replacement: str):
         """Convenience method equivalent to calling change with one ReplaceRefCmd."""
-        self.change([ReplaceRefCmd(Path(path), original, replacement)])
+        self.change([ReplaceHrefCmd(Path(path), original, replacement)])
 
 
 def group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:

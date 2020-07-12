@@ -1,10 +1,12 @@
 from collections import namedtuple
 from datetime import datetime
 import dataclasses
+from operator import attrgetter
 from pathlib import Path
 import sqlite3
 from typing import List, Iterator, Set
-from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh, PathIsh
+from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh, PathIsh,\
+    LinkInfo
 from notesdir.repos.direct import DirectRepo
 
 
@@ -31,18 +33,18 @@ CREATE TABLE IF NOT EXISTS file_tags (
 CREATE UNIQUE INDEX IF NOT EXISTS file_tags_index_file_id_tag ON file_tags (file_id, tag);
 CREATE INDEX IF NOT EXISTS file_tags_index_tag ON file_tags (tag);
 
-CREATE TABLE IF NOT EXISTS file_refs (
+CREATE TABLE IF NOT EXISTS file_links (
     id INTEGER PRIMARY KEY,
     referrer_id INTEGER NOT NULL,
     referent_id INTEGER,
-    ref TEXT NOT NULL,
+    href TEXT NOT NULL,
     FOREIGN KEY(referrer_id) REFERENCES files(id),
     FOREIGN KEY(referent_id) REFERENCES files(id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS file_refs_referrer_id_ref ON file_refs (referrer_id, ref);
-CREATE INDEX IF NOT EXISTS file_refs_referrer_id_referent_id ON file_refs (referrer_id, referent_id);
-CREATE INDEX IF NOT EXISTS file_refs_referent_id_referrer_id ON file_refs (referent_id, referrer_id);
+CREATE UNIQUE INDEX IF NOT EXISTS file_links_referrer_id_ref ON file_links (referrer_id, href);
+CREATE INDEX IF NOT EXISTS file_links_referrer_id_referent_id ON file_links (referrer_id, referent_id);
+CREATE INDEX IF NOT EXISTS file_links_referent_id_referrer_id ON file_links (referent_id, referrer_id);
 """
 
 SQL_CLEAR = """
@@ -90,7 +92,7 @@ class SqliteRepo(DirectRepo):
         found_paths = set()
 
         ids_by_path = {}
-        refs_to_add = []
+        links_to_add = []
 
         for path in self._paths():
             pathstr = str(path)
@@ -105,7 +107,7 @@ class SqliteRepo(DirectRepo):
             if row:
                 file_id = row.id
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))
-                cursor.execute('DELETE FROM file_refs WHERE referrer_id = ?', (file_id,))
+                cursor.execute('DELETE FROM file_links WHERE referrer_id = ?', (file_id,))
                 updrow = SqlUpdateFileRow(id=file_id,
                                           existent=True,
                                           stat_ctime=stat.st_ctime,
@@ -127,29 +129,30 @@ class SqliteRepo(DirectRepo):
             cursor.executemany('INSERT INTO file_tags (file_id, tag) VALUES (?, ?)',
                                ((file_id, t) for t in info.tags))
             ids_by_path[pathstr] = file_id
-            for referent_path, refs in info.path_refs().items():
-                refs_to_add.append((file_id, str(referent_path) if referent_path else None, refs))
+            links_to_add.extend((file_id, link) for link in info.links)
 
-        for referrer_id, referent_path, refs in refs_to_add:
+        for referrer_id, link in links_to_add:
             referent_id = None
-            if referent_path:
-                found_paths.add(referent_path)
-                referent_id = ids_by_path.get(referent_path)
+            referent = link.referent()
+            if referent:
+                referent_str = str(referent)
+                found_paths.add(referent_str)
+                referent_id = ids_by_path.get(referent_str)
                 if not referent_id:
-                    prior_row = prior_rows_by_path.get(referent_path)
+                    prior_row = prior_rows_by_path.get(referent_str)
                     if prior_row:
                         referent_id = prior_row.id
                 if not referent_id:
-                    cursor.execute('INSERT INTO files (path, existent) VALUES (?, FALSE)', (referent_path,))
+                    cursor.execute('INSERT INTO files (path, existent) VALUES (?, FALSE)', (referent_str,))
                     referent_id = cursor.lastrowid
-                    ids_by_path[referent_path] = referent_id
-            cursor.executemany('INSERT INTO file_refs (referrer_id, referent_id, ref)'
-                               ' VALUES (?, ?, ?)',
-                               ((referrer_id, referent_id, ref) for ref in refs))
+                    ids_by_path[referent_str] = referent_id
+            cursor.execute('INSERT INTO file_links (referrer_id, referent_id, href)'
+                           ' VALUES (?, ?, ?)',
+                           (referrer_id, referent_id, link.href))
 
         ids_to_delete = [prior_rows_by_path[p].id for p in set(prior_rows_by_path.keys()).difference(found_paths)]
         for id_to_delete in ids_to_delete:
-            cursor.execute('SELECT COUNT(*) FROM file_refs WHERE referent_id = ?', (id_to_delete,))
+            cursor.execute('SELECT COUNT(*) FROM file_links WHERE referent_id = ?', (id_to_delete,))
             if cursor.fetchone()[0] == 0:
                 cursor.execute('DELETE FROM files WHERE id = ?', (id_to_delete,))
             else:
@@ -162,12 +165,12 @@ class SqliteRepo(DirectRepo):
                                           created=None)
                 cursor.execute(SQL_UPDATE_FILE, updrow)
             cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (id_to_delete,))
-            cursor.execute('DELETE FROM file_refs WHERE referrer_id = ?', (id_to_delete,))
+            cursor.execute('DELETE FROM file_links WHERE referrer_id = ?', (id_to_delete,))
 
         self.connection.commit()
 
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
-        path = Path(path)
+        path = Path(path).resolve()
         fields = FileInfoReq.parse(fields)
         cursor = self.connection.cursor()
         cursor.execute('SELECT id, title, created FROM files WHERE path = ?',
@@ -181,21 +184,17 @@ class SqliteRepo(DirectRepo):
             if fields.tags:
                 cursor.execute('SELECT tag FROM file_tags WHERE file_id = ?', (file_id,))
                 info.tags = {r[0] for r in cursor}
-            if fields.refs:
-                cursor.execute('SELECT ref FROM file_refs WHERE referrer_id = ?', (file_id,))
-                info.refs = {r[0] for r in cursor}
-            if fields.referrers:
-                cursor.execute('SELECT referrers.path, file_refs.ref'
+            if fields.links:
+                cursor.execute('SELECT href FROM file_links WHERE referrer_id = ?', (file_id,))
+                info.links = [LinkInfo(path, href) for href in sorted(r[0] for r in cursor)]
+            if fields.backlinks:
+                cursor.execute('SELECT referrers.path, file_links.href'
                                ' FROM files referrers'
-                               '  INNER JOIN file_refs ON referrers.id = file_refs.referrer_id'
-                               ' WHERE file_refs.referent_id = ?',
+                               '  INNER JOIN file_links ON referrers.id = file_links.referrer_id'
+                               ' WHERE file_links.referent_id = ?',
                                (file_id,))
-                for referrer, ref in cursor:
-                    referrer = Path(referrer)
-                    if referrer not in info.referrers:
-                        info.referrers[referrer] = {ref}
-                    else:
-                        info.referrers[referrer].add(ref)
+                info.backlinks = [LinkInfo(Path(referrer), href) for referrer, href in cursor]
+                info.backlinks.sort(key=attrgetter('referrer', 'href'))
         return info
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\

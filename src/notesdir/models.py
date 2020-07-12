@@ -3,7 +3,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Set, Optional, Dict, Union, Iterable
+from typing import Set, Optional, Union, Iterable, List
 from urllib.parse import urlparse, unquote_plus
 
 
@@ -11,55 +11,40 @@ PathIsh = Union[str, bytes, PathLike]
 
 
 @dataclass
+class LinkInfo:
+    referrer: Path
+    href: str
+
+    def referent(self):
+        try:
+            url = urlparse(self.href)
+            if (not url.scheme) or (url.scheme == 'file' and url.netloc in ['', 'localhost']):
+                referent = Path(unquote_plus(url.path))
+                if not referent.is_absolute():
+                    referent = self.referrer.joinpath('..', referent)
+                return referent.resolve()
+        except ValueError:
+            # not a valid URL
+            return None
+
+    def as_json(self) -> dict:
+        """Returns a dict representing the instance, suitable for serializing as json."""
+        referent = self.referent()
+        return {
+            'referrer': str(self.referrer),
+            'href': self.href,
+            'referent': str(referent) if referent else None
+        }
+
+
+@dataclass
 class FileInfo:
     path: Path
-    refs: Set[str] = field(default_factory=set)
+    links: List[LinkInfo] = field(default_factory=list)
     tags: Set[str] = field(default_factory=set)
     title: Optional[str] = None
     created: Optional[datetime] = None
-    referrers: Dict[Path, Set[str]] = field(default_factory=dict)
-
-    def path_refs(self) -> Dict[Optional[Path], Set[str]]:
-        """Returns subsets of self.refs that refer to local paths.
-
-        Each key of the result is a local path, and the value is the subset of refs
-        that refer to it. The same ref will not appear in multiple keys. Refs that
-        resolve to the same path will appear under the same key, even if they are
-        specified via differing relative paths or paths involving symlinks, or if they
-        differ in the fragment or query string of the URL.
-
-        Refs that cannot be parsed as URLs or that do not refer to local paths will
-        appear under the key None.
-        """
-        result = {}
-        for ref in self.refs:
-            try:
-                url = urlparse(ref)
-                if (not url.scheme) or (url.scheme == 'file' and url.netloc in ['', 'localhost']):
-                    src = Path(unquote_plus(url.path))
-                    if not src.is_absolute():
-                        src = self.path.joinpath('..', src)
-                    src = src.resolve()
-                    if src in result:
-                        result[src].add(ref)
-                    else:
-                        result[src] = {ref}
-                    continue
-            except ValueError:
-                pass
-
-            if None in result:
-                result[None].add(ref)
-            else:
-                result[None] = {ref}
-        return result
-
-    def refs_to_path(self, dest: Path) -> Set[str]:
-        """Returns the value of self.path_refs() for the given path, or an empty set.
-
-        The path is resolved first to account for symlinks or relative paths.
-        """
-        return self.path_refs().get(dest.resolve(), set())
+    backlinks: List[LinkInfo] = field(default_factory=list)
 
     def as_json(self) -> dict:
         """Returns a dict representing the instance, suitable for serializing as json."""
@@ -68,8 +53,8 @@ class FileInfo:
             'title': self.title,
             'created': self.created.isoformat() if self.created else None,
             'tags': sorted(self.tags),
-            'refs': sorted(self.refs),
-            'referrers': {str(referrer): [r for r in sorted(refs)] for referrer, refs in self.referrers.items()}
+            'links': [link.as_json() for link in self.links],
+            'backlinks': [link.as_json() for link in self.backlinks]
         }
 
 
@@ -85,18 +70,18 @@ class FileInfoReq:
 
     @classmethod
     def internal(cls) -> FileInfoReq:
-        return cls(path=True, refs=True, tags=True, title=True, created=True)
+        return cls(path=True, links=True, tags=True, title=True, created=True)
 
     @classmethod
     def full(cls) -> FileInfoReq:
-        return replace(cls.internal(), referrers=True)
+        return replace(cls.internal(), backlinks=True)
 
     path: bool = False
-    refs: bool = False
+    links: bool = False
     tags: bool = False
     title: bool = False
     created: bool = False
-    referrers: bool = False
+    backlinks: bool = False
 
 
 FileInfoReqIsh = Union[str, Iterable[str], FileInfoReq]
@@ -118,7 +103,7 @@ class SetCreatedCmd(FileEditCmd):
 
 
 @dataclass
-class ReplaceRefCmd(FileEditCmd):
+class ReplaceHrefCmd(FileEditCmd):
     original: str
     replacement: str
 

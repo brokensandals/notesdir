@@ -4,11 +4,11 @@ from tempfile import mkstemp
 from typing import Dict, Iterator, Set
 from urllib.parse import ParseResult, quote, urlunparse, urlparse
 
-from notesdir.models import MoveCmd, ReplaceRefCmd, FileEditCmd, FileInfoReq
+from notesdir.models import MoveCmd, ReplaceHrefCmd, FileEditCmd, FileInfoReq
 from notesdir.repos.base import Repo
 
 
-def ref_path(src: Path, dest: Path) -> Path:
+def href_path(src: Path, dest: Path) -> Path:
     """Returns the path to use for a reference from file src to file dest.
 
     This is a relative path to dest from the directory containing src.
@@ -23,7 +23,7 @@ def ref_path(src: Path, dest: Path) -> Path:
     return Path(relpath(dest, src))
 
 
-def path_as_ref(path: Path, into_url: ParseResult = None) -> str:
+def path_as_href(path: Path, into_url: ParseResult = None) -> str:
     """Returns the string to use for referring to the given path in a file.
 
     This percent-encodes characters as necessary to make the path a valid URL.
@@ -64,27 +64,27 @@ def edits_for_raw_moves(renames: Dict[Path, Path]) -> Iterator[MoveCmd]:
     yield from phase2
 
 
-def edits_for_path_replacement(referrer: Path, refs: Set[str], replacement: Path) -> Iterator[ReplaceRefCmd]:
-    """Yields commands to replace a file's references to a path with references to another path."""
-    for ref in refs:
-        url = urlparse(ref)
-        newref = path_as_ref(ref_path(referrer, replacement), url)
-        yield ReplaceRefCmd(referrer, ref, newref)
+def edits_for_path_replacement(referrer: Path, hrefs: Set[str], replacement: Path) -> Iterator[ReplaceHrefCmd]:
+    """Yields commands to replace a file's links to a path with links to another path."""
+    for href in hrefs:
+        url = urlparse(href)
+        newref = path_as_href(href_path(referrer, replacement), url)
+        yield ReplaceHrefCmd(referrer, href, newref)
 
 
 def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> Iterator[FileEditCmd]:
-    """Yields commands that will rename files and update references accordingly.
+    """Yields commands that will rename files and update links accordingly.
 
     The keys of the dictionary are the paths to be renamed, and the values
     are what they should be renamed to. (If a path appears as both a key and
     as a value, it will be moved to a temporary file as an intermediate step.)
 
-    The given store is used to search for files that refer to any of the paths that
-    are keys in the dictionary, so that ReplaceRef edits can be generated for them.
-    The files that are being renamed will also be checked for outbound relative references,
+    The given store is used to search for files that link to any of the paths that
+    are keys in the dictionary, so that ReplaceHrefEditCmd instances can be generated for them.
+    The files that are being renamed will also be checked for outbound links,
     and ReplaceRef edits will be generated for those too.
 
-    Source paths may be directories; the directory as a whole will be moved, and references
+    Source paths may be directories; the directory as a whole will be moved, and links
     to/from all files/folders within it will be updated too.
     """
     to_move = {s.resolve(): d.resolve() for s, d in renames.items()}
@@ -96,21 +96,22 @@ def edits_for_rearrange(store: Repo, renames: Dict[Path, Path]) -> Iterator[File
                 all_moves[path] = dest.joinpath(path.relative_to(src))
 
     for src, dest in all_moves.items():
-        info = store.info(src, FileInfoReq(path=True, refs=True, referrers=True))
+        info = store.info(src, FileInfoReq(path=True, links=True, backlinks=True))
         if info:
-            for target, refs in info.path_refs().items():
-                if not target:
+            for link in info.links:
+                referent = link.referent()
+                if not referent:
                     continue
-                if target in all_moves:
-                    target = all_moves[target]
-                for ref in refs:
-                    url = urlparse(ref)
-                    newref = path_as_ref(ref_path(dest, target), url)
-                    if not ref == newref:
-                        yield ReplaceRefCmd(src, ref, newref)
-        for referrer, refs in info.referrers.items():
-            if referrer.resolve() in all_moves:
+                if referent in all_moves:
+                    referent = all_moves[referent]
+                url = urlparse(link.href)
+                newhref = path_as_href(href_path(dest, referent), url)
+                if not link.href == newhref:
+                    yield ReplaceHrefCmd(src, link.href, newhref)
+        for link in info.backlinks:
+            if link.referrer in all_moves:
                 continue
-            yield from edits_for_path_replacement(referrer, refs, dest)
+            # TODO either pass in all the hrefs at once, or change method to not take in a set
+            yield from edits_for_path_replacement(link.referrer, {link.href}, dest)
 
     yield from edits_for_raw_moves(to_move)
