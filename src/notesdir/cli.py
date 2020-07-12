@@ -10,7 +10,30 @@ from pathlib import Path
 from urllib.parse import quote
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
-from notesdir.models import FileInfoReq
+from notesdir.models import FileInfoReq, FileInfo
+
+
+def _print_file_info(info: FileInfo, fields: FileInfoReq) -> None:
+    if fields.path:
+        print(f'path: {info.path}')
+    if fields.title:
+        print(f'title: {info.title}')
+    if fields.created:
+        print(f'created: {info.created}')
+    if fields.tags:
+        print(f'tags: {", ".join(sorted(info.tags))}')
+    if fields.links:
+        print('links:')
+        for link in info.links:
+            line = f'\t{link.href}'
+            referent = link.referent()
+            if referent:
+                line += f' -> {referent}'
+            print(line)
+    if fields.backlinks:
+        print('backlinks:')
+        for link in info.backlinks:
+            print(f'\t{link.referrer}')
 
 
 def _i(args, nd: Notesdir) -> int:
@@ -19,26 +42,7 @@ def _i(args, nd: Notesdir) -> int:
     if args.json:
         print(json.dumps(info.as_json()))
     else:
-        if fields.path:
-            print(f'path: {info.path}')
-        if fields.title:
-            print(f'title: {info.title}')
-        if fields.created:
-            print(f'created: {info.created}')
-        if fields.tags:
-            print(f'tags: {", ".join(sorted(info.tags))}')
-        if fields.links:
-            print('links:')
-            for link in info.links:
-                line = f'\t{link.href}'
-                referent = link.referent()
-                if referent:
-                    line += f' -> {referent}'
-                print(line)
-        if fields.backlinks:
-            print('backlinks:')
-            for link in info.backlinks:
-                print(f'\t{link.referrer}')
+        _print_file_info(info, fields)
     return 0
 
 
@@ -98,22 +102,53 @@ def _tags_rm(args, nd: Notesdir) -> int:
 def _q(args, nd: Notesdir) -> int:
     query = args.query or ''
     infos = [i for i in nd.repo.query(query) if i.path.is_file()]
+    if args.fields:
+        fields = FileInfoReq.parse(args.fields[0])
+    else:
+        fields = FileInfoReq(path=True, tags=True, title=True, created=True)
     cwd = Path.cwd().resolve()
     if args.json:
         infos.sort(key=attrgetter('path'))
         print(json.dumps([i.as_json() for i in infos]))
-    else:
+    elif args.table:
         # TODO make sorting / path resolution consistent with json output
-        data = [(str(relpath(i.path.resolve(), cwd)),
-                 i.title or '',
-                 i.created.isoformat() if i.created else '',
-                 ', '.join(quote(t) for t in sorted(i.tags)))
-                for i in infos]
+        data = []
+        for info in infos:
+            row = ()
+            if fields.path:
+                row += (info.path.name,)
+            if fields.title:
+                row += (info.title or '',)
+            if fields.created:
+                row += (info.created.strftime('%Y-%m-%d') if info.created else '',)
+            if fields.tags:
+                row += ('\n'.join(sorted(info.tags)),)
+            if fields.links:
+                row += ('\n'.join(sorted({str(relpath(link.referent())) for link in info.links if link.referent()})),)
+            if fields.backlinks:
+                row += ('\n'.join(sorted({str(relpath(link.referrer)) for link in info.backlinks})),)
+            data.append(row)
         data.sort(key=itemgetter(0))
-        data.insert(0, ('Path', 'Title', 'Created', 'Tags'))
+        heading = ()
+        if fields.path:
+            heading += ('Filename',)
+        if fields.title:
+            heading += ('Title',)
+        if fields.created:
+            heading += ('Created',)
+        if fields.tags:
+            heading += ('Tags',)
+        if fields.links:
+            heading += ('Link paths',)
+        if fields.backlinks:
+            heading += ('Backlink paths',)
+        data.insert(0, heading)
         table = AsciiTable(data)
-        table.justify_columns[3] = 'right'
         print(table.table)
+    else:
+        for info in infos:
+            print('--------------------')
+            _print_file_info(info, fields)
     return 0
 
 
@@ -138,7 +173,11 @@ def argparser() -> argparse.ArgumentParser:
              'specified tags. For example, the query "tag:journal,food -tag:personal" would list all '
              'files that have both the "journal" tag and the "food" tag but do not have the "personal" tag.')
     p_q.add_argument('query', nargs='?', help='Query string. If omitted, the query matches all files.')
-    p_q.add_argument('-j', '--json', help='Output as JSON.', action='store_true')
+    p_q.add_argument('-f', '--fields', nargs=1,
+                     help=f'Comma-separated list of fields to show. {fields_help} Not all fields are shown by default.')
+    p_q_formats = p_q.add_mutually_exclusive_group()
+    p_q_formats.add_argument('-j', '--json', help='Output as JSON.', action='store_true')
+    p_q_formats.add_argument('-t', '--table', help='Format output as a table.', action='store_true')
     p_q.set_defaults(func=_q)
 
     p_c = subs.add_parser('c',

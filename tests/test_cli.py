@@ -323,6 +323,9 @@ This is a test doc."""
     assert cli.main(['q']) == 0
     out, err = capsys.readouterr()
     assert out
+    assert cli.main(['q', '-t']) == 0
+    out, err = capsys.readouterr()
+    assert out
 
     assert cli.main(['q', '-j', 'tag:has+space']) == 0
     out, err = capsys.readouterr()
