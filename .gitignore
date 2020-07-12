@@ -6,3 +6,5 @@ build/
 *.egg-info
 dist/
 .vscode
+docs-src/_build/
+docs-src/_gensrc/

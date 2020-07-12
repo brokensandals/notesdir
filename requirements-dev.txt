@@ -2,3 +2,4 @@ freezegun
 pytest
 pyfakefs
 sphinx
+sphinxcontrib-fulltoc
