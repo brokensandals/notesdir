@@ -269,6 +269,12 @@ class Notesdir:
         If dest is not given, a target file name will be generated. Regardless, the :meth:`Notesdir.norm` method
         will be used to normalize the final filename.
 
+        The following names are defined in the template's namespace:
+
+        * ``nd``: this instance of :class:`Notesdir`
+        * ``directives``: an instance of :class:`notesdir.models.TemplateDirectives`
+        * ``template_path``: the :class:`pathlib.Path` of the template being rendered
+
         Returns the path of the created file.
         """
         template_path = self.template_for_name(template_name) if isinstance(template_name, str) else Path(template_name)
