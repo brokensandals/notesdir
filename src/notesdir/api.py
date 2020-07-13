@@ -1,6 +1,7 @@
 """Provides the main entry point for using the library, :class:`Notesdir`"""
 
 from __future__ import annotations
+from dataclasses import replace
 from glob import glob
 from pathlib import Path
 import re
@@ -11,12 +12,15 @@ from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, Fi
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def _filename_for_title(title: str) -> str:
-    title = title.lower()[:60]
+_DEFAULT_FILENAME_TEMPLATE = """<%
+    import re
+    title = info.title.lower()[:60]
     title = re.sub(r'[^a-z0-9]', '-', title)
     title = re.sub(r'-+', '-', title)
     title = title.strip('-')
-    return title
+%>
+${title}${info.path.suffix}
+"""
 
 
 def _find_available_name(dest: Path) -> Path:
@@ -59,6 +63,9 @@ class Notesdir:
     * ``"repo"``: required dict which will be used as the config for creating a :class:`notesdir.repos.base.Repo`
     * ``"templates"``: optional list of strings which are path globs, such as ``["/notes/templates/*.mako"]``. These
       will be searched when using template-related methods like :meth:`create`
+    * ``"filename_template"``: optional string which contains the full Mako template for generating a normalized
+      filename from a :class:`notesdir.models.FileInfo` instance. The default template truncates the title to 60
+      characters, downcases it, and ensures it contains only letters, numbers, and dashes. See :meth:`normalize`
 
     Here's an example of how to use this class. This would add the tag "personal" to every note tagged with "journal".
 
@@ -95,6 +102,7 @@ class Notesdir:
         else:
             from notesdir.repos.direct import DirectRepo
             self.repo = DirectRepo(repo_config)
+        self._filename_template = Template(config.get('filename_template', _DEFAULT_FILENAME_TEMPLATE))
 
     def replace_path_hrefs(self, original: PathIsh, replacement: PathIsh) -> None:
         """Finds and replaces links to the original path with links to the new path.
@@ -163,7 +171,9 @@ class Notesdir:
 
         If the file does not have a title, one is set based on the filename.
         If the file has a title, the filename is derived from it.
-        In either case filename_for_title is applied.
+        In either case, the ``filename_template`` from the config is applied. The name ``info`` will be set in the
+        template's namespace to the :class:`notesdir.models.FileInfo` object. ``.strip()`` is called on the template's
+        result.
 
         If the file does not have created set in its metadata, it is set
         based on the birthtime or ctime of the file.
@@ -181,7 +191,7 @@ class Notesdir:
         moves = {}
 
         title = info.title or path.stem
-        name = f'{_filename_for_title(title)}{path.suffix}'
+        name = self._filename_template.render(info=replace(info, title=title)).strip()
         if not path.name == name:
             moves = self.move(path, path.with_name(name))
             if path in moves:
