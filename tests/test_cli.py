@@ -28,7 +28,7 @@ I have #some #boring-tags and [a link](two.md#heading)."""
     doc2 = """I link to [one](one.md)."""
     fs.create_file(path1, contents=doc1)
     fs.create_file(path2, contents=doc2)
-    assert cli.main(['i', 'one.md']) == 0
+    assert cli.main(['info', 'one.md']) == 0
     out, err = capsys.readouterr()
     assert out == """path: /notes/cwd/one.md
 title: A Note
@@ -39,10 +39,10 @@ links:
 backlinks:
 \t/notes/cwd/two.md
 """
-    assert cli.main(['i', '-f', 'title,tags', 'one.md']) == 0
+    assert cli.main(['info', '-f', 'title,tags', 'one.md']) == 0
     out, err = capsys.readouterr()
     assert out == "title: A Note\ntags: boring-tags, some\n"
-    assert cli.main(['i', '-j', 'one.md']) == 0
+    assert cli.main(['info', '-j', 'one.md']) == 0
     out, err = capsys.readouterr()
     assert json.loads(out) == {
         'path': '/notes/cwd/one.md',
@@ -63,7 +63,7 @@ title: Testing in ${datetime.now().strftime('%B %Y')}
 Nothing to see here, move along."""
     nd_setup(fs)
     fs.create_file('/notes/templates/simple.md.mako', contents=template)
-    assert cli.main(['c', 'simple']) == 0
+    assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
     assert out == 'testing-in-may-2012.md\n'
     assert Path('/notes/cwd/testing-in-may-2012.md').read_text() == """---
@@ -72,7 +72,7 @@ title: Testing in May 2012
 ...
 Nothing to see here, move along."""
     assert not Path('/notes/cwd/testing-in-may-2012.md.resources').exists()
-    assert cli.main(['c', 'simple', 'this-is-not-the-final-name.md']) == 0
+    assert cli.main(['new', 'simple', 'this-is-not-the-final-name.md']) == 0
     # the supplied dest is not very effective here because the template sets a title which will be used by norm() to
     # reset the filename
     out, err = capsys.readouterr()
@@ -84,7 +84,7 @@ All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
     fs.create_file('/notes/other-template.md.mako', contents=template2)
     fs.create_file('/notes/one.md', contents='#happy #sad #melancholy')
     fs.create_file('/notes/two.md', contents='#green #bright-green #best-green')
-    assert cli.main(['c', '../other-template.md.mako', 'tags.md']) == 0
+    assert cli.main(['new', '../other-template.md.mako', 'tags.md']) == 0
     out, err = capsys.readouterr()
     assert out == 'tags.md\n'
     assert Path('/notes/cwd/tags.md').read_text() == """---
@@ -96,7 +96,7 @@ All current tags: best-green, bright-green, green, happy, melancholy, sad"""
 
     template3 = """<% directives.dest = template_path.parent.parent.joinpath('cool-note.md') %>"""
     fs.create_file('/notes/templates/self-namer.md.mako', contents=template3)
-    assert cli.main(['c', 'self-namer', 'unimportant.md']) == 0
+    assert cli.main(['new', 'self-namer', 'unimportant.md']) == 0
     out, err = capsys.readouterr()
     assert out == '/notes/cool-note.md\n'
     assert Path('/notes/cool-note.md').is_file()
@@ -272,9 +272,9 @@ some text"""
 def test_tags(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/foo.md')
-    assert cli.main(['t+', 'One,two, , three', 'foo.md']) == 0
+    assert cli.main(['tag', 'One,two, , three', 'foo.md']) == 0
     assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- one\n- three\n- two\n...\n'
-    assert cli.main(['t-', 'oNe,tWo', 'foo.md']) == 0
+    assert cli.main(['untag', 'oNe,tWo', 'foo.md']) == 0
     assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- three\n...\n'
 
 
@@ -283,17 +283,17 @@ def test_tags_count(fs, capsys):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')
     fs.create_file('/notes/two.md', contents='#tag1 #tag3')
     fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
-    assert cli.main(['tc', '-j']) == 0
+    assert cli.main(['tags', '-j']) == 0
     out, err = capsys.readouterr()
     assert json.loads(out) == {'tag1': 3, 'tag2': 1, 'tag3': 2, 'tag4': 1}
-    assert cli.main(['tc']) == 0
+    assert cli.main(['tags']) == 0
     out, err = capsys.readouterr()
     assert out
 
-    assert cli.main(['tc', '-j', 'tag:tag3']) == 0
+    assert cli.main(['tags', '-j', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
     assert json.loads(out) == {'tag1': 2, 'tag3': 2, 'tag4': 1}
-    assert cli.main(['tc', 'tag:tag3']) == 0
+    assert cli.main(['tags', 'tag:tag3']) == 0
     out, err = capsys.readouterr()
     assert out
 
@@ -313,23 +313,23 @@ This is a test doc."""
     path2 = '/notes/two.md'
     fs.create_file(path1, contents=doc1)
     fs.create_file(path2, contents=doc2)
-    assert cli.main(['q', '-j']) == 0
+    assert cli.main(['query', '-j']) == 0
     out, err = capsys.readouterr()
     expected1 = FileInfo(path=path1,
                          title='A Test File',
                          created=datetime(2012, 3, 4, 5, 6, 7),
                          tags=['cool', 'has space']).as_json()
     assert json.loads(out) == [expected1, FileInfo(path=path2, tags=['test']).as_json()]
-    assert cli.main(['q']) == 0
+    assert cli.main(['query']) == 0
     out, err = capsys.readouterr()
     assert out
-    assert cli.main(['q', '-t']) == 0
+    assert cli.main(['query', '-t']) == 0
     out, err = capsys.readouterr()
     assert out
 
-    assert cli.main(['q', '-j', 'tag:has+space']) == 0
+    assert cli.main(['query', '-j', 'tag:has+space']) == 0
     out, err = capsys.readouterr()
     assert json.loads(out) == [expected1]
-    assert cli.main(['q', 'tag:has+space']) == 0
+    assert cli.main(['query', 'tag:has+space']) == 0
     out, err = capsys.readouterr()
     assert out

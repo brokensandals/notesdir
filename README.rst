@@ -65,5 +65,5 @@ Setup
     templates = ["/Users/jacob/Zettel/*/templates/*.mako"]
 
 That's it!
-You can run :code:`notesdir q` to print a list of everything Notesdir currently knows about your notes.
+You can run :code:`notesdir query` to print a list of everything Notesdir currently knows about your notes.
 It may take a while the first time, while it builds the cache.

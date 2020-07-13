@@ -35,7 +35,7 @@ def _print_file_info(info: FileInfo, fields: FileInfoReq) -> None:
             print(f'\t{link.referrer}')
 
 
-def _i(args, nd: Notesdir) -> int:
+def _info(args, nd: Notesdir) -> int:
     fields = FileInfoReq.parse(args.fields[0]) if args.fields else FileInfoReq.full()
     info = nd.repo.info(args.path[0], fields)
     if args.json:
@@ -45,7 +45,7 @@ def _i(args, nd: Notesdir) -> int:
     return 0
 
 
-def _c(args, nd: Notesdir) -> int:
+def _new(args, nd: Notesdir) -> int:
     print(nd.create(args.template[0], args.dest))
     return 0
 
@@ -72,13 +72,13 @@ def _norm(args, nd: Notesdir) -> int:
     return 0
 
 
-def _tags_add(args, nd: Notesdir) -> int:
+def _tag(args, nd: Notesdir) -> int:
     tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
     nd.add_tags(tags, args.paths)
     return 0
 
 
-def _tags_count(args, nd: Notesdir) -> int:
+def _tags(args, nd: Notesdir) -> int:
     query = args.query or ''
     counts = nd.repo.tag_counts(query)
     if args.json:
@@ -92,13 +92,13 @@ def _tags_count(args, nd: Notesdir) -> int:
     return 0
 
 
-def _tags_rm(args, nd: Notesdir) -> int:
+def _untag(args, nd: Notesdir) -> int:
     tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
     nd.remove_tags(tags, args.paths)
     return 0
 
 
-def _q(args, nd: Notesdir) -> int:
+def _query(args, nd: Notesdir) -> int:
     query = args.query or ''
     infos = [i for i in nd.repo.query(query) if i.path.is_file()]
     if args.fields:
@@ -158,15 +158,15 @@ def argparser() -> argparse.ArgumentParser:
 
     subs = parser.add_subparsers(title='Commands')
 
-    p_i = subs.add_parser('i', help='Show info about a file, such as metadata and links/backlinks.')
+    p_i = subs.add_parser('info', help='Show info about a file, such as metadata and links/backlinks.')
     p_i.add_argument('-f', '--fields', nargs=1,
                      help=f'Comma-separated list of fields to show. {fields_help} By default, all fields are shown.')
     p_i.add_argument('-j', '--json', action='store_true', help='Output as JSON.')
     p_i.add_argument('path', nargs=1)
-    p_i.set_defaults(func=_i)
+    p_i.set_defaults(func=_info)
 
     p_q = subs.add_parser(
-        'q',
+        'query',
         help='Query for files. Currently, this only supports searching for files that include or exclude '
              'specified tags. For example, the query "tag:journal,food -tag:personal" would list all '
              'files that have both the "journal" tag and the "food" tag but do not have the "personal" tag.')
@@ -176,17 +176,17 @@ def argparser() -> argparse.ArgumentParser:
     p_q_formats = p_q.add_mutually_exclusive_group()
     p_q_formats.add_argument('-j', '--json', help='Output as JSON.', action='store_true')
     p_q_formats.add_argument('-t', '--table', help='Format output as a table.', action='store_true')
-    p_q.set_defaults(func=_q)
+    p_q.set_defaults(func=_query)
 
-    p_c = subs.add_parser('c',
-                          help='Create file from a Mako template. You can either specify the path to the template, '
+    p_c = subs.add_parser('new',
+                          help='Create new file from a Mako template. You can either specify the path to the template, '
                                'or just give its name without file extensions if it is listed in "templates" in '
                                'your ~/notesdir.toml file. This command will print the path of the newly created file.')
     p_c.add_argument('template', nargs=1, help='Name or path of template.')
     p_c.add_argument('dest', nargs='?',
                      help='Suggested destination filename. This may be overridden by the template, or adjusted '
                           'if it conflicts with an existing file. A filename will be selected for you if omitted.')
-    p_c.set_defaults(func=_c)
+    p_c.set_defaults(func=_new)
 
     p_mv = subs.add_parser(
         'mv',
@@ -218,29 +218,29 @@ def argparser() -> argparse.ArgumentParser:
     p_norm.set_defaults(func=_norm)
 
     p_tags_add = subs.add_parser(
-        't+',
+        'tag',
         help='Add tags to files (if not already present).')
     p_tags_add.add_argument('tags', help='Comma-separated list of tags to add.', nargs=1)
     p_tags_add.add_argument('paths', help='Files to add tags to.', nargs='+')
-    p_tags_add.set_defaults(func=_tags_add)
+    p_tags_add.set_defaults(func=_tag)
 
     p_tags_rm = subs.add_parser(
-        't-',
+        'untag',
         help='Remove tags from files (if present).')
     p_tags_rm.add_argument('tags', help='Comma-separated list of tags to remove.', nargs=1)
     p_tags_rm.add_argument('paths', help='Files to remove tags from.', nargs='+')
-    p_tags_rm.set_defaults(func=_tags_rm)
+    p_tags_rm.set_defaults(func=_untag)
 
     p_tags_count = subs.add_parser(
-        'tc',
+        'tags',
         help='Show a list of tags and the number of files that have each tag.')
     p_tags_count.add_argument('query', nargs='?',
                               help='Query to filter files by. If omitted, data for all files is shown. The query '
-                                   'format is the same as for the `q` command.')
+                                   'format is the same as for the `query` command.')
     p_tags_count.add_argument('-j', '--json', action='store_true',
                               help='Output as JSON. The output is an object whose keys are tags and whose values '
                                    'are the number of notes that matched the query and also possess that tag.')
-    p_tags_count.set_defaults(func=_tags_count)
+    p_tags_count.set_defaults(func=_tags)
 
     return parser
 
