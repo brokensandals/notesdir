@@ -7,7 +7,6 @@ import json
 from operator import itemgetter, attrgetter
 from os.path import relpath
 from pathlib import Path
-from urllib.parse import quote
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
 from notesdir.models import FileInfoReq, FileInfo

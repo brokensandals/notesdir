@@ -1,3 +1,9 @@
+"""Helper functions for moving files and updating links between them.
+
+Generally, you should use :meth:`notesdir.api.Notesdir.move` or :meth:`notesdir.api.Notesdir.replace_path_hrefs`
+instead of using anything in this module directly.
+"""
+
 from os.path import relpath
 from pathlib import Path
 from tempfile import mkstemp

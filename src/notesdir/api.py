@@ -1,3 +1,5 @@
+"""Provides the main entry point for using the library, :class:`Notesdir`"""
+
 from __future__ import annotations
 from glob import glob
 from pathlib import Path
@@ -10,7 +12,7 @@ from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, Fi
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def filename_for_title(title: str) -> str:
+def _filename_for_title(title: str) -> str:
     title = title.lower()[:60]
     title = re.sub(r'[^a-z0-9]', '-', title)
     title = re.sub(r'-+', '-', title)
@@ -18,7 +20,7 @@ def filename_for_title(title: str) -> str:
     return title
 
 
-def guess_created(path: Path) -> datetime:
+def _guess_created(path: Path) -> datetime:
     stat = path.stat()
     try:
         return datetime.utcfromtimestamp(stat.st_birthtime)
@@ -26,7 +28,7 @@ def guess_created(path: Path) -> datetime:
         return datetime.utcfromtimestamp(stat.st_ctime)
 
 
-def find_available_name(dest: Path) -> Path:
+def _find_available_name(dest: Path) -> Path:
     basename = dest.name
     prefix = 2
     existing = [p.name.lower() for p in dest.parent.iterdir()]
@@ -43,23 +45,50 @@ class Error(Exception):
 class Notesdir:
     """Main entry point for working programmatically with your collection of notes.
 
-    Generally, you should get an instance using the :meth:`Notesdir.for_user` method.
+    Generally, you should get an instance using the :meth:`Notesdir.for_user` method. Call :meth:`close` when you're
+    done with it, or else use it as a context manager.
 
-    This contains various methods such as :meth:`Notesdir.move` and :meth:`Notesdir.normalize`
+    This class contains various methods such as :meth:`Notesdir.move` and :meth:`Notesdir.normalize`
     for performing high-level operations. The :attr:`repo` attribute, which is an instance of
     :class:`notesdir.repos.base.Repo`, provides additional operations, some lower-level.
+
+    .. attribute:: config
+       :type: dict
+
+       Typically loaded from the ``~/.notesdir.toml``
+
+    .. attribute:: repo
+       :type: notesdir.repos.base.Repo
+
+       If ``config['repo']['cache']`` is set, this will be a :class:`notesdir.repos.sqlite.SqliteRepo`, otherwise
+       it will be a :class:`notesdir.repos.direct.DirectRepo`
+
+    The following configuration is supported:
+
+    * ``"repo"``: required dict which will be used as the config for creating a :class:`notesdir.repos.base.Repo`
+    * ``"templates"``: optional list of strings which are path globs, such as ``["/notes/templates/*.mako"]``. These
+      will be searched when using template-related methods like :meth:`create`
+
+    Here's an example of how to use this class. This would add the tag "personal" to every note tagged with "journal".
+
+    .. code-block:: python
+
+       from notesdir.api import Notesdir
+       with Notesdir.for_user() as nd:
+           infos = nd.repo.query('tag:journal', 'path')
+           nd.add_tags({'personal'}, {info.path for info in infos})
     """
 
     @classmethod
     def user_config_path(cls) -> Path:
-        """Returns the Path to the user's config file, ~/.notesdir.toml"""
+        """Returns the path to the user's config file, ~/.notesdir.toml"""
         return Path.home().joinpath('.notesdir.toml')
 
     @classmethod
     def for_user(cls) -> Notesdir:
         """Creates an instance with config loaded from user_config_path().
 
-        Raises Error if there is not a file at that path.
+        Raises :exc:`Error` if there is not a file at that path.
         """
         path = cls.user_config_path()
         if not path.is_file():
@@ -76,7 +105,7 @@ class Notesdir:
             from notesdir.repos.direct import DirectRepo
             self.repo = DirectRepo(repo_config)
 
-    def replace_path_hrefs(self, original: PathIsh, replacement: PathIsh):
+    def replace_path_hrefs(self, original: PathIsh, replacement: PathIsh) -> None:
         """Finds and replaces links to the original path with links to the new path.
 
         Note that this does not currently replace links to children of the original path - e.g.,
@@ -118,12 +147,12 @@ class Notesdir:
             dest = dest.joinpath(src.name)
         if creation_folders:
             info = self.repo.info(src)
-            created = (info and info.created) or guess_created(src)
+            created = (info and info.created) or _guess_created(src)
             destdir = dest.parent.joinpath(str(created.year), f'{created.month:02}')
             destdir.mkdir(parents=True, exist_ok=True)
             dest = destdir.joinpath(dest.name)
 
-        dest = find_available_name(dest)
+        dest = _find_available_name(dest)
 
         moves = {src: dest}
         # TODO this should probably be configurable
@@ -161,7 +190,7 @@ class Notesdir:
         moves = {}
 
         title = info.title or path.stem
-        name = f'{filename_for_title(title)}{path.suffix}'
+        name = f'{_filename_for_title(title)}{path.suffix}'
         if not path.name == name:
             moves = self.move(path, path.with_name(name))
             if path in moves:
@@ -170,18 +199,18 @@ class Notesdir:
             edits.append(SetTitleCmd(path, title))
 
         if not info.created:
-            edits.append(SetCreatedCmd(path, guess_created(path)))
+            edits.append(SetCreatedCmd(path, _guess_created(path)))
 
         if edits:
             self.repo.change(edits)
 
         return moves
 
-    def add_tags(self, tags: Set[str], paths: Set[PathIsh]):
+    def add_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:
         """Adds (if not already present) the given set of tags to each of the given files.
 
         If some of the files are of unknown types or types for which tags are
-        not supported, an UnsupportedChangeError will be raised. In that case,
+        not supported, an :exc:`notesdir.accessors.base.UnsupportedChangeError` will be raised. In that case,
         the tags may or may not have been added to some or all of the other files.
         """
         paths = {Path(p) for p in paths}
@@ -191,11 +220,11 @@ class Notesdir:
             edits = [AddTagCmd(path, t.lower()) for t in tags]
             self.repo.change(edits)
 
-    def remove_tags(self, tags: Set[str], paths: Set[PathIsh]):
+    def remove_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:
         """Removes (if present) the given set of tags from each of the given files.
 
         If some of the files are of unknown types or types for which tags are
-        not supported, an UnsupportedChangeError will be raised. In that case,
+        not supported, an :exc:`notesdir.accessors.base.UnsupportedChangeError` will be raised. In that case,
         the tags may or may not have been removed from some or all of the other files.
         """
         paths = {Path(p) for p in paths}
@@ -235,7 +264,7 @@ class Notesdir:
 
         If the template name is a str, it will be looked up using template_for_name.
 
-        Raises :class:`FileNotFoundError` if the template cannot be found.
+        Raises :exc:`FileNotFoundError` if the template cannot be found.
 
         If dest is not given, a target file name will be generated. Regardless, the :meth:`Notesdir.norm` method
         will be used to normalize the final filename.
@@ -252,7 +281,7 @@ class Notesdir:
             name, suffix = template_path.name.split('.', 1)[:2]
             suffix = re.sub(r'[\.^]mako', '', suffix)
             td.dest = Path(f'{name}.{suffix}')
-        td.dest = find_available_name(td.dest)
+        td.dest = _find_available_name(td.dest)
         td.dest.write_text(content)
         changed = {td.dest}
         if td.create_resources_dir:
