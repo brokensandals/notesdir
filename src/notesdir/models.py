@@ -288,7 +288,7 @@ FileQueryIsh = Union[str, FileQuery]
 
 @dataclass
 class TemplateDirectives:
-    """Passed by :meth:`notesdir.api.Notesdir.create` when it is rendering one of a user's templates.
+    """Passed by :meth:`notesdir.api.Notesdir.new` when it is rendering one of a user's templates.
 
     It is used for passing data in and out of the template.
     """

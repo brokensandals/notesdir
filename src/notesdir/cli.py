@@ -46,7 +46,7 @@ def _info(args, nd: Notesdir) -> int:
 
 
 def _new(args, nd: Notesdir) -> int:
-    print(nd.create(args.template[0], args.dest))
+    print(nd.new(args.template[0], args.dest))
     return 0
 
 

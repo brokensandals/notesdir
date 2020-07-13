@@ -62,7 +62,7 @@ class Notesdir:
 
     * ``"repo"``: required dict which will be used as the config for creating a :class:`notesdir.repos.base.Repo`
     * ``"templates"``: optional list of strings which are path globs, such as ``["/notes/templates/*.mako"]``. These
-      will be searched when using template-related methods like :meth:`create`
+      will be searched when using template-related methods like :meth:`new`
     * ``"filename_template"``: optional string which contains the full Mako template for generating a normalized
       filename from a :class:`notesdir.models.FileInfo` instance. The default template truncates the title to 60
       characters, downcases it, and ensures it contains only letters, numbers, and dashes. See :meth:`normalize`
@@ -261,7 +261,7 @@ class Notesdir:
         else:
             return self.templates_by_name().get(name.lower())
 
-    def create(self, template_name: PathIsh, dest: PathIsh = None) -> Path:
+    def new(self, template_name: PathIsh, dest: PathIsh = None) -> Path:
         """Creates a new file using the specified template.
 
         If the template name is a str, it will be looked up using template_for_name.
