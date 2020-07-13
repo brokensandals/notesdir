@@ -19,22 +19,19 @@ PathIsh = Union[str, bytes, PathLike]
 class LinkInfo:
     """Represents a link from a file to some resource.
 
-    .. attribute:: referrer
-       :type: Path
-
-       The file that contains the link. This should be a resolved, absolute path.
-
-    .. attribute:: href
-       :type: str
-
-       The linked address. Normally this is some sort of URI - it's the address portion of a Markdown link,
-       or the ``href`` or ``src`` attribute of an HTML tag, etc.
-
     Not all links target local files, but those are the ones most important to notesdir. The :meth:`referent` method
     can be used to determine what local file, if any, the href targets.
     """
+
     referrer: Path
+    """The file that contains the link. This should be a resolved, absolute path."""
+
     href: str
+    """The linked address.
+
+    Normally this is some sort of URI - it's the address portion of a Markdown link,
+    or the ``href`` or ``src`` attribute of an HTML tag, etc.
+    """
 
     def referent(self) -> Optional[Path]:
         """Returns the resolved, absolute local path that this link refers to.
@@ -74,45 +71,29 @@ class FileInfo:
     When you retrieve instances of this from methods like :meth:`notesdir.repos.base.Repo.info`, which fields
     are populated depends on which fields you request via the :class:`FileInfoReq`, as well as what fields
     are supported for the file type and what data is populated in the particular file.
-
-    .. attribute:: path
-       :type: Path
-
-       The resolved, absolute path for which this information applies.
-
-    .. attribute:: links
-       :type: List[LinkInfo]
-
-       Links from this file to other files or resources.
-
-    .. attribute:: tags
-       :type: Set[str]
-
-       Tags for the file (e.g. "journal" or "project-idea").
-
-    .. attribute:: title
-       :type: Optional[str]
-
-       The title of the document, if any.
-
-    .. attribute:: created
-       :type: Optional[datetime]
-
-       The creation date of the document, according to metadata within the document, if any.
-       This will *not* automatically be populated with timestamps from the filesystem, but
-       :meth:`notesdir.api.Notesdir.norm` can be used to do that.
-
-    .. attribute:: backlinks
-       :type: List[LinkInfo]
-
-       Links from other files to this file.
     """
+
     path: Path
+    """The resolved, absolute path for which this information applies."""
+
     links: List[LinkInfo] = field(default_factory=list)
+    """Links from this file to other files or resources."""
+
     tags: Set[str] = field(default_factory=set)
+    """Tags for the file (e.g. "journal" or "project-idea")."""
+
     title: Optional[str] = None
+    """The title of the document, if any."""
+
     created: Optional[datetime] = None
+    """The creation date of the document, according to metadata within the document, if any.
+
+    This will *not* automatically be populated with timestamps from the filesystem, but
+    :meth:`notesdir.api.Notesdir.norm` can be used to do that.
+    """
+
     backlinks: List[LinkInfo] = field(default_factory=list)
+    """Links from other files to this file."""
 
     def as_json(self) -> dict:
         """Returns a dict representing the instance, suitable for serializing as json."""
@@ -175,56 +156,40 @@ FileInfoReqIsh = Union[str, Iterable[str], FileInfoReq]
 
 @dataclass
 class FileEditCmd:
-    """Base class for requests to make changes to a file.
+    """Base class for requests to make changes to a file."""
 
-    .. attribute:: path
-       :type: Path
-
-       Path to the file or folder that should be changed.
-    """
     path: Path
+    """Path to the file or folder that should be changed."""
 
 
 @dataclass
 class SetTitleCmd(FileEditCmd):
-    """Represents a request to change a document's title.
+    """Represents a request to change a document's title."""
 
-    .. attribute:: value
-       :type: Optional[str]
-
-       The new title, or None to delete the title.
-    """
     value: Optional[str]
+    """The new title, or None to delete the title."""
 
 
 @dataclass
 class SetCreatedCmd(FileEditCmd):
-    """Represents a request to change the creation date stored in a document's metadata (not filesystem metadata).
+    """Represents a request to change the creation date stored in a document's metadata (not filesystem metadata)."""
 
-    .. attribute:: value
-       :type: Optional[datetime]
-
-       The new creation date, or None to delete it from the metadata.
-    """
     value: Optional[datetime]
+    """The new creation date, or None to delete it from the metadata."""
 
 
 @dataclass
 class ReplaceHrefCmd(FileEditCmd):
     """Represents a request to replace link addresses in a document.
 
-    .. attribute:: original
-       :type: str
-
-       The value to be replaced, generally copied from a :class:`LinkInfo` :attr:`href`
-
-    .. attribute:: replacement
-       :type: str
-
-       The new link address.
+    All occurrences will be replaced, but only if they are exact matches.
     """
+
     original: str
+    """The value to be replaced, generally copied from a :class:`LinkInfo` :attr:`href`"""
+
     replacement: str
+    """The new link address."""
 
 
 @dataclass
@@ -232,13 +197,10 @@ class AddTagCmd(FileEditCmd):
     """Represents a request to add a tag to a document.
 
     If the document already contains the tag, this request should be treated as a no-op.
-
-    .. attribute:: value
-       :type: str
-
-       The tag to add.
     """
+
     value: str
+    """The tag to add."""
 
 
 @dataclass
@@ -246,13 +208,10 @@ class DelTagCmd(FileEditCmd):
     """Represents a request to remove a tag from a document.
 
     If the document does not contain the tag, this request should be treated as a no-op.
-
-    .. attribute:: value
-       :type: str
-
-       The tag to remove.
     """
+
     value: str
+    """The tag to remove."""
 
 
 @dataclass
@@ -261,13 +220,10 @@ class MoveCmd(FileEditCmd):
 
     This does *not* imply that any links should be rewritten; that is a higher-level operation, which is
     provided by :meth:`notesdir.api.Notesdir.move`.
-
-    .. attribute:: dest
-       :type: Path
-
-       The new filename.
     """
+
     dest: Path
+    """The new filename."""
 
 
 @dataclass
@@ -278,19 +234,13 @@ class FileQuery:
     pass to :meth:`parse`
 
     If multiple criteria are specified, the query should only return notes that satisfy *all* the criteria.
-
-    .. attribute:: include_tags
-       :type: Set[str]
-
-       If non-empty, the query should only return files that have *all* of the specified tags.
-
-    .. attribute:: exclude_tags
-       :type: Set[str]
-
-       If non-empty, the query should only return files that have *none* of the specified tags.
     """
+
     include_tags: Set[str] = field(default_factory=set)
+    """If non-empty, the query should only return files that have *all* of the specified tags."""
+
     exclude_tags: Set[str] = field(default_factory=set)
+    """If non-empty, the query should only return files that have *none* of the specified tags."""
 
     @classmethod
     def parse(cls, strquery: FileQueryIsh) -> FileQuery:
@@ -326,20 +276,16 @@ class TemplateDirectives:
     """Passed by :meth:`notesdir.api.Notesdir.create` when it is rendering one of a user's templates.
 
     It is used for passing data in and out of the template.
-
-    .. attribute:: dest
-       :type: Optional[Path]
-
-       The path at which the new file should be created.
-       If this is set before rendering the template, it is the path the user suggested. But the template can change it,
-       and the template's suggestion will take precedence.
-       If the path already exists, notesdir will adjust it further to get a unique path before creating the file.
-
-    .. attribute:: create_resources_dir
-       :type: bool
-
-       If True, a directory with the same name as the new file, but with an extra suffix of ``.resources`` , will be
-       created.
     """
+
     dest: Optional[Path] = None
+    """The path at which the new file should be created.
+    
+    If this is set before rendering the template, it is the path the user suggested. But the template can change it,
+    and the template's suggestion will take precedence.
+    If the path already exists, notesdir will adjust it further to get a unique path before creating the file.
+    """
+
     create_resources_dir: bool = False
+    """If True, a directory with the same name as the new file, but with an extra suffix of ``.resources``, will be
+    created."""
