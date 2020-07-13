@@ -4,7 +4,6 @@ from __future__ import annotations
 from glob import glob
 from pathlib import Path
 import re
-from datetime import datetime
 from typing import Dict, Set, Optional
 from mako.template import Template
 import toml
@@ -18,14 +17,6 @@ def _filename_for_title(title: str) -> str:
     title = re.sub(r'-+', '-', title)
     title = title.strip('-')
     return title
-
-
-def _guess_created(path: Path) -> datetime:
-    stat = path.stat()
-    try:
-        return datetime.utcfromtimestamp(stat.st_birthtime)
-    except AttributeError:
-        return datetime.utcfromtimestamp(stat.st_ctime)
 
 
 def _find_available_name(dest: Path) -> Path:
@@ -147,7 +138,7 @@ class Notesdir:
             dest = dest.joinpath(src.name)
         if creation_folders:
             info = self.repo.info(src)
-            created = (info and info.created) or _guess_created(src)
+            created = info.guess_created()
             destdir = dest.parent.joinpath(str(created.year), f'{created.month:02}')
             destdir.mkdir(parents=True, exist_ok=True)
             dest = destdir.joinpath(dest.name)
@@ -195,11 +186,12 @@ class Notesdir:
             moves = self.move(path, path.with_name(name))
             if path in moves:
                 path = moves[path]
+                info = self.repo.info(path)
         if not title == info.title:
             edits.append(SetTitleCmd(path, title))
 
         if not info.created:
-            edits.append(SetCreatedCmd(path, _guess_created(path)))
+            edits.append(SetCreatedCmd(path, info.guess_created()))
 
         if edits:
             self.repo.change(edits)

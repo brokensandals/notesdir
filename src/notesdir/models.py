@@ -89,7 +89,7 @@ class FileInfo:
     """The creation date of the document, according to metadata within the document, if any.
 
     This will *not* automatically be populated with timestamps from the filesystem, but
-    :meth:`notesdir.api.Notesdir.norm` can be used to do that.
+    see :meth:`guess_created`.
     """
 
     backlinks: List[LinkInfo] = field(default_factory=list)
@@ -105,6 +105,21 @@ class FileInfo:
             'links': [link.as_json() for link in self.links],
             'backlinks': [link.as_json() for link in self.backlinks]
         }
+
+    def guess_created(self) -> Optional[datetime]:
+        """Returns the first available of: :attr:`created`, or the file's birthtime, or the file's ctime.
+
+        Returns None for paths that don't exist.
+        """
+        if self.created:
+            return self.created
+        if not (self.path and self.path.exists()):
+            return None
+        stat = self.path.stat()
+        try:
+            return datetime.utcfromtimestamp(stat.st_birthtime)
+        except AttributeError:
+            return datetime.utcfromtimestamp(stat.st_ctime)
 
 
 @dataclass
