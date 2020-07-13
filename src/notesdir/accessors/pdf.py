@@ -8,7 +8,7 @@ from notesdir.accessors.base import Accessor, ParseError
 from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd
 
 
-def pdf_strptime(s: Optional[str]) -> Optional[datetime]:
+def _pdf_strptime(s: Optional[str]) -> Optional[datetime]:
     if not s:
         return None
     s = s.replace("'", '').replace('Z0000', 'Z')
@@ -18,7 +18,7 @@ def pdf_strptime(s: Optional[str]) -> Optional[datetime]:
         return datetime.strptime(s, 'D:%Y%m%d%H%M%S%z')
 
 
-def pdf_strftime(d: Optional[datetime]) -> Optional[str]:
+def _pdf_strftime(d: Optional[datetime]) -> Optional[str]:
     if not d:
         return None
     s = datetime.strftime(d, 'D:%Y%m%d%H%M%S')
@@ -29,13 +29,30 @@ def pdf_strftime(d: Optional[datetime]) -> Optional[str]:
         return f"{s}{tz[:3]}'{tz[3:]}'"
 
 
-def resolve_object(o):
+def _resolve_object(o):
     if isinstance(o, IndirectObject):
         return o.getObject()
     return o
 
 
 class PDFAccessor(Accessor):
+    """Responsible for parsing and updating PDF files.
+
+    Current support:
+
+    * Metadata is stored in the PDF's "document info":
+        * ``/Title``
+        * ``/CreationDate``
+        * ``/Keywords`` (comma-separated)
+    * Links are *not* currently supported, so although notesdir can update links to PDF files from other files,
+      it will not currently update links from PDF files to other files.
+
+    PyPDF4 is used for parsing and updating.
+
+    Note: when updating a PDF containing the metadata key ``/AAPL:Keywords`` (which is often included on PDFs
+    generated on Mac), that field will be removed. It appears to violate version 1.7 of the PDF spec, and PyPDF4
+    cannot serialize it.
+    """
     def _load(self):
         with self.path.open('rb') as file:
             try:
@@ -45,7 +62,7 @@ class PDFAccessor(Accessor):
                     # Some PDFs that open fine without a password in many apps, apparently
                     # have a password of an empty string
                     pdf.decrypt('')
-                self._meta = {k: resolve_object(v) for k, v in (pdf.getDocumentInfo() or {}).items()}
+                self._meta = {k: _resolve_object(v) for k, v in (pdf.getDocumentInfo() or {}).items()}
             except Exception as e:
                 raise ParseError('Cannot parse PDF', self.path, e)
 
@@ -55,7 +72,7 @@ class PDFAccessor(Accessor):
 
     def _info(self, info: FileInfo):
         info.title = self._meta.get('/Title')
-        info.created = pdf_strptime(self._meta.get('/CreationDate'))
+        info.created = _pdf_strptime(self._meta.get('/CreationDate'))
         info.tags.update(self._tags())
 
     def _save(self):
@@ -97,5 +114,5 @@ class PDFAccessor(Accessor):
         self._meta['/Title'] = edit.value
 
     def _set_created(self, edit: SetCreatedCmd):
-        self.edited = self.edited or not pdf_strptime(self._meta.get('/CreationDate')) == edit.value
-        self._meta['/CreationDate'] = pdf_strftime(edit.value)
+        self.edited = self.edited or not _pdf_strptime(self._meta.get('/CreationDate')) == edit.value
+        self._meta['/CreationDate'] = _pdf_strftime(edit.value)

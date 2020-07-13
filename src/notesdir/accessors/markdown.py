@@ -13,7 +13,7 @@ INLINE_HREF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
 REFSTYLE_HREF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
 
 
-def extract_meta(doc) -> Tuple[dict, str]:
+def _extract_meta(doc) -> Tuple[dict, str]:
     meta = {}
     match = YAML_META_RE.match(doc)
     if match.groups()[1]:
@@ -22,11 +22,11 @@ def extract_meta(doc) -> Tuple[dict, str]:
     return meta, body
 
 
-def extract_hashtags(doc) -> Set[str]:
+def _extract_hashtags(doc) -> Set[str]:
     return {t[1].lower() for t in TAG_RE.findall(doc)}
 
 
-def remove_hashtag(doc: str, tag: str) -> str:
+def _remove_hashtag(doc: str, tag: str) -> str:
     # TODO probably would be better to build a customized regex like replace_ref does
     def replace(match):
         if match.group(2).lower() == tag:
@@ -36,11 +36,11 @@ def remove_hashtag(doc: str, tag: str) -> str:
     return re.sub(TAG_RE, replace, doc)
 
 
-def extract_hrefs(doc) -> List[str]:
+def _extract_hrefs(doc) -> List[str]:
     return INLINE_HREF_RE.findall(doc) + REFSTYLE_HREF_RE.findall(doc)
 
 
-def replace_href(doc: str, src: str, dest: str) -> str:
+def _replace_href(doc: str, src: str, dest: str) -> str:
     escaped_src = re.escape(src)
 
     def inline_replacement(match):
@@ -57,11 +57,44 @@ def replace_href(doc: str, src: str, dest: str) -> str:
 
 
 class MarkdownAccessor(Accessor):
+    """Responsible for parsing and updating Markdown files.
+
+    Current support:
+
+    * Metadata is stored in a YAML metadata header.
+    * Tags can be stored in both the ``keywords`` YAML key and as hashtags in the body.
+        * When this class needs to add a new tag, it will always do so in the YAML metadata.
+        * When removing a tag, this class will delete any occurrences of the hashtag from the body, in addition
+          to deleting from the YAML metadata.
+        * Hashtags are only recognized when they are preceded by whitespace or begin the line. Hashtags must
+          begin with a letter a-z and can only contain letters a-z and digits.
+    * Links can be recognized and updated when they are in one of the following three formats:
+        * ``[any link text](HREF)``
+        * ``![any image title](HREF)``
+        * (at beginning of a line) ``[any id]: HREF optional text``
+
+    Currently, parsing and updating is done via regex, so formatting changes should be minimal but false positives
+    for links and hashtags are a risk.
+
+    Here's an example Markdown file with metadata and hashtags:
+
+    .. code-block:: markdown
+
+       ---
+       title: My Boring Note
+       created: 2001-02-03 04:05:06
+       keywords:
+       - boring
+       - unnecessary
+       ...
+       The three dots indicate the end of the metadata. Now we're in **Markdown**!
+       This is a really #uninteresting note.
+    """
     def _load(self):
         text = self.path.read_text()
-        self.meta, self.body = extract_meta(text)
-        self.hrefs = extract_hrefs(self.body)
-        self._hashtags = extract_hashtags(self.body)
+        self.meta, self.body = _extract_meta(text)
+        self.hrefs = _extract_hrefs(self.body)
+        self._hashtags = _extract_hashtags(self.body)
 
     def _info(self, info: FileInfo):
         info.title = self.meta.get('title')
@@ -98,7 +131,7 @@ class MarkdownAccessor(Accessor):
                 self.meta['keywords'].remove(tag)
             self.edited = True
         if tag in self._hashtags:
-            self.body = remove_hashtag(self.body, tag)
+            self.body = _remove_hashtag(self.body, tag)
             self._hashtags.remove(tag)
             self.edited = True
 
@@ -114,4 +147,4 @@ class MarkdownAccessor(Accessor):
         if edit.original not in self.hrefs:
             return
         self.edited = True
-        self.body = replace_href(self.body, edit.original, edit.replacement)
+        self.body = _replace_href(self.body, edit.original, edit.replacement)

@@ -1,3 +1,5 @@
+"""Provides the :class:`DelegatingAccessor` class."""
+
 from pathlib import Path
 
 from notesdir.accessors.base import Accessor, MiscAccessor
@@ -8,6 +10,17 @@ from notesdir.accessors.pdf import PDFAccessor
 
 
 class DelegatingAccessor(Accessor):
+    """Responsible for choosing what :class:`notesdir.accessors.base.Accessor` subclass to use for a given file.
+
+    This selects an accessor based on the path's file extension, and delegates method calls to that accessor.
+
+    Currently, the mapping is hardcoded:
+
+    * ``.md`` -> :class:`MarkdownAccessor`
+    * ``.html`` -> :class:`HTMLAccessor`
+    * ``.pdf`` -> :class:`PDFAccessor`
+    * anything else -> :class:`MiscAccessor`
+    """
     def __init__(self, path: Path):
         super().__init__(path)
         if path.suffix == '.md':

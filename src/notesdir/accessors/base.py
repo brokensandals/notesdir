@@ -184,11 +184,11 @@ class MiscAccessor(Accessor):
     """This accessor can be given the path to any file or folder, or even a nonexistent path.
 
     Its :meth:`info` method only populates the :attr:`path` field, and no editing or saving is supported."""
-    def _load(self):
+    def _load(self) -> None:
         pass
 
-    def _info(self, info: FileInfo):
+    def _info(self, info: FileInfo) -> None:
         pass
 
-    def _save(self):
+    def _save(self) -> None:
         raise NotImplementedError()

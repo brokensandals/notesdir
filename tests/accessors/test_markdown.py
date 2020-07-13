@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, ReplaceHrefCmd, LinkInfo
-from notesdir.accessors.markdown import extract_meta, extract_hrefs, extract_hashtags, replace_href,\
+from notesdir.accessors.markdown import _extract_meta, _extract_hrefs, _extract_hashtags, _replace_href,\
     MarkdownAccessor
 
 
 def test_extract_meta_none():
     # The correctness of this is questionable - I think Pandoc accepts meta blocks anywhere in the document.
     # But that doesn't sound like something I'd use.
-    assert extract_meta('Hi!\n---\nnope\n...') == ({}, 'Hi!\n---\nnope\n...')
+    assert _extract_meta('Hi!\n---\nnope\n...') == ({}, 'Hi!\n---\nnope\n...')
 
 
 def test_extract_meta():
@@ -19,7 +19,7 @@ otherVal: 19
 text: regular
 """
     expected = {'title': 'foo bar', 'otherVal': 19}
-    assert extract_meta(doc) == (expected, 'text: regular\n')
+    assert _extract_meta(doc) == (expected, 'text: regular\n')
 
 
 def test_extract_tags():
@@ -31,7 +31,7 @@ The pound#sign must be preceded by whitespace if it's not at the beginning of th
 """
     expected = set(['beginning-of-line', 'end-of-line', 'in-heading', 'numbers1234',
                     'downcased', 'hyphens-and_underscores'])
-    assert extract_hashtags(doc) == expected
+    assert _extract_hashtags(doc) == expected
 
 
 def test_extract_hrefs():
@@ -39,7 +39,7 @@ def test_extract_hrefs():
 [a ref]: foo/bar/baz%20blah.txt whatever
 An ![image link](/foo/my.png)"""
     expected = ['some-file', '/foo/my.png', 'foo/bar/baz%20blah.txt']
-    assert extract_hrefs(doc) == expected
+    assert _extract_hrefs(doc) == expected
 
 
 def test_replace_href_inline():
@@ -49,7 +49,7 @@ a link to [another file](another-file) and
     expected = """A link to [some file](new-ref) followed by
 a link to [another file](another-file) and
 [the first file again](new-ref)."""
-    assert replace_href(doc, 'some-file', 'new-ref') == expected
+    assert _replace_href(doc, 'some-file', 'new-ref') == expected
 
 
 def test_replace_href_refstyle():
@@ -63,13 +63,13 @@ Ignored in the middle of a line: [some id]: file-1"""
 [other id]: new-ref
 [third id]: file-2
 Ignored in the middle of a line: [some id]: file-1"""
-    assert replace_href(doc, 'file-1', 'new-ref') == expected
+    assert _replace_href(doc, 'file-1', 'new-ref') == expected
 
 
 def test_replace_href_image():
     doc = "An ![image link](http://example.com/foo.png) should work too."
     expected = "An ![image link](http://example.com/bar.png) should work too."
-    assert replace_href(doc, 'http://example.com/foo.png', 'http://example.com/bar.png') == expected
+    assert _replace_href(doc, 'http://example.com/foo.png', 'http://example.com/bar.png') == expected
 
 
 def test_replace_href_replacement_string_special_characters():
@@ -77,7 +77,7 @@ def test_replace_href_replacement_string_special_characters():
 [refstyle]: foo.md"""
     expected = """A [link](2-foo\\3.md).
 [refstyle]: 2-foo\\3.md"""
-    assert replace_href(doc, 'foo.md', '2-foo\\3.md') == expected
+    assert _replace_href(doc, 'foo.md', '2-foo\\3.md') == expected
 
 
 def test_info(fs):

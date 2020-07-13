@@ -1,4 +1,5 @@
-import re
+"""Provides the :class:`HTMLAccessor class`."""
+
 from collections import defaultdict
 from datetime import datetime
 from typing import Set
@@ -13,6 +14,20 @@ _DATE_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 
 
 class HTMLAccessor(Accessor):
+    """Responsible for parsing and updating HTML files.
+
+    Current support:
+
+    * Title is stored in the ``<title>`` element.
+    * Creation date is stored in the ``<meta name="created">`` element's ``content`` attribute.
+    * Tags are stored in the ``<meta name="keywords">`` element's ``content`` attribute, comma-separated.
+    * Links can be recognized and updated when they are in the ``a``, ``img``, ``video``, ``audio``, or ``source``
+      elements. Note that the ``srcset`` attribute is not currently supported.
+
+    If the file does not at least contain an ``<html>`` element, attempting to add metadata will fail.
+
+    BeautifulSoup4 is used for parsing and updating the files; formatting may be changed during updates.
+    """
     def _load(self):
         with self.path.open() as file:
             try:
