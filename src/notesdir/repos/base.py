@@ -1,3 +1,8 @@
+"""Defines the API for accessing a user's collection of notes.
+
+The most important class is :class:`Repo`.
+"""
+
 import dataclasses
 from datetime import datetime
 from pathlib import Path
@@ -8,47 +13,96 @@ from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleC
 
 
 class Repo:
+    """Base class for repos, which are responsible for reading, querying, and changing a user's collection of notes.
+
+    Repo instances use :class:`notesdir.accessors.base.Accessor` instances to read/write individual files,
+    but add functionality that requires looking at more than one note in isolation (such as finding backlinks),
+    and may also perform caching.
+
+    Repos are created using a configuration dict, generally loaded from within a TOML file.
+
+    The following config keys should be supported by all subclasses:
+
+    * ``"roots"``: a list of strings which are paths to folders. This is required and cannot be empty.
+      When performing queries or searching for backlinks, the repo will only search these folders.
+    * ``"noparse"``: optional list of strings which are regular expressions. If a file's path matches any of the
+      regexes, the repo will not attempt to parse the file, although backlinks for the file can still be calculated.
+    * ``"edit_log_path"``: optional string path. If present, the repo will create or append to a text file at that
+      path, logging information about each edit the repo performs. Each line will be a JSON object representing
+      a group of edits to one file.
+    """
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
+        """Looks up the specified fields for the given file or folder.
+
+        Additional fields might or might not be populated.
+
+        May raise a :exc:`notesdir.accessors.base.ParseError` or IO-related exception, but otherwise will
+        always return an instance. If no file or folder exists at the given path, or if the file type is unrecognized,
+        it can still populate the ``path`` and ``backlinks`` attributes.
+        """
         raise NotImplementedError()
 
-    def change(self, edits: List[FileEditCmd]):
+    def change(self, edits: List[FileEditCmd]) -> None:
+        """Applies the specified edits and saves the affected files. Changes are applied in order.
+
+        May raise a :exc:`notesdir.accessors.base.ChangeError` or IO-related exception.
+        Changes are generally not applied atomically.
+
+        If the repo performs caching, this method will ensure the changes are reflected in the cache, so it is
+        not necessary to call :meth:`refresh` afterward.
+        """
         raise NotImplementedError()
 
-    def refresh(self, only: Set[PathIsh]):
+    def refresh(self, only: Set[PathIsh] = None) -> None:
+        """If the repo uses a cache, this checks the filesystem to see if the cache is out of date.
+
+        If ``only`` is non-empty, the repo might refresh only those specific files, for the sake of performance.
+
+        It is not necessary to call this method when you have first created an instance, or after calling
+        :meth:`change`, as the repo should refresh automatically at those times. But if you keep a repo instance around
+        while also making direct changes to files yourself, you will need to call this method with the paths of the
+        files you changed (or created or deleted).
+
+        This method might only look at filesystem metadata such as modification time, so there may be situations
+        in which it fails to notice changes.
+        """
         raise NotImplementedError()
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
+        """Returns the requested fields for all files matching the given query."""
         raise NotImplementedError()
 
     def tag_counts(self, query: FileQueryIsh = FileQuery()) -> Dict[str, int]:
+        """Returns a map of tag names to the number of files matching the query which posses that tag."""
         raise NotImplementedError()
 
-    def close(self):
+    def close(self) -> None:
+        """Release any resources associated with the repo. Should be called when you're done with an instance."""
         pass
 
-    def add_tag(self, path: PathIsh, tag: str):
-        """Convenience method equivalent to calling change with one AddTagCmd."""
+    def add_tag(self, path: PathIsh, tag: str) -> None:
+        """Convenience method equivalent to calling change with one :class`notesdir.models.AddTagCmd`"""
         self.change([AddTagCmd(Path(path), tag)])
 
-    def del_tag(self, path: PathIsh, tag: str):
-        """Convenience method equivalent to calling change with one DelTagCmd."""
+    def del_tag(self, path: PathIsh, tag: str) -> None:
+        """Convenience method equivalent to calling change with one :class`notesdir.models.DelTagCmd`"""
         self.change([DelTagCmd(Path(path), tag)])
 
-    def set_created(self, path: PathIsh, created: datetime):
-        """Convenience method equivalent to calling change with one SetCreatedCmd."""
+    def set_created(self, path: PathIsh, created: datetime) -> None:
+        """Convenience method equivalent to calling change with one :class:`notesdir.models.SetCreatedCmd`"""
         self.change([SetCreatedCmd(Path(path), created)])
 
-    def set_title(self, path: PathIsh, title: str):
-        """Convenience method equivalent to calling change with one SetTitleCmd."""
+    def set_title(self, path: PathIsh, title: str) -> None:
+        """Convenience method equivalent to calling change with one :class:`notesdir.models.SetTitleCmd`"""
         self.change([SetTitleCmd(Path(path), title)])
 
-    def replace_href(self, path: PathIsh, original: str, replacement: str):
-        """Convenience method equivalent to calling change with one ReplaceRefCmd."""
+    def replace_href(self, path: PathIsh, original: str, replacement: str) -> None:
+        """Convenience method equivalent to calling change with one :class:`notesdir.models.ReplaceRefCmd`"""
         self.change([ReplaceHrefCmd(Path(path), original, replacement)])
 
 
-def group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
+def _group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
     group = None
     result = []
     for edit in edits:
@@ -60,7 +114,7 @@ def group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
     return result
 
 
-def edit_log_json_serializer(val):
+def _edit_log_json_serializer(val):
     if isinstance(val, datetime):
         return val.isoformat()
     if isinstance(val, FileEditCmd):

@@ -85,6 +85,8 @@ class Accessor:
         May raise :exc:`ChangeError`.
         Should raise :exc:`UnsupportedChangeError` if the edit is unsupported for this file type
         or invalid for the file.
+
+        Raises :exc:`ValueError` if the ``path`` of the edit does not match the ``path`` of this accessor.
         """
         if not edit.path == self.path:
             raise ValueError(f'Accessor path [{self.path}] is different from path of edit: {edit}')

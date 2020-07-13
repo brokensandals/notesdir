@@ -1,3 +1,5 @@
+"""Provides the :class:`DirectRepo` class."""
+
 import base64
 import dataclasses
 import json
@@ -11,10 +13,18 @@ from typing import List, Dict, Iterator, Set
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, PathIsh, FileInfoReqIsh,\
     FileQueryIsh
-from notesdir.repos.base import Repo, group_edits, edit_log_json_serializer
+from notesdir.repos.base import Repo, _group_edits, _edit_log_json_serializer
 
 
 class DirectRepo(Repo):
+    """Accesses notes directly on the filesystem without any caching.
+
+    This supports all of, and only, the configuration mentioned in :class:`notesdir.repos.base.Repo`.
+
+    This performs fine if you only have a few dozen notes, but beyond that you want a caching implementation
+    (see :class:`notesdir.repos.sqlite.SqliteRepo`), because looking up backlinks for a file requires reading all
+    the other files, which gets very slow.
+    """
     def __init__(self, config: dict):
         self.config = config
         if 'roots' not in self.config:
@@ -42,7 +52,7 @@ class DirectRepo(Repo):
         return info
 
     def change(self, edits: List[FileEditCmd]):
-        for group in group_edits(edits):
+        for group in _group_edits(edits):
             self._log_edits(group)
             if isinstance(group[0], MoveCmd):
                 for edit in group:
@@ -54,6 +64,7 @@ class DirectRepo(Repo):
                 acc.save()
 
     def refresh(self, only: Set[PathIsh] = None):
+        """No-op."""
         pass
 
     def _paths(self) -> Iterator[Path]:
@@ -98,4 +109,4 @@ class DirectRepo(Repo):
                 except:
                     entry['prior_base64'] = base64.b64encode(path.read_bytes()).decode('utf-8')
             with self.edit_log_path.open('a+') as file:
-                print(json.dumps(entry, default=edit_log_json_serializer), file=file)
+                print(json.dumps(entry, default=_edit_log_json_serializer), file=file)

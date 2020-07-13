@@ -1,3 +1,5 @@
+"""Provides the :class:`SqliteRepo` class."""
+
 from collections import namedtuple
 from datetime import datetime
 import dataclasses
@@ -10,7 +12,7 @@ from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQ
 from notesdir.repos.direct import DirectRepo
 
 
-SQL_CREATE_SCHEMA = """
+_SQL_CREATE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS files (
     id INTEGER PRIMARY KEY,
     path TEXT NOT NULL,
@@ -47,47 +49,63 @@ CREATE INDEX IF NOT EXISTS file_links_referrer_id_referent_id ON file_links (ref
 CREATE INDEX IF NOT EXISTS file_links_referent_id_referrer_id ON file_links (referent_id, referrer_id);
 """
 
-SQL_CLEAR = """
+_SQL_CLEAR = """
 DELETE FROM files;
 DELETE FROM file_tags;
 DELETE_FROM file_refs;
 """
 
 
-SQL_ALL_FOR_REFRESH = 'SELECT id, path, stat_ctime, stat_mtime, stat_size FROM files'
-SqlAllForRefreshRow = namedtuple('SqlAllForRefreshRow', ['id', 'path', 'stat_ctime', 'stat_mtime', 'stat_size'])
+_SQL_ALL_FOR_REFRESH = 'SELECT id, path, stat_ctime, stat_mtime, stat_size FROM files'
+_SqlAllForRefreshRow = namedtuple('SqlAllForRefreshRow', ['id', 'path', 'stat_ctime', 'stat_mtime', 'stat_size'])
 
-SQL_INSERT_FILE = ('INSERT INTO files (path, existent, stat_ctime, stat_mtime, stat_size, title, created)'
-                   ' VALUES (?, ?, ?, ?, ?, ?, ?)')
-SqlInsertFileRow = namedtuple('SqlInsertFileRow', ['path', 'existent', 'stat_ctime', 'stat_mtime', 'stat_size',
-                                                   'title', 'created'])
+_SQL_INSERT_FILE = ('INSERT INTO files (path, existent, stat_ctime, stat_mtime, stat_size, title, created)'
+                    ' VALUES (?, ?, ?, ?, ?, ?, ?)')
+_SqlInsertFileRow = namedtuple('SqlInsertFileRow', ['path', 'existent', 'stat_ctime', 'stat_mtime', 'stat_size',
+                                                    'title', 'created'])
 
-SQL_UPDATE_FILE = ('UPDATE files SET existent = ?, stat_ctime = ?, stat_mtime = ?, stat_size = ?,'
-                   ' title = ?, created = ?'
-                   ' WHERE id = ?')
-SqlUpdateFileRow = namedtuple('SqlUpdateFileRow', ['existent', 'stat_ctime', 'stat_mtime', 'stat_size',
-                                                   'title', 'created', 'id'])
+_SQL_UPDATE_FILE = ('UPDATE files SET existent = ?, stat_ctime = ?, stat_mtime = ?, stat_size = ?,'
+                    ' title = ?, created = ?'
+                    ' WHERE id = ?')
+_SqlUpdateFileRow = namedtuple('SqlUpdateFileRow', ['existent', 'stat_ctime', 'stat_mtime', 'stat_size',
+                                                    'title', 'created', 'id'])
 
 
 class SqliteRepo(DirectRepo):
+    """Keeps a cache of note metadata/links in a SQLite database.
+
+    Supports the following configuration in addition to that of :class:`notesdir.repos.direct.DirectRepo`:
+
+    * ``"cache"``: required string which is the path where the database file should be stored.
+
+    The database file is only a cache: you can safely delete it and it will be rebuilt the next time you create a
+    :class:`SqliteRepo` instance. Corrupting or deleting the file during operation may cause erratic behavior, though.
+
+    The modification timestamp and other filesystem metadata for each file in the note directories (configured via
+    ``"roots"``) are stored in the database. Each time a :class:`SqliteRepo` instance is created or :meth:`change` is
+    called, the files are scanned to see if this metadata has changed for any of them; if so, those files are parsed
+    again and the cache is updated.
+
+    Remember to call :meth:`close` when done with the instance, or use the instance as a context manager.
+    """
     def __init__(self, config: dict):
         super().__init__(config)
         if 'cache' not in config:
             raise ValueError('repo config is missing "cache", which must be the path at which to store the sqlite3 db')
         self.db_path = config['cache']
         self.connection = None
-        self.connect()
+        self._connect()
         self.refresh()
 
-    def connect(self):
+    def _connect(self):
         self.connection = sqlite3.connect(self.db_path)
-        self.connection.executescript(SQL_CREATE_SCHEMA)
+        self.connection.executescript(_SQL_CREATE_SCHEMA)
 
     def refresh(self, only: Set[PathIsh] = None):
         # TODO support `only`
         cursor = self.connection.cursor()
-        cursor.execute(SQL_ALL_FOR_REFRESH)
-        prior_rows = (SqlAllForRefreshRow(*r) for r in cursor.fetchall())
+        cursor.execute(_SQL_ALL_FOR_REFRESH)
+        prior_rows = (_SqlAllForRefreshRow(*r) for r in cursor.fetchall())
         prior_rows_by_path = {r.path: r for r in prior_rows}
         found_paths = set()
 
@@ -108,23 +126,23 @@ class SqliteRepo(DirectRepo):
                 file_id = row.id
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))
                 cursor.execute('DELETE FROM file_links WHERE referrer_id = ?', (file_id,))
-                updrow = SqlUpdateFileRow(id=file_id,
-                                          existent=True,
-                                          stat_ctime=stat.st_ctime,
-                                          stat_mtime=stat.st_mtime,
-                                          stat_size=stat.st_size,
-                                          title=info.title,
-                                          created=info.created)
-                cursor.execute(SQL_UPDATE_FILE, updrow)
+                updrow = _SqlUpdateFileRow(id=file_id,
+                                           existent=True,
+                                           stat_ctime=stat.st_ctime,
+                                           stat_mtime=stat.st_mtime,
+                                           stat_size=stat.st_size,
+                                           title=info.title,
+                                           created=info.created)
+                cursor.execute(_SQL_UPDATE_FILE, updrow)
             else:
-                newrow = SqlInsertFileRow(path=pathstr,
-                                          existent=True,
-                                          stat_ctime=stat.st_ctime,
-                                          stat_mtime=stat.st_mtime,
-                                          stat_size=stat.st_size,
-                                          title=info.title,
-                                          created=info.created)
-                cursor.execute(SQL_INSERT_FILE, newrow)
+                newrow = _SqlInsertFileRow(path=pathstr,
+                                           existent=True,
+                                           stat_ctime=stat.st_ctime,
+                                           stat_mtime=stat.st_mtime,
+                                           stat_size=stat.st_size,
+                                           title=info.title,
+                                           created=info.created)
+                cursor.execute(_SQL_INSERT_FILE, newrow)
                 file_id = cursor.lastrowid
             cursor.executemany('INSERT INTO file_tags (file_id, tag) VALUES (?, ?)',
                                ((file_id, t) for t in info.tags))
@@ -156,14 +174,14 @@ class SqliteRepo(DirectRepo):
             if cursor.fetchone()[0] == 0:
                 cursor.execute('DELETE FROM files WHERE id = ?', (id_to_delete,))
             else:
-                updrow = SqlUpdateFileRow(id=id_to_delete,
-                                          existent=False,
-                                          stat_ctime=None,
-                                          stat_mtime=None,
-                                          stat_size=None,
-                                          title=None,
-                                          created=None)
-                cursor.execute(SQL_UPDATE_FILE, updrow)
+                updrow = _SqlUpdateFileRow(id=id_to_delete,
+                                           existent=False,
+                                           stat_ctime=None,
+                                           stat_mtime=None,
+                                           stat_size=None,
+                                           title=None,
+                                           created=None)
+                cursor.execute(_SQL_UPDATE_FILE, updrow)
             cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (id_to_delete,))
             cursor.execute('DELETE FROM file_links WHERE referrer_id = ?', (id_to_delete,))
 
@@ -225,14 +243,14 @@ class SqliteRepo(DirectRepo):
             self.refresh()
 
     def clear(self):
-        self.connection.executescript(SQL_CLEAR)
+        self.connection.executescript(_SQL_CLEAR)
 
     def close(self):
         self.connection.close()
         self.connection = None
 
     def __enter__(self):
-        self.connect()
+        self._connect()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
