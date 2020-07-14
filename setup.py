@@ -31,7 +31,6 @@ setuptools.setup(
         'pypdf4',
         'pyyaml>=5.3.1',
         'terminaltables',
-        'toml>=0.10.1',
     ],
     python_requires='>=3.7',
 )

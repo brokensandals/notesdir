@@ -10,10 +10,16 @@ def nd_setup(fs):
     fs.cwd = '/notes/cwd'
     Path(fs.cwd).mkdir(parents=True)
     Path('~').expanduser().mkdir(parents=True)
-    Path('~/.notesdir.toml').expanduser().write_text("""
-        repo.roots = ["/notes"]
-        templates = ["/notes/templates/*.mako"]
-    """)
+    Path('~/.notesdir.conf.py').expanduser().write_text("""
+from notesdir.conf import *
+conf = NotesdirConf(
+    repo_conf=DirectRepoConf(
+        root_paths={'/notes'}
+    ),
+    
+    template_globs={'/notes/templates/*.mako'}
+)
+""")
 
 
 def test_i(fs, capsys):

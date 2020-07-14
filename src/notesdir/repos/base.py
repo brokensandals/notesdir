@@ -3,7 +3,6 @@
 The most important class is :class:`Repo`.
 """
 
-import dataclasses
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Iterator, Set
@@ -18,15 +17,6 @@ class Repo:
     Repo instances use :class:`notesdir.accessors.base.Accessor` instances to read/write individual files,
     but add functionality that requires looking at more than one note in isolation (such as finding backlinks),
     and may also perform caching.
-
-    Repos are created using a configuration dict, generally loaded from within a TOML file.
-
-    The following config keys should be supported by all subclasses:
-
-    * ``"roots"``: a list of strings which are paths to folders. This is required and cannot be empty.
-      When performing queries or searching for backlinks, the repo will only search these folders.
-    * ``"noparse"``: optional list of strings which are regular expressions. If a file's path matches any of the
-      regexes, the repo will not attempt to parse the file, although backlinks for the file can still be calculated.
     """
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         """Looks up the specified fields for the given file or folder.

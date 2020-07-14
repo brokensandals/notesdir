@@ -1,20 +1,20 @@
 from datetime import datetime
 from pathlib import Path
 from notesdir.models import FileInfo, FileQuery, SetTitleCmd, ReplaceHrefCmd, MoveCmd, FileInfoReq, LinkInfo
-from notesdir.repos.sqlite import SqliteRepo
+from notesdir.conf import SqliteRepoConf
 
 
-CONFIG = {'roots': ['/notes'], 'cache': ':memory:'}
+def config():
+    return SqliteRepoConf(root_paths={'/notes'}, cache_path=':memory:')
 
 
 def test_init():
-    repo = SqliteRepo(CONFIG)
-    repo.close()
+    config().instantiate().close()
 
 
 def test_info_unknown(fs):
     fs.create_file('/notes/one.md', contents='Hello')
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     assert repo.info(Path('/notes/two.md')) == FileInfo(Path('/notes/two.md'))
 
 
@@ -29,7 +29,7 @@ I link to [two](two.md) and [three](../otherdir/three.md#heading) and have #two 
     path3 = Path('/notes/otherdir/three.md')
     fs.create_file(path1, contents=doc)
     fs.create_file(path2, contents='---\ntitle: Note 2\n...\n')
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     assert repo.info(path1, FileInfoReq.full()) == FileInfo(
         path1,
         title='A Note',
@@ -49,13 +49,13 @@ def test_duplicate_links(fs):
     path1 = Path('/notes/one.md')
     path2 = Path('/notes/two.md')
     fs.create_file(path1, contents=doc)
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     assert repo.info(path1).links == [LinkInfo(path1, 'two.md'), LinkInfo(path1, 'two.md')]
     assert repo.info(path2, 'backlinks').backlinks == [LinkInfo(path1, 'two.md'), LinkInfo(path1, 'two.md')]
 
 
 def test_refresh(fs):
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     path = Path('/notes/one.md')
     fs.create_file(path, contents='#hello [link](foo.md)')
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path)
@@ -72,7 +72,7 @@ def test_query(fs):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2 #tag4')
     fs.create_file('/notes/two.md', contents='#tag1 #tag3')
     fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     paths = {i.path for i in repo.query(FileQuery())}
     assert paths == {Path('/notes/one.md'), Path('/notes/two.md'), Path('/notes/three.md')}
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3'))}
@@ -93,7 +93,7 @@ def test_tag_counts(fs):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')
     fs.create_file('/notes/two.md', contents='#tag1 #tag3')
     fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     assert repo.tag_counts(FileQuery()) == {'tag1': 3, 'tag2': 1, 'tag3': 2, 'tag4': 1}
     assert repo.tag_counts(FileQuery.parse('tag:tag3')) == {'tag1': 2, 'tag3': 2, 'tag4': 1}
 
@@ -109,7 +109,7 @@ def test_change(fs):
              ReplaceHrefCmd(path1, 'old', 'new'),
              MoveCmd(path1, path3),
              ReplaceHrefCmd(path2, 'foo', 'bar')]
-    repo = SqliteRepo(CONFIG)
+    repo = config().instantiate()
     repo.change(edits)
     assert not path1.exists()
     assert path3.read_text() == '---\ntitle: New Title\n...\n[1](new)'
@@ -138,7 +138,9 @@ def test_noparse(fs):
     path3 = Path('/notes/moved.md')
     fs.create_file(path1, contents='I have #tags and a [link](skip.md).')
     fs.create_file(path2, contents='I #also have #tags.')
-    repo = SqliteRepo({**CONFIG, 'noparse': ['skip']})
+    conf = config()
+    conf.skip_parse = {'skip'}
+    repo = conf.instantiate()
     assert repo.info(path1, FileInfoReq.full()) == FileInfo(path1, tags={'tags'}, links=[LinkInfo(path1, 'skip.md')])
     assert repo.info(path2, FileInfoReq.full()) == FileInfo(path2, backlinks=[LinkInfo(path1, 'skip.md')])
     assert repo.info(path3, FileInfoReq.full()) == FileInfo(path3)

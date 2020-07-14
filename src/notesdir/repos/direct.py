@@ -2,12 +2,12 @@
 
 import dataclasses
 from operator import attrgetter
-import re
 from collections import defaultdict
 from pathlib import Path
 from typing import List, Dict, Iterator, Set
 
 from notesdir.accessors.delegating import DelegatingAccessor
+from notesdir.conf import DirectRepoConf
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, PathIsh, FileInfoReqIsh,\
     FileQueryIsh
 from notesdir.repos.base import Repo, _group_edits
@@ -16,25 +16,24 @@ from notesdir.repos.base import Repo, _group_edits
 class DirectRepo(Repo):
     """Accesses notes directly on the filesystem without any caching.
 
-    This supports all of, and only, the configuration mentioned in :class:`notesdir.repos.base.Repo`.
-
     This performs fine if you only have a few dozen notes, but beyond that you want a caching implementation
     (see :class:`notesdir.repos.sqlite.SqliteRepo`), because looking up backlinks for a file requires reading all
     the other files, which gets very slow.
+
+    .. attribute:: conf
+       :type: DirectRepoConf
     """
-    def __init__(self, config: dict):
-        self.config = config
-        if 'roots' not in self.config:
-            raise ValueError('"roots" must be set in repo config')
-        self.roots = {Path(p) for p in self.config['roots']}
-        self.noparse = {re.compile(f) for f in self.config.get('noparse', [])}
+    def __init__(self, conf: DirectRepoConf):
+        self.conf = conf
+        if not conf.root_paths:
+            raise ValueError('`root_paths` must be non-empty in RepoConf.')
         self.accessor_factory = DelegatingAccessor
 
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         path = Path(path).resolve()
         fields = FileInfoReq.parse(fields)
 
-        if any(f.search(str(path)) for f in self.noparse) or not path.exists():
+        if any(f.search(str(path)) for f in self.conf.skip_parse) or not path.exists():
             info = FileInfo(path)
         else:
             info = self.accessor_factory(path).info()
@@ -62,7 +61,7 @@ class DirectRepo(Repo):
         pass
 
     def _paths(self) -> Iterator[Path]:
-        for root in self.roots:
+        for root in self.conf.root_paths:
             for child in root.resolve().glob('**/*'):
                 yield child
 

@@ -35,34 +35,40 @@ Setup
 
 1. Install `Python <https://www.python.org>`__ 3.7 or greater
 2. Run :code:`pip3 install notesdir`
-3. Create a ``.notesdir.toml`` file in your home directory:
+3. Create a ``.notesdir.conf.py`` file in your home directory; here's mine:
 
-.. code-block:: toml
+.. code-block:: python
 
-    # The following line is the only strictly required one. It's a list of directories
-    # containing your notes. Directories are searched recursively, so for example if
-    # you list "/Users/jacob/Zettel" you do not need to list "/Users/jacob/Zettel/personal".
-    repo.roots = ["/Users/jacob/Zettel"]
+    from notesdir.conf import *
 
-    # The following line is optional, but it's very important if you have hundreds or thousands
-    # of notes. It causes notesdir to keep a cache of note metadata at the specified location.
-    # The cache is updated each time you run a notesdir command, by comparing file modification
-    # times against the cached values. It's always safe to delete the cache file; it will just
-    # be rebuilt the next time you run notesdir.
-    repo.cache = "/Users/jacob/local-only/notesdir-cache.sqlite3"
+    conf = NotesdirConf(
+        # SqliteRepo enables caching, which is important if you have more than a few dozen notes.
+        # The sqlite database is just a cache: if you delete it, it'll be rebuilt the next time you
+        # run notesdir (but that may take a while).
+        repo_conf = SqliteRepoConf(
+            # List the directories that contain your notes here.
+            # These are searched recursively, you should not also list subdirectories.
+            root_paths={'/Users/jacob/Zettel'},
 
-    # This is an optional list of regular expressions that will be matched against
-    # the paths of files inside the the roots you specified above. Notesdir will not
-    # attempt to parse metadata from any files that match any of these.
-    # The 'resources' regex is recommended if you follow the convention of, for example,
-    # putting attachments for the note "foo.md" in a folder called "foo.md.resources".
-    # Skipping parsing for those attachments can improve performance, and likely doesn't
-    # hurt since you probably only care about the metadata attached to the note itself.
-    repo.noparse = ["\\.resources(\\/.*)?$", "\\.icloud$"]
+            # Specify a path to store the cache in. The file will be created if it does not exist.
+            # If you only have a handful of notes, you can use DirectRepoConf instead of SqliteRepoConf,
+            # and omit this line.
+            cache_path='/Users/jacob/local-only/notesdir-cache.sqlite3',
 
-    # The following line is optional. Add it if you want to create note templates;
-    # it's a list of file globs indicating where your template files will be.
-    templates = ["/Users/jacob/Zettel/*/templates/*.mako"]
+            # This is an optional list of regular expressions that will be matched against
+            # the paths of files inside the the roots you specified above. Notesdir will not
+            # attempt to parse metadata from any files that match any of these.
+            # The 'resources' regex is recommended if you follow the convention of, for example,
+            # putting attachments for the note "foo.md" in a folder called "foo.md.resources".
+            # Skipping parsing for those attachments can improve performance, and likely doesn't
+            # hurt since you probably only care about the metadata attached to the note itself.
+            skip_parse={r'\.resources(\/.*)?$', r'\.icloud$'}
+        ),
+
+        # This is an optional list of path globs where note templates can be found; it's used
+        # by the `notesdir new` command.
+        template_globs=["/Users/jacob/Zettel/*/templates/*.mako"]
+    )
 
 That's it!
 You can run :code:`notesdir query` to print a list of everything Notesdir currently knows about your notes.

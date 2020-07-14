@@ -7,6 +7,7 @@ from operator import attrgetter
 from pathlib import Path
 import sqlite3
 from typing import List, Iterator, Set
+from notesdir.conf import SqliteRepoConf
 from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh, PathIsh,\
     LinkInfo
 from notesdir.repos.direct import DirectRepo
@@ -74,31 +75,29 @@ _SqlUpdateFileRow = namedtuple('SqlUpdateFileRow', ['existent', 'stat_ctime', 's
 class SqliteRepo(DirectRepo):
     """Keeps a cache of note metadata/links in a SQLite database.
 
-    Supports the following configuration in addition to that of :class:`notesdir.repos.direct.DirectRepo`:
-
-    * ``"cache"``: required string which is the path where the database file should be stored.
-
     The database file is only a cache: you can safely delete it and it will be rebuilt the next time you create a
     :class:`SqliteRepo` instance. Corrupting or deleting the file during operation may cause erratic behavior, though.
 
-    The modification timestamp and other filesystem metadata for each file in the note directories (configured via
-    ``"roots"``) are stored in the database. Each time a :class:`SqliteRepo` instance is created or :meth:`change` is
+    The modification timestamp and other filesystem metadata for each file in your note directories
+    are stored in the database. Each time a :class:`SqliteRepo` instance is created or :meth:`change` is
     called, the files are scanned to see if this metadata has changed for any of them; if so, those files are parsed
     again and the cache is updated.
 
     Remember to call :meth:`close` when done with the instance, or use the instance as a context manager.
+
+    .. attribute:: conf
+       :type: notesdir.conf.SqliteRepoConf
     """
-    def __init__(self, config: dict):
-        super().__init__(config)
-        if 'cache' not in config:
-            raise ValueError('repo config is missing "cache", which must be the path at which to store the sqlite3 db')
-        self.db_path = config['cache']
+    def __init__(self, conf: SqliteRepoConf):
+        super().__init__(conf)
+        if not conf.cache_path:
+            raise ValueError('`cache_path` must be set in SqliteRepoConf.')
         self.connection = None
         self._connect()
         self.refresh()
 
     def _connect(self):
-        self.connection = sqlite3.connect(self.db_path)
+        self.connection = sqlite3.connect(self.conf.cache_path)
         self.connection.executescript(_SQL_CREATE_SCHEMA)
 
     def refresh(self, only: Set[PathIsh] = None):

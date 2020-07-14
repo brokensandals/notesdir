@@ -7,20 +7,9 @@ from pathlib import Path
 import re
 from typing import Dict, Set, Optional
 from mako.template import Template
-import toml
+from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
-
-
-_DEFAULT_FILENAME_TEMPLATE = """<%
-    import re
-    title = info.title.lower()[:60]
-    title = re.sub(r'[^a-z0-9]', '-', title)
-    title = re.sub(r'-+', '-', title)
-    title = title.strip('-')
-%>
-${title}${info.path.suffix}
-"""
 
 
 def _find_available_name(dest: Path) -> Path:
@@ -47,25 +36,13 @@ class Notesdir:
     for performing high-level operations. The :attr:`repo` attribute, which is an instance of
     :class:`notesdir.repos.base.Repo`, provides additional operations, some lower-level.
 
-    .. attribute:: config
-       :type: dict
+    .. attribute:: conf
+       :type: notesdir.conf.NotesdirConf
 
-       Typically loaded from the ``~/.notesdir.toml``
+       Typically loaded from the variable ``conf`` in the file ``~/.notesdir.conf.py``
 
     .. attribute:: repo
        :type: notesdir.repos.base.Repo
-
-       If ``config['repo']['cache']`` is set, this will be a :class:`notesdir.repos.sqlite.SqliteRepo`, otherwise
-       it will be a :class:`notesdir.repos.direct.DirectRepo`
-
-    The following configuration is supported:
-
-    * ``"repo"``: required dict which will be used as the config for creating a :class:`notesdir.repos.base.Repo`
-    * ``"templates"``: optional list of strings which are path globs, such as ``["/notes/templates/*.mako"]``. These
-      will be searched when using template-related methods like :meth:`new`
-    * ``"filename_template"``: optional string which contains the full Mako template for generating a normalized
-      filename from a :class:`notesdir.models.FileInfo` instance. The default template truncates the title to 60
-      characters, downcases it, and ensures it contains only letters, numbers, and dashes. See :meth:`normalize`
 
     Here's an example of how to use this class. This would add the tag "personal" to every note tagged with "journal".
 
@@ -77,32 +54,17 @@ class Notesdir:
            nd.add_tags({'personal'}, {info.path for info in infos})
     """
 
-    @classmethod
-    def user_config_path(cls) -> Path:
-        """Returns the path to the user's config file, ~/.notesdir.toml"""
-        return Path.home().joinpath('.notesdir.toml')
+    @staticmethod
+    def for_user() -> Notesdir:
+        """Creates an instance using the user's ``~/.notesdir.conf.py`` file.
 
-    @classmethod
-    def for_user(cls) -> Notesdir:
-        """Creates an instance with config loaded from user_config_path().
-
-        Raises :exc:`Error` if there is not a file at that path.
+        Raises :exc:`Exception` if it does not exist or does not define configuration.
         """
-        path = cls.user_config_path()
-        if not path.is_file():
-            raise Error(f"No config file found at {path}")
-        return cls(toml.load(path))
+        return NotesdirConf.for_user().instantiate()
 
-    def __init__(self, config):
-        self.config = config
-        repo_config = self.config.get('repo', {})
-        if 'cache' in repo_config:
-            from notesdir.repos.sqlite import SqliteRepo
-            self.repo = SqliteRepo(repo_config)
-        else:
-            from notesdir.repos.direct import DirectRepo
-            self.repo = DirectRepo(repo_config)
-        self._filename_template = Template(config.get('filename_template', _DEFAULT_FILENAME_TEMPLATE))
+    def __init__(self, conf: NotesdirConf):
+        self.conf = conf
+        self.repo = conf.repo_conf.instantiate()
 
     def replace_path_hrefs(self, original: PathIsh, replacement: PathIsh) -> None:
         """Finds and replaces links to the original path with links to the new path.
@@ -191,7 +153,7 @@ class Notesdir:
         moves = {}
 
         title = info.title or path.stem
-        name = self._filename_template.render(info=replace(info, title=title)).strip()
+        name = self.conf.filename_template.render(info=replace(info, title=title)).strip()
         if not path.name == name:
             moves = self.move(path, path.with_name(name))
             if path in moves:
@@ -242,9 +204,7 @@ class Notesdir:
         The name is the part of the filename before any `.` character. If multiple templates
         have the same name, the one whose path is lexicographically first will appear in the dict.
         """
-        if 'templates' not in self.config:
-            return {}
-        paths = [Path(p) for g in self.config['templates'] for p in glob(g, recursive=True) if Path(p).is_file()]
+        paths = [Path(p) for g in self.conf.template_globs for p in glob(g, recursive=True) if Path(p).is_file()]
         paths.sort()
         return {p.name.split('.')[0].lower(): p for p in paths}
 

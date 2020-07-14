@@ -181,7 +181,8 @@ def argparser() -> argparse.ArgumentParser:
     p_c = subs.add_parser('new',
                           help='Create new file from a Mako template. You can either specify the path to the template, '
                                'or just give its name without file extensions if it is listed in "templates" in '
-                               'your ~/notesdir.toml file. This command will print the path of the newly created file.')
+                               'your ~/notesdir.conf.py file. '
+                               'This command will print the path of the newly created file.')
     p_c.add_argument('template', nargs=1, help='Name or path of template.')
     p_c.add_argument('dest', nargs='?',
                      help='Suggested destination filename. This may be overridden by the template, or adjusted '
