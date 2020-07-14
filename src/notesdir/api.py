@@ -5,17 +5,18 @@ from dataclasses import replace
 from glob import glob
 from pathlib import Path
 import re
-from typing import Dict, Set, Optional
+from typing import Dict, Set, Optional, Iterable
 from mako.template import Template
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def _find_available_name(dest: Path) -> Path:
+def _find_available_name(dest: Path, also_unavailable: Iterable[Path] = set()) -> Path:
     basename = dest.name
     prefix = 2
     existing = [p.name.lower() for p in dest.parent.iterdir()]
+    existing += [p.name.lower() for p in also_unavailable if p.resolve().parent == dest.resolve().parent]
     while True in (n.lower().startswith(dest.name.lower()) for n in existing):
         dest = dest.with_name(f'{prefix}-{basename}')
         prefix += 1
@@ -84,49 +85,52 @@ class Notesdir:
         if edits:
             self.repo.change(edits)
 
-    def move(self, src: PathIsh, dest: PathIsh, *, creation_folders=False) -> Dict[Path, Path]:
-        """Moves a file or directory and updates references to/from it appropriately.
+    def move(self, moves: Dict[PathIsh], *, creation_folders=False) -> Dict[Path, Path]:
+        """Moves files/directories and updates references to/from them appropriately.
 
-        If dest is a directory, src will be moved into it, using src's filename.
-        Otherwise, src is renamed to dest.
+        moves is a dict where the keys are source paths that should be moved, and the values are the destinations.
+        If a destination is a directory, the source will be moved into it, using the source's filename;
+        otherwise, the source is renamed to the destination.
 
         Existing files/directories will never be overwritten; if needed, a numeric
         prefix will be added to the final destination filename to ensure uniqueness.
 
-        If creation_folders is true, then inside the parent of dest (or dest itself if
-        dest is a directory), a folder named for the creation year of the file will be
+        If creation_folders is true, then inside the parent of each destination (or the destination itself if
+        it is a directory), a folder named for the creation year of the file will be
         created (if it does not exist), and inside of that will be a folder named for
         the creation month of the file. The file will be moved into that directory.
 
         Returns a dict mapping paths of files that were moved, to their final paths.
         """
-        src = Path(src)
-        dest = Path(dest)
-        if not src.exists():
-            raise FileNotFoundError(f'File does not exist: {src}')
-        if dest.is_dir():
-            dest = dest.joinpath(src.name)
-        if creation_folders:
-            info = self.repo.info(src)
-            created = info.guess_created()
-            destdir = dest.parent.joinpath(str(created.year), f'{created.month:02}')
-            destdir.mkdir(parents=True, exist_ok=True)
-            dest = destdir.joinpath(dest.name)
+        moves = {Path(src): Path(dest) for src, dest in moves.items()}
+        final_moves = {}
+        for src, dest in moves.items():
+            if not src.exists():
+                raise FileNotFoundError(f'File does not exist: {src}')
+            if dest.is_dir():
+                dest = dest.joinpath(src.name)
+            if creation_folders:
+                info = self.repo.info(src)
+                created = info.guess_created()
+                destdir = dest.parent.joinpath(str(created.year), f'{created.month:02}')
+                destdir.mkdir(parents=True, exist_ok=True)
+                dest = destdir.joinpath(dest.name)
 
-        dest = _find_available_name(dest)
+            dest = _find_available_name(dest, final_moves.values())
+            final_moves[src] = dest
 
-        moves = {src: dest}
-        # TODO this should probably be configurable
-        resdir = src.with_name(f'{src.name}.resources')
-        if resdir.exists():
-            moves[resdir] = dest.with_name(f'{dest.name}.resources')
-            if moves[resdir].exists():
-                raise Error(f'Directory already exists: {moves[resdir]}')
+            # TODO this should probably be configurable
+            resdir = src.with_name(f'{src.name}.resources')
+            if resdir.exists():
+                final_moves[resdir] = dest.with_name(f'{dest.name}.resources')
+                if final_moves[resdir].exists():
+                    # The _find_available_name check should prevent this from happening, but just to be safe...
+                    raise Error(f'Directory already exists: {final_moves[resdir]}')
 
-        edits = edits_for_rearrange(self.repo, moves)
+        edits = edits_for_rearrange(self.repo, final_moves)
         self.repo.change(edits)
 
-        return moves
+        return final_moves
 
     def normalize(self, path: PathIsh) -> Dict[Path, Path]:
         """Updates metadata and/or moves a file to adhere to conventions.
@@ -155,7 +159,7 @@ class Notesdir:
         title = info.title or path.stem
         name = self.conf.filename_template.render(info=replace(info, title=title)).strip()
         if not path.name == name:
-            moves = self.move(path, path.with_name(name))
+            moves = self.move({path: path.with_name(name)})
             if path in moves:
                 path = moves[path]
                 info = self.repo.info(path)

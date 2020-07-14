@@ -53,7 +53,7 @@ def _new(args, nd: Notesdir) -> int:
 def _mv(args, nd: Notesdir) -> int:
     src = Path(args.src[0])
     dest = Path(args.dest[0])
-    moves = nd.move(src, dest, creation_folders=args.creation_folders)
+    moves = nd.move({src: dest}, creation_folders=args.creation_folders)
     if args.json:
         print(json.dumps({str(k): str(v) for k, v in moves.items()}))
     elif not moves == {src: dest}:
