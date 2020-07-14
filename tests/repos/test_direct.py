@@ -1,8 +1,4 @@
-import json
 from pathlib import Path
-
-from freezegun import freeze_time
-
 from notesdir.models import SetTitleCmd, ReplaceHrefCmd, MoveCmd, FileQuery, FileInfo, FileInfoReq, LinkInfo
 from notesdir.repos.direct import DirectRepo
 
@@ -56,44 +52,6 @@ def test_change(fs):
     assert not Path('/notes/one.md').exists()
     assert Path('/notes/moved.md').read_text() == '---\ntitle: New Title\n...\n[1](new)'
     assert Path('/notes/two.md').read_text() == '[2](bar)'
-
-
-@freeze_time('2020-02-03T04:05:06-0800')
-def test_log_edits(fs):
-    doc1 = 'I have [a link](doc2.md).'
-    doc2 = bytes([0xfe, 0xfe, 0xff, 0xff])
-    fs.create_file('doc1.md', contents=doc1)
-    fs.create_file('doc2.bin', contents=doc2)
-    edits = [
-        ReplaceHrefCmd(Path('doc1.md'), 'doc2.md', 'garbage.md'),
-        MoveCmd(Path('doc2.bin'), Path('new-doc2.bin')),
-    ]
-    repo = DirectRepo({'roots': ['/notes'], 'edit_log_path': 'edits'})
-    repo.change(edits)
-    log = Path('edits').read_text().splitlines()
-    assert len(log) == 2
-    entry1 = json.loads(log[0])
-    # FIXME these dates should have time zone indicators!
-    assert entry1 == {
-        'datetime': '2020-02-03T12:05:06',
-        'path': 'doc1.md',
-        'edits': [{
-            'class': 'ReplaceHrefCmd',
-            'original': 'doc2.md',
-            'replacement': 'garbage.md',
-        }],
-        'prior_text': 'I have [a link](doc2.md).'
-    }
-    entry2 = json.loads(log[1])
-    assert entry2 == {
-        'datetime': '2020-02-03T12:05:06',
-        'path': 'doc2.bin',
-        'edits': [{
-            'class': 'MoveCmd',
-            'dest': 'new-doc2.bin',
-        }],
-        'prior_base64': '/v7//w=='
-    }
 
 
 def test_query(fs):

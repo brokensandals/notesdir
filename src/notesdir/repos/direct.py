@@ -1,19 +1,16 @@
 """Provides the :class:`DirectRepo` class."""
 
-import base64
 import dataclasses
-import json
 from operator import attrgetter
 import re
 from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Iterator, Set
 
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, PathIsh, FileInfoReqIsh,\
     FileQueryIsh
-from notesdir.repos.base import Repo, _group_edits, _edit_log_json_serializer
+from notesdir.repos.base import Repo, _group_edits
 
 
 class DirectRepo(Repo):
@@ -32,8 +29,6 @@ class DirectRepo(Repo):
         self.roots = {Path(p) for p in self.config['roots']}
         self.noparse = {re.compile(f) for f in self.config.get('noparse', [])}
         self.accessor_factory = DelegatingAccessor
-        edit_log_path = self.config.get('edit_log_path', None)
-        self.edit_log_path = edit_log_path and Path(edit_log_path)
 
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         path = Path(path).resolve()
@@ -53,7 +48,6 @@ class DirectRepo(Repo):
 
     def change(self, edits: List[FileEditCmd]):
         for group in _group_edits(edits):
-            self._log_edits(group)
             if isinstance(group[0], MoveCmd):
                 for edit in group:
                     edit.path.rename(edit.dest)
@@ -94,19 +88,3 @@ class DirectRepo(Repo):
             for tag in info.tags:
                 result[tag] += 1
         return result
-
-    def _log_edits(self, edit_group: List[FileEditCmd]):
-        if self.edit_log_path:
-            path = edit_group[0].path
-            entry = {
-                'datetime': datetime.now(),
-                'path': path,
-                'edits': edit_group,
-            }
-            if path.is_file():
-                try:
-                    entry['prior_text'] = path.read_text()
-                except:
-                    entry['prior_base64'] = base64.b64encode(path.read_bytes()).decode('utf-8')
-            with self.edit_log_path.open('a+') as file:
-                print(json.dumps(entry, default=_edit_log_json_serializer), file=file)

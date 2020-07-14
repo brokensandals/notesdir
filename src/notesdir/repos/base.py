@@ -27,9 +27,6 @@ class Repo:
       When performing queries or searching for backlinks, the repo will only search these folders.
     * ``"noparse"``: optional list of strings which are regular expressions. If a file's path matches any of the
       regexes, the repo will not attempt to parse the file, although backlinks for the file can still be calculated.
-    * ``"edit_log_path"``: optional string path. If present, the repo will create or append to a text file at that
-      path, logging information about each edit the repo performs. Each line will be a JSON object representing
-      a group of edits to one file.
     """
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         """Looks up the specified fields for the given file or folder.
@@ -112,14 +109,3 @@ def _group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
             group = [edit]
             result.append(group)
     return result
-
-
-def _edit_log_json_serializer(val):
-    if isinstance(val, datetime):
-        return val.isoformat()
-    if isinstance(val, FileEditCmd):
-        d = dataclasses.asdict(val)
-        del d['path']
-        d['class'] = type(val).__name__
-        return d
-    return str(val)
