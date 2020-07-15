@@ -85,12 +85,12 @@ class Notesdir:
         if edits:
             self.repo.change(edits)
 
-    def move(self, moves: Dict[PathIsh], *, creation_folders=False) -> Dict[Path, Path]:
+    def move(self, moves: Dict[PathIsh], *, creation_folders=False, into_dirs=True) -> Dict[Path, Path]:
         """Moves files/directories and updates references to/from them appropriately.
 
         moves is a dict where the keys are source paths that should be moved, and the values are the destinations.
-        If a destination is a directory, the source will be moved into it, using the source's filename;
-        otherwise, the source is renamed to the destination.
+        If a destination is a directory and into_dirs is True, the source will be moved into it,
+        using the source's filename; otherwise, the source is renamed to the destination.
 
         Existing files/directories will never be overwritten; if needed, a numeric
         prefix will be added to the final destination filename to ensure uniqueness.
@@ -103,6 +103,10 @@ class Notesdir:
         Returns a dict mapping paths of files that were moved, to their final paths.
         """
         moves = {Path(src): Path(dest) for src, dest in moves.items()}
+        moves = {k: v for k, v in moves.items() if not k == v}
+        if not moves:
+            return {}
+
         final_moves = {}
         for src, dest in moves.items():
             if not src.exists():
@@ -173,6 +177,40 @@ class Notesdir:
             self.repo.change(edits)
 
         return moves
+
+    def organize(self) -> Dict[Path, Path]:
+        """Reorganizes files using the function set in :attr:`notesdir.conf.NotesdirConf.path_organizer`.
+
+        For every file in your note directories (defined by :attr:`notesdir.conf.RepoConf.root_paths`), this
+        method will call that function with the file's FileInfo, and move the file to the path the function returns.
+
+        Note that the function will only be called for files, not directories. You cannot directly move a directory
+        by this method, but you can effectively move one by moving all the files from it to the same new directory.
+
+        This method deletes any empty directories that result from the moves it makes, and creates any directories
+        it needs to.
+
+        The FileInfo is retrieved using :meth:`notesdir.models.FileInfoReq.full`.
+        """
+        infos = self.repo.query('', FileInfoReq.full())
+        moves = {}
+        for info in infos:
+            if not info.path.is_file():
+                continue
+            dest = Path(self.conf.path_organizer(info))
+            if info.path == dest:
+                continue
+            moves[info.path] = dest
+            dest.parent.mkdir(exist_ok=True, parents=True)
+        final_moves = self.move(moves, into_dirs=False)
+        for src in final_moves.keys():
+            path = src.parent
+            while (path not in [Path.root, Path.cwd, path.parent, *self.conf.repo_conf.root_paths]
+                   and ((not path.exists()) or not sum(1 for _ in path.iterdir()))):
+                if path.exists():
+                    path.rmdir()
+                path = path.parent
+        return final_moves
 
     def add_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:
         """Adds (if not already present) the given set of tags to each of the given files.

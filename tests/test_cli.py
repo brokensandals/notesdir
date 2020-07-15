@@ -6,7 +6,7 @@ from notesdir import cli
 from notesdir.models import FileInfo
 
 
-def nd_setup(fs):
+def nd_setup(fs, extra_conf=''):
     fs.cwd = '/notes/cwd'
     Path(fs.cwd).mkdir(parents=True)
     Path('~').expanduser().mkdir(parents=True)
@@ -19,7 +19,7 @@ conf = NotesdirConf(
     
     template_globs={'/notes/templates/*.mako'}
 )
-""")
+""" + extra_conf)
 
 
 def test_i(fs, capsys):
@@ -213,6 +213,71 @@ def test_mv_c_unrecognized(fs, capsys):
     assert Path('/notes/2012/03/garbage.garbage').exists()
     out, err = capsys.readouterr()
     assert 'Moved garbage.garbage to ../2012/03/garbage.garbage' in out
+
+
+def test_org_no_function(fs, capsys):
+    nd_setup(fs)
+    path1 = Path('/notes/cwd/one.md')
+    path2 = Path('/notes/cwd/two.md')
+    fs.create_file(path1)
+    fs.create_file(path2)
+    assert cli.main(['org', '-j']) == 0
+    assert path1.exists()
+    assert path2.exists()
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {}
+
+
+def test_org_simple(fs, capsys):
+    nd_setup(fs, extra_conf="""
+conf.path_organizer = lambda info: info.path.with_name(info.path.name.replace('hi', 'hello'))
+""")
+    path1 = Path('/notes/cwd/one.md')
+    path2 = Path('/notes/cwd/two.md')
+    fs.create_file(path1)
+    fs.create_file(path2, contents='I link to [hi](hi.md).')
+    assert cli.main(['org', '-j']) == 0
+    assert path1.is_file()
+    assert path2.is_file()
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {}
+
+    path3 = Path('/notes/cwd/hi.md')
+    path4 = Path('/notes/cwd/hello.md')
+    fs.create_file(path3, contents='I link to [one](one.md).')
+    assert cli.main(['org', '-j']) == 0
+    assert path1.is_file()
+    assert path2.read_text() == 'I link to [hi](hello.md).'
+    assert not path3.exists()
+    assert path4.read_text() == 'I link to [one](one.md).'
+
+
+def test_org_dirs(fs, capsys):
+    nd_setup(fs, extra_conf="""
+conf.path_organizer = lambda info: f'/notes/{sorted(info.tags)[0] if info.tags else "untagged"}/{info.path.name}'
+""")
+    path1 = Path('/notes/cwd/one.md')
+    path2 = Path('/notes/cwd/two.md')
+    fs.create_file(path1, contents='I link to [two](two.md).')
+    fs.create_file(path2, contents='I link to [one](one.md).')
+    assert cli.main(['org']) == 0
+    capsys.readouterr()
+    assert not any(p for p in [Path.cwd(), path1, path2] if p.exists())
+    path3 = Path('/notes/untagged/one.md')
+    path4 = Path('/notes/untagged/two.md')
+    assert path3.read_text() == 'I link to [two](two.md).'
+    assert path4.read_text() == 'I link to [one](one.md).'
+
+    path3.write_text('I link to [two](two.md) and am tagged #happy!')
+    path4.write_text('I link to [one](one.md) and am tagged #sad:(')
+    assert cli.main(['org', '-j']) == 0
+    assert not any(p for p in [Path('/notes/untagged'), path1, path2, path3, path4] if p.exists())
+    path5 = Path('/notes/happy/one.md')
+    path6 = Path('/notes/sad/two.md')
+    assert path5.read_text() == 'I link to [two](../sad/two.md) and am tagged #happy!'
+    assert path6.read_text() == 'I link to [one](../happy/one.md) and am tagged #sad:('
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {str(path3): str(path5), str(path4): str(path6)}
 
 
 def test_norm_nothing(fs, capsys):

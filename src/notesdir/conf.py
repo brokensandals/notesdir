@@ -2,9 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 import re
-from typing import Set, Union
+from typing import Callable, Set, Union
 from mako.template import Template
-from notesdir.models import PathIsh
+from notesdir.models import FileInfo, PathIsh
 
 
 _DEFAULT_FILENAME_TEMPLATE = Template("""<%
@@ -87,6 +87,37 @@ class NotesdirConf:
     numbers, and dashes.
     
     See :meth:`notesdir.api.Notesdir.normalize`
+    """
+
+    path_organizer: Callable[[FileInfo], PathIsh] = lambda info: info.path
+    """Defines the rule for rewriting paths used by the ``org`` command and :meth:`notesdir.api.Notesdir.organize`.
+
+    You can use this to normalize filenames or to organize your files via tags, date, or other criteria.
+
+    For example, the following converts all filenames to lowercase versions of the note title (if any):
+    
+    .. code-block:: python
+    
+       def path_organizer(info):
+           if info.title:
+               return info.path.with_name(info.title.lower() + info.path.suffix.lower())
+           return info.path.with_name(info.path.name.lower())
+
+       conf.path_organizer = path_organizer
+    
+    Here's an example of organizing by important tags:
+    
+    .. code-block:: python
+    
+       def path_organizer(info):
+           for tag in ['secrets', 'journal', 'grievances']:
+               if tag in info.tags:
+                   return f'/Users/jacob/notes/{tag}/{info.path.name}'
+           return f'/Users/jacob/notes/misc/{info.path.name}'
+       
+       conf.path_organizer = path_organizer
+    
+    The default function does nothing.
     """
 
     @classmethod
