@@ -298,7 +298,7 @@ class Notesdir:
             resdir = td.dest.with_name(f'{td.dest.name}.resources')
             resdir.mkdir()
             changed.add(resdir)
-        self.repo.refresh(changed)
+        self.repo.invalidate(changed)
         return self.normalize(td.dest).get(td.dest, td.dest)
 
     def close(self):

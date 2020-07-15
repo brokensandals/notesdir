@@ -54,17 +54,17 @@ def test_duplicate_links(fs):
     assert repo.info(path2, 'backlinks').backlinks == [LinkInfo(path1, 'two.md'), LinkInfo(path1, 'two.md')]
 
 
-def test_refresh(fs):
+def test_invalidate(fs):
     repo = config().instantiate()
     path = Path('/notes/one.md')
+    assert repo.info(path, FileInfoReq.full()) == FileInfo(path)
     fs.create_file(path, contents='#hello [link](foo.md)')
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path)
-    repo.refresh()
+    repo.invalidate()
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path, tags={'hello'}, links=[LinkInfo(path, 'foo.md')])
-    repo.refresh()
+    repo.invalidate()
     path.write_text('#goodbye')
-    assert repo.info(path, FileInfoReq.full()) == FileInfo(path, tags={'hello'}, links=[LinkInfo(path, 'foo.md')])
-    repo.refresh()
+    repo.invalidate()
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path, tags={'goodbye'})
 
 
@@ -123,9 +123,9 @@ def test_change(fs):
                                                                   backlinks=[LinkInfo(path3, 'new')])
     assert repo.info(Path('bar'), FileInfoReq.full()) == FileInfo(Path('/notes/bar'),
                                                                   backlinks=[LinkInfo(path2, 'bar')])
-    # regression test for bug where refresh removed entries for files that were referred to
+    # regression test for bug where invalidate removed entries for files that were referred to
     # only by files that had not been changed
-    repo.refresh()
+    repo.invalidate()
     assert repo.info(Path('new'), FileInfoReq.full()) == FileInfo(Path('/notes/new'),
                                                                   backlinks=[LinkInfo(path3, 'new')])
     assert repo.info(Path('bar'), FileInfoReq.full()) == FileInfo(Path('/notes/bar'),

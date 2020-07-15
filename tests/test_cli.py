@@ -13,8 +13,9 @@ def nd_setup(fs, extra_conf=''):
     Path('~/.notesdir.conf.py').expanduser().write_text("""
 from notesdir.conf import *
 conf = NotesdirConf(
-    repo_conf=DirectRepoConf(
-        root_paths={'/notes'}
+    repo_conf=SqliteRepoConf(
+        root_paths={'/notes'},
+        cache_path=':memory:'
     ),
     
     template_globs={'/notes/templates/*.mako'}

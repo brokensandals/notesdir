@@ -59,7 +59,7 @@ class DirectRepo(Repo):
                     acc.edit(edit)
                 acc.save()
 
-    def refresh(self, only: Set[PathIsh] = None):
+    def invalidate(self, only: Set[PathIsh] = None):
         """No-op."""
         pass
 

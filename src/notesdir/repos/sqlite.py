@@ -94,14 +94,13 @@ class SqliteRepo(DirectRepo):
             raise ValueError('`cache_path` must be set in SqliteRepoConf.')
         self.connection = None
         self._connect()
-        self.refresh()
+        self.invalidate()
 
     def _connect(self):
         self.connection = sqlite3.connect(self.conf.cache_path)
         self.connection.executescript(_SQL_CREATE_SCHEMA)
 
-    def refresh(self, only: Set[PathIsh] = None):
-        # TODO support `only`
+    def _refresh(self) -> None:
         cursor = self.connection.cursor()
         cursor.execute(_SQL_ALL_FOR_REFRESH)
         prior_rows = (_SqlAllForRefreshRow(*r) for r in cursor.fetchall())
@@ -185,8 +184,18 @@ class SqliteRepo(DirectRepo):
             cursor.execute('DELETE FROM file_links WHERE referrer_id = ?', (id_to_delete,))
 
         self.connection.commit()
+        self._needs_refresh = False
+
+    def _refresh_if_needed(self) -> None:
+        if self._needs_refresh:
+            self._refresh()
+
+    def invalidate(self, only: Set[PathIsh] = None) -> None:
+        # TODO support `only`
+        self._needs_refresh = True
 
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
+        self._refresh_if_needed()
         path = Path(path).resolve()
         fields = FileInfoReq.parse(fields)
         cursor = self.connection.cursor()
@@ -216,6 +225,7 @@ class SqliteRepo(DirectRepo):
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
+        self._refresh_if_needed()
         query = FileQuery.parse(query)
         cursor = self.connection.cursor()
         cursor.execute('SELECT path FROM files WHERE existent = TRUE')
@@ -238,11 +248,12 @@ class SqliteRepo(DirectRepo):
         try:
             super().change(edits)
         finally:
-            # TODO only refresh necessary files
-            self.refresh()
+            # TODO only invalidate necessary files
+            self.invalidate()
 
     def clear(self):
         self.connection.executescript(_SQL_CLEAR)
+        self.invalidate()
 
     def close(self):
         self.connection.close()

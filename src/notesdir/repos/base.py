@@ -36,17 +36,17 @@ class Repo:
         Changes are generally not applied atomically.
 
         If the repo performs caching, this method will ensure the changes are reflected in the cache, so it is
-        not necessary to call :meth:`refresh` afterward.
+        not necessary to call :meth:`invalidate` afterward.
         """
         raise NotImplementedError()
 
-    def refresh(self, only: Set[PathIsh] = None) -> None:
-        """If the repo uses a cache, this checks the filesystem to see if the cache is out of date.
+    def invalidate(self, only: Set[PathIsh] = None) -> None:
+        """If the repo uses a cache, this tells it to update the cache before the next read.
 
-        If ``only`` is non-empty, the repo might refresh only those specific files, for the sake of performance.
+        If ``only`` is non-empty, the repo might invalidate only those specific files, for the sake of performance.
 
         It is not necessary to call this method when you have first created an instance, or after calling
-        :meth:`change`, as the repo should refresh automatically at those times. But if you keep a repo instance around
+        :meth:`change`, as the repo should invalidate automatically at those times. But if you keep a repo instance around
         while also making direct changes to files yourself, you will need to call this method with the paths of the
         files you changed (or created or deleted).
 
