@@ -90,7 +90,7 @@ def test_skip_parse(fs):
     path3 = Path('/notes/moved.md')
     fs.create_file(path1, contents='I have #tags and a [link](skip.md).')
     fs.create_file(path2, contents='I #also have #tags.')
-    repo = DirectRepoConf(root_paths={'/notes'}, skip_parse={'skip'}).instantiate()
+    repo = DirectRepoConf(root_paths={'/notes'}, skip_parse=lambda p: p.stem == 'skip').instantiate()
     assert repo.info(path1) == FileInfo(path1, tags={'tags'}, links=[LinkInfo(path1, 'skip.md')])
     assert (repo.info(path2, FileInfoReq.full()) == FileInfo(path2, backlinks=[LinkInfo(path1, 'skip.md')]))
     assert repo.info(path3) == FileInfo(path3)
@@ -101,3 +101,16 @@ def test_skip_parse(fs):
     assert (repo.info(path3, FileInfoReq.full())
             == FileInfo(path3, tags={'also', 'tags'}, backlinks=[LinkInfo(path1, 'moved.md')]))
     assert list(repo.query(FileQuery(include_tags={'also'}))) == [repo.info(path3)]
+
+
+def test_ignore(fs):
+    path1 = Path('/notes/one.md')
+    path2 = Path('/notes/.two.md')
+    fs.create_file(path1, contents='I link to [two](.two.md)')
+    fs.create_file(path2, contents='I link to [one](one.md)')
+    repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
+    assert list(repo.query()) == [repo.info(path1)]
+    assert not repo.info(path1, FileInfoReq.full()).backlinks
+    repo.conf.ignore = lambda p: False
+    assert list(repo.query()) == [repo.info(path1), repo.info(path2)]
+    assert repo.info(path1, FileInfoReq.full()).backlinks == [LinkInfo(path2, 'one.md')]

@@ -29,11 +29,14 @@ class DirectRepo(Repo):
             raise ValueError('`root_paths` must be non-empty in RepoConf.')
         self.accessor_factory = DelegatingAccessor
 
+    def _should_skip_parse(self, path: Path) -> bool:
+        return any(self.conf.skip_parse(p) for p in reversed(path.parents)) or self.conf.skip_parse(path)
+
     def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         path = Path(path).resolve()
         fields = FileInfoReq.parse(fields)
 
-        if any(f.search(str(path)) for f in self.conf.skip_parse) or not path.exists():
+        if self._should_skip_parse(path) or not path.exists():
             info = FileInfo(path)
         else:
             info = self.accessor_factory(path).info()
@@ -62,7 +65,18 @@ class DirectRepo(Repo):
 
     def _paths(self) -> Iterator[Path]:
         for root in self.conf.root_paths:
-            for child in root.resolve().glob('**/*'):
+            if root.is_dir():
+                yield from self._paths_in(root)
+            elif root.is_file():
+                yield root
+
+    def _paths_in(self, path: Path) -> Iterator[Path]:
+        for child in path.iterdir():
+            if self.conf.ignore(child):
+                continue
+            if child.is_dir():
+                yield from self._paths_in(child)
+            else:
                 yield child
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\

@@ -35,7 +35,7 @@ Setup
 
 1. Install `Python <https://www.python.org>`__ 3.7 or greater
 2. Run :code:`pip3 install notesdir`
-3. Create a ``.notesdir.conf.py`` file in your home directory; here's mine:
+3. Create a ``.notesdir.conf.py`` file in your home directory:
 
 .. code-block:: python
 
@@ -53,16 +53,7 @@ Setup
             # Specify a path to store the cache in. The file will be created if it does not exist.
             # If you only have a handful of notes, you can use DirectRepoConf instead of SqliteRepoConf,
             # and omit this line.
-            cache_path='/Users/jacob/local-only/notesdir-cache.sqlite3',
-
-            # This is an optional list of regular expressions that will be matched against
-            # the paths of files inside the the roots you specified above. Notesdir will not
-            # attempt to parse metadata from any files that match any of these.
-            # The 'resources' regex is recommended if you follow the convention of, for example,
-            # putting attachments for the note "foo.md" in a folder called "foo.md.resources".
-            # Skipping parsing for those attachments can improve performance, and likely doesn't
-            # hurt since you probably only care about the metadata attached to the note itself.
-            skip_parse={r'\.resources(\/.*)?$', r'\.icloud$'}
+            cache_path='/Users/jacob/local-only/notesdir-cache.sqlite3'
         ),
 
         # This is an optional list of path globs where note templates can be found; it's used

@@ -132,14 +132,14 @@ def test_change(fs):
                                                                   backlinks=[LinkInfo(path2, 'bar')])
 
 
-def test_noparse(fs):
+def test_skip_parse(fs):
     path1 = Path('/notes/one.md')
     path2 = Path('/notes/skip.md')
     path3 = Path('/notes/moved.md')
     fs.create_file(path1, contents='I have #tags and a [link](skip.md).')
     fs.create_file(path2, contents='I #also have #tags.')
     conf = config()
-    conf.skip_parse = {'skip'}
+    conf.skip_parse = lambda p: p.stem == 'skip'
     repo = conf.instantiate()
     assert repo.info(path1, FileInfoReq.full()) == FileInfo(path1, tags={'tags'}, links=[LinkInfo(path1, 'skip.md')])
     assert repo.info(path2, FileInfoReq.full()) == FileInfo(path2, backlinks=[LinkInfo(path1, 'skip.md')])

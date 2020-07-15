@@ -1,7 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-import re
 from typing import Callable, Set, Union
 from mako.template import Template
 from notesdir.models import FileInfo, PathIsh
@@ -18,6 +17,10 @@ ${title}${info.path.suffix}
 """)
 
 
+def default_ignore(path: Path) -> bool:
+    return path.name.startswith('.') or path.suffix == '.icloud'
+
+
 @dataclass
 class RepoConf:
     """Base class for repo config. Use a subclass such as :class:`SqliteRepoConf`."""
@@ -28,10 +31,30 @@ class RepoConf:
     Must not be empty.
     """
 
-    skip_parse: Set[Union[str, re.Pattern]] = field(default_factory=set)
-    """These regexes will be tested against the full resolved path of each file before attempting to parse the file.
+    skip_parse: Callable[[Path], bool] = lambda path: False
+    """Use this to indicate files that should not be parsed.
     
-    If any of them match, the file will not be parsed. Backlinks for the file will still be calculated.
+    Unlike :attr:`ignore`, backlinks are still calculated for these files, they can still be returned by queries,
+    and when moving them notesdir will still attempt to update links to them in other files.
+    
+    If this returns True for a path, that return value applies for all the child paths too.
+    
+    Nothing is skipped by default.
+    """
+
+    ignore: Callable[[Path], bool] = default_ignore
+    """Use this to indicate files or folders that should not be processed by notesdir at all.
+    
+    If this function returns True for a given path, neither that path nor any of its child paths
+    will be parsed, or returned in any queries, or affected by the ``org`` command.
+    
+    The ``mv`` command may still move these files when explicitly instructed to do so or when moving a directory
+    containing them.
+    
+    See also :attr:`skip_parse`.
+    
+    The current default behavior is to ignore all files or folders whose name begins with a period (``.``), and also
+    ``.icloud`` files.
     """
 
     def instantiate(self):
@@ -40,8 +63,7 @@ class RepoConf:
     def normalize(self):
         return replace(
             self,
-            root_paths={Path(p) for p in self.root_paths},
-            skip_parse={re.compile(p) for p in self.skip_parse}
+            root_paths={Path(p).resolve() for p in self.root_paths}
         )
 
 
