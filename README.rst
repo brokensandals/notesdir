@@ -14,6 +14,8 @@ It can assist with:
     - look for files with or without specific tags
 - Templating
     - write `Mako <https://www.makotemplates.org/>`__ templates for quickly creating new notes
+- Organizing
+    - write rules in Python for mapping metadata to file paths
 
 Philosophy
 ----------
