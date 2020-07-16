@@ -14,13 +14,13 @@ from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, Fi
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def _find_available_name(dest: Path) -> Path:
+def _find_available_name(dest: Path, also_unavailable: Set[Path]) -> Path:
     parts = dest.name.split('.', 1)
     if len(parts) > 1:
         suffix = f'.{parts[1]}'
     else:
         suffix = ''
-    while dest.exists():
+    while dest in also_unavailable or dest.exists():
         dest = dest.with_name(f'{parts[0]}_{shortuuid.uuid()}{suffix}')
     return dest
 
@@ -116,14 +116,16 @@ class Notesdir:
             return {}
 
         final_moves = {}
+        unavailable = set()
         for src, dest in moves.items():
             if not src.exists():
                 raise FileNotFoundError(f'File does not exist: {src}')
             if dest.is_dir():
                 dest = dest.joinpath(src.name)
 
-            dest = _find_available_name(dest) if check_exists else dest
+            dest = _find_available_name(dest, unavailable) if check_exists else dest
             final_moves[src] = dest
+            unavailable.add(dest)
             if create_missing_dirs:
                 dest.parent.mkdir(exist_ok=True, parents=True)
 
@@ -186,6 +188,7 @@ class Notesdir:
         moves = {}
         move_fns = {}
         info_map = {}
+        unavailable = set()
         for info in infos:
             if not info.path.is_file():
                 continue
@@ -197,8 +200,9 @@ class Notesdir:
                 dest = Path(self.conf.path_organizer(info))
                 if info.path == dest:
                     continue
-                dest = _find_available_name(dest)
+                dest = _find_available_name(dest, unavailable)
                 moves[info.path] = dest
+                unavailable.add(dest)
 
         def process_fn(src: Path):
             dpfn = move_fns[src]
@@ -212,7 +216,9 @@ class Notesdir:
             del move_fns[src]
             if src == srcdest:
                 return
-            moves[src] = _find_available_name(srcdest)
+            srcdest = _find_available_name(srcdest, unavailable)
+            moves[src] = srcdest
+            unavailable.add(srcdest)
 
         while move_fns:
             process_fn(next(iter(move_fns)))
@@ -300,7 +306,7 @@ class Notesdir:
             name, suffix = template_path.name.split('.', 1)[:2]
             suffix = re.sub(r'[\.^]mako', '', suffix)
             td.dest = Path(f'{name}.{suffix}')
-        td.dest = _find_available_name(td.dest)
+        td.dest = _find_available_name(td.dest, set())
         td.dest.write_text(content)
         changed = {td.dest}
         self.repo.invalidate(changed)

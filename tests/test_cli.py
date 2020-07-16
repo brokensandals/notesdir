@@ -256,6 +256,22 @@ conf.path_organizer = path_organizer
     paths2 = [Path('/notes/new-name.md'), Path('/notes/new-name.md.resources/I Will Not.png'),
               Path('/notes/new-name.md.resources/weird'), Path('/notes/new-name.md.resources/weird.resources/blah.txt')]
     assert [p for p in paths2 if p.exists()] == paths2
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {str(paths1[i]): str(paths2[i]) for i in range(4)}
+
+
+def test_org_conflict(fs, capsys, mocker):
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
+    nd_setup(fs, extra_conf='conf.path_organizer = lambda x: "/notes/foo.md"')
+    paths = [Path('/notes/one.md'), Path('/notes/two.md')]
+    for path in paths:
+        fs.create_file(path)
+    assert cli.main(['org', '-j']) == 0
+    assert [p for p in paths if p.exists()] == []
+    assert Path('/notes/foo.md').exists()
+    assert Path('/notes/foo_uuid1.md').exists()
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {'/notes/one.md': '/notes/foo.md', '/notes/two.md': '/notes/foo_uuid1.md'}
 
 
 def test_norm_nothing(fs, capsys):
