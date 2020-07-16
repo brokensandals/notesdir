@@ -61,6 +61,19 @@ Setup
         template_globs=["/Users/jacob/Zettel/*/templates/*.mako"]
     )
 
+    # This is optional. It determines the behavior of the `notesdir org` command. This config sets
+    # up a couple rules:
+    # - If a file has title metadata, use that to set the filename, and use a limited set of characters
+    #   in the filename
+    # - If you have attachments organized into ".resources" dirs - for example,
+    #   a file "foo.md" and "foo.md.resources/bar.png" - make sure the files in the resources dir move
+    #   when the main file moves.
+    def path_organizer(info):
+        path = rewrite_name_using_title(info)
+        return resource_path_fn(path) or path
+
+    conf.path_organizer = path_organizer
+
 That's it!
 You can run :code:`notesdir query` to print a list of everything Notesdir currently knows about your notes.
 It may take a while the first time, while it builds the cache.
