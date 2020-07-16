@@ -166,47 +166,6 @@ def test_mv_file_to_dir_conflict(fs, capsys, mocker):
     assert 'Moved foo.md to ../dir/foo_uuid1.md' in out
 
 
-def test_mv_with_resources(fs, capsys, mocker):
-    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foo.md', contents='I have an [attachment](foo.md.resources/blah.txt).')
-    fs.create_file('/notes/cwd/foo.md.resources/blah.txt', contents='Yo')
-    fs.create_file('/notes/cwd/bar.md', contents='This is a [bad idea](foo.md.resources/blah.txt).')
-    fs.create_file('/notes/dir/foo.md', contents='I conflict!')
-    Path('/notes/dir').mkdir(exist_ok=True, parents=True)
-    assert cli.main(['mv', '-j', 'foo.md', '../dir']) == 0
-    assert not Path('/notes/cwd/foo.md').exists()
-    assert not Path('/notes/cwd/foo.md.resources').exists()
-    assert Path('/notes/dir/foo.md').read_text() == 'I conflict!'
-    assert Path('/notes/dir/foo_uuid1.md').read_text() == 'I have an [attachment](foo_uuid1.md.resources/blah.txt).'
-    assert Path('/notes/dir/foo_uuid1.md.resources/blah.txt').read_text() == 'Yo'
-    assert Path('/notes/cwd/bar.md').read_text() == 'This is a [bad idea](../dir/foo_uuid1.md.resources/blah.txt).'
-    out, err = capsys.readouterr()
-    assert json.loads(out) == {'foo.md': '../dir/foo_uuid1.md', 'foo.md.resources': '../dir/foo_uuid1.md.resources'}
-
-
-def test_mv_creation_folders(fs, capsys):
-    doc = '---\ncreated: 2013-04-05 06:07:08\n...\nsome text'
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foo.md', contents=doc)
-    assert cli.main(['mv', '-c', 'foo.md', '../blah.md']) == 0
-    assert not Path('/notes/cwd/foo.md').exists()
-    assert Path('/notes/2013/04/blah.md').read_text() == doc
-    out, err = capsys.readouterr()
-    assert 'Moved foo.md to ../2013/04/blah.md' in out
-
-
-@freeze_time('2012-03-04T05:06:07-0800')
-def test_mv_c_unrecognized(fs, capsys):
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/garbage.garbage')
-    assert cli.main(['mv', '-c', 'garbage.garbage', '..']) == 0
-    assert not Path('/notes/cwd/garbage.garbage').exists()
-    assert Path('/notes/2012/03/garbage.garbage').exists()
-    out, err = capsys.readouterr()
-    assert 'Moved garbage.garbage to ../2012/03/garbage.garbage' in out
-
-
 def test_org_no_function(fs, capsys):
     nd_setup(fs)
     path1 = Path('/notes/cwd/one.md')

@@ -53,7 +53,7 @@ def _new(args, nd: Notesdir) -> int:
 def _mv(args, nd: Notesdir) -> int:
     src = Path(args.src[0])
     dest = Path(args.dest[0])
-    moves = nd.move({src: dest}, creation_folders=args.creation_folders)
+    moves = nd.move({src: dest})
     if args.json:
         print(json.dumps({str(k): str(v) for k, v in moves.items()}))
     elif not moves == {src: dest}:
@@ -204,15 +204,12 @@ def argparser() -> argparse.ArgumentParser:
         help='Move a file. Any links to the file from other files in your configured notes directories will be '
              'updated to point to the new location, provided the referrers are of supported file types. '
              'Relative links from this file to other files will also be updated, if this file is of a supported file '
-             'type. If there is a `.resources` file/folder associated with the source path, it is moved too (for a '
-             'file named `foo.md`, the resources folder should be named `foo.md.resources`).')
+             'type.')
     p_mv.add_argument('src', help='File or folder to move.', nargs=1)
     p_mv.add_argument('dest', nargs=1,
                       help='New file path or new parent folder. If the argument is a folder, notesdir will try to '
                            'keep the original filename. In either case, this command will not overwrite an existing '
                            'file; it will adjust the new filename if needed to be unique within the target directory.')
-    p_mv.add_argument('-c', '--creation-folders', action='store_true',
-                      help='Insert folders like 2020/06 based on creation date of src.')
     p_mv.add_argument('-j', '--json', action='store_true',
                       help='Output as JSON. The output is an object whose keys are the paths of files that were '
                            'moved, and whose values are the new paths of those files.')
