@@ -5,21 +5,22 @@ from dataclasses import replace
 from glob import glob
 from pathlib import Path
 import re
-from typing import Dict, Set, Optional, Iterable
+from typing import Dict, Set, Optional
 from mako.template import Template
+import shortuuid
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def _find_available_name(dest: Path, also_unavailable: Iterable[Path] = set()) -> Path:
-    basename = dest.name
-    prefix = 2
-    existing = [p.name.lower() for p in dest.parent.iterdir()]
-    existing += [p.name.lower() for p in also_unavailable if p.resolve().parent == dest.resolve().parent]
-    while True in (n.lower().startswith(dest.name.lower()) for n in existing):
-        dest = dest.with_name(f'{prefix}-{basename}')
-        prefix += 1
+def _find_available_name(dest: Path) -> Path:
+    parts = dest.name.split('.', 1)
+    if len(parts) > 1:
+        suffix = f'.{parts[1]}'
+    else:
+        suffix = ''
+    while dest.exists():
+        dest = dest.with_name(f'{parts[0]}_{shortuuid.uuid()}{suffix}')
     return dest
 
 
@@ -120,7 +121,7 @@ class Notesdir:
                 destdir.mkdir(parents=True, exist_ok=True)
                 dest = destdir.joinpath(dest.name)
 
-            dest = _find_available_name(dest, final_moves.values())
+            dest = _find_available_name(dest)
             final_moves[src] = dest
 
             # TODO this should probably be configurable

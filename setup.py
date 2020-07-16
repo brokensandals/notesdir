@@ -30,6 +30,7 @@ setuptools.setup(
         'Mako>=1.1.3',
         'pypdf4',
         'pyyaml>=5.3.1',
+        'shortuuid',
         'terminaltables',
     ],
     python_requires='>=3.7',

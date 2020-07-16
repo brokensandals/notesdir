@@ -1,5 +1,6 @@
 freezegun
 pytest
+pytest-mock
 pyfakefs
 sphinx
 sphinxcontrib-fulltoc

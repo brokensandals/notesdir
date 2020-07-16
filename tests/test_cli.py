@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import itertools
 from pathlib import Path
 from freezegun import freeze_time
 from notesdir import cli
@@ -62,7 +63,8 @@ backlinks:
 
 
 @freeze_time('2012-05-02T03:04:05Z')
-def test_c(fs, capsys):
+def test_c(fs, capsys, mocker):
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     template = """<% from datetime import datetime %>\
 ---
 title: Testing in ${datetime.now().strftime('%B %Y')}
@@ -83,8 +85,8 @@ Nothing to see here, move along."""
     # the supplied dest is not very effective here because the template sets a title which will be used by norm() to
     # reset the filename
     out, err = capsys.readouterr()
-    assert out == '2-testing-in-may-2012.md\n'
-    assert Path('/notes/cwd/2-testing-in-may-2012.md').exists()
+    assert out == 'testing-in-may-2012_uuid1.md\n'
+    assert Path('/notes/cwd/testing-in-may-2012_uuid1.md').exists()
 
     template2 = """<% directives.create_resources_dir = True %>\
 All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
@@ -134,23 +136,23 @@ def test_mv_file_to_dir(fs, capsys):
     assert 'Moved subdir/old.md to ../dir/old.md' in out
 
 
-def test_mv_file_conflict(fs, capsys):
+def test_mv_file_conflict(fs, capsys, mocker):
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     nd_setup(fs)
     fs.create_file('/notes/cwd/referrer.md', contents='I have a [link](foo.md).')
     fs.create_file('/notes/cwd/foo.md', contents='foo')
     fs.create_file('/notes/dir/bar.md', contents='bar')
-    fs.create_file('/notes/dir/2-bar.md', contents='baz')
     assert cli.main(['mv', 'foo.md', '../dir/bar.md']) == 0
     assert not Path('/notes/cwd/foo.md').exists()
+    assert Path('/notes/dir/bar_uuid1.md').read_text() == 'foo'
     assert Path('/notes/dir/bar.md').read_text() == 'bar'
-    assert Path('/notes/dir/2-bar.md').read_text() == 'baz'
-    assert Path('/notes/dir/3-bar.md').read_text() == 'foo'
-    assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/3-bar.md).'
+    assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/bar_uuid1.md).'
     out, err = capsys.readouterr()
-    assert 'Moved foo.md to ../dir/3-bar.md' in out
+    assert 'Moved foo.md to ../dir/bar_uuid1.md' in out
 
 
-def test_mv_file_to_dir_conflict(fs, capsys):
+def test_mv_file_to_dir_conflict(fs, capsys, mocker):
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     nd_setup(fs)
     fs.create_file('/notes/cwd/referrer.md', contents='I have a [link](foo.md).')
     fs.create_file('/notes/cwd/foo.md', contents='foo')
@@ -158,25 +160,14 @@ def test_mv_file_to_dir_conflict(fs, capsys):
     assert cli.main(['mv', 'foo.md', '../dir']) == 0
     assert not Path('/notes/cwd/foo.md').exists()
     assert Path('/notes/dir/foo.md').read_text() == 'bar'
-    assert Path('/notes/dir/2-foo.md').read_text() == 'foo'
-    assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/2-foo.md).'
+    assert Path('/notes/dir/foo_uuid1.md').read_text() == 'foo'
+    assert Path('/notes/cwd/referrer.md').read_text() == 'I have a [link](../dir/foo_uuid1.md).'
     out, err = capsys.readouterr()
-    assert 'Moved foo.md to ../dir/2-foo.md' in out
+    assert 'Moved foo.md to ../dir/foo_uuid1.md' in out
 
 
-def test_mv_file_to_dir_startswith_conflict(fs, capsys):
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foo.md')
-    Path('/notes/dir/foo.md.resources').mkdir(exist_ok=True, parents=True)
-    assert cli.main(['mv', 'foo.md', '../dir']) == 0
-    assert not Path('/notes/cwd/foo.md').exists()
-    assert Path('/notes/dir/2-foo.md').exists()
-    assert Path('/notes/dir/foo.md.resources').is_dir()
-    out, err = capsys.readouterr()
-    assert 'Moved foo.md to ../dir/2-foo.md' in out
-
-
-def test_mv_with_resources(fs, capsys):
+def test_mv_with_resources(fs, capsys, mocker):
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     nd_setup(fs)
     fs.create_file('/notes/cwd/foo.md', contents='I have an [attachment](foo.md.resources/blah.txt).')
     fs.create_file('/notes/cwd/foo.md.resources/blah.txt', contents='Yo')
@@ -187,11 +178,11 @@ def test_mv_with_resources(fs, capsys):
     assert not Path('/notes/cwd/foo.md').exists()
     assert not Path('/notes/cwd/foo.md.resources').exists()
     assert Path('/notes/dir/foo.md').read_text() == 'I conflict!'
-    assert Path('/notes/dir/2-foo.md').read_text() == 'I have an [attachment](2-foo.md.resources/blah.txt).'
-    assert Path('/notes/dir/2-foo.md.resources/blah.txt').read_text() == 'Yo'
-    assert Path('/notes/cwd/bar.md').read_text() == 'This is a [bad idea](../dir/2-foo.md.resources/blah.txt).'
+    assert Path('/notes/dir/foo_uuid1.md').read_text() == 'I have an [attachment](foo_uuid1.md.resources/blah.txt).'
+    assert Path('/notes/dir/foo_uuid1.md.resources/blah.txt').read_text() == 'Yo'
+    assert Path('/notes/cwd/bar.md').read_text() == 'This is a [bad idea](../dir/foo_uuid1.md.resources/blah.txt).'
     out, err = capsys.readouterr()
-    assert json.loads(out) == {'foo.md': '../dir/2-foo.md', 'foo.md.resources': '../dir/2-foo.md.resources'}
+    assert json.loads(out) == {'foo.md': '../dir/foo_uuid1.md', 'foo.md.resources': '../dir/foo_uuid1.md.resources'}
 
 
 def test_mv_creation_folders(fs, capsys):
