@@ -300,7 +300,3 @@ class TemplateDirectives:
     and the template's suggestion will take precedence.
     If the path already exists, notesdir will adjust it further to get a unique path before creating the file.
     """
-
-    create_resources_dir: bool = False
-    """If True, a directory with the same name as the new file, but with an extra suffix of ``.resources``, will be
-    created."""

@@ -276,10 +276,6 @@ class Notesdir:
         td.dest = _find_available_name(td.dest)
         td.dest.write_text(content)
         changed = {td.dest}
-        if td.create_resources_dir:
-            resdir = td.dest.with_name(f'{td.dest.name}.resources')
-            resdir.mkdir()
-            changed.add(resdir)
         self.repo.invalidate(changed)
         return self.normalize(td.dest).get(td.dest, td.dest)
 

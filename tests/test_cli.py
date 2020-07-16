@@ -88,8 +88,7 @@ Nothing to see here, move along."""
     assert out == 'testing-in-may-2012_uuid1.md\n'
     assert Path('/notes/cwd/testing-in-may-2012_uuid1.md').exists()
 
-    template2 = """<% directives.create_resources_dir = True %>\
-All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
+    template2 = """All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
     fs.create_file('/notes/other-template.md.mako', contents=template2)
     fs.create_file('/notes/one.md', contents='#happy #sad #melancholy')
     fs.create_file('/notes/two.md', contents='#green #bright-green #best-green')
@@ -101,7 +100,6 @@ created: 2012-05-02 03:04:05
 title: tags
 ...
 All current tags: best-green, bright-green, green, happy, melancholy, sad"""
-    assert Path('/notes/cwd/tags.md.resources').is_dir()
 
     template3 = """<% directives.dest = template_path.parent.parent.joinpath('cool-note.md') %>"""
     fs.create_file('/notes/templates/self-namer.md.mako', contents=template3)
