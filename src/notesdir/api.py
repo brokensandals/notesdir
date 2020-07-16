@@ -86,7 +86,8 @@ class Notesdir:
         if edits:
             self.repo.change(edits)
 
-    def move(self, moves: Dict[PathIsh], *, into_dirs=True) -> Dict[Path, Path]:
+    def move(self, moves: Dict[PathIsh], *, into_dirs=True, check_exists=True,
+             create_missing_dirs=False, delete_empty_dirs=False) -> Dict[Path, Path]:
         """Moves files/directories and updates references to/from them appropriately.
 
         moves is a dict where the keys are source paths that should be moved, and the values are the destinations.
@@ -94,7 +95,17 @@ class Notesdir:
         using the source's filename; otherwise, the source is renamed to the destination.
 
         This method tries not to overwrite files; if a destination path already exists, a shortened UUID
-        will be appended to the path.
+        will be appended to the path. You can disable that behavior by setting check_exists=False.
+
+        It's OK for a path to occur as a key and also another key's value. For example,
+        ``{'foo': 'bar', 'bar': 'foo'}`` will swap the two files.
+
+        If create_missing_dirs is True, any directories in a destination path that do not yet exist will be
+        created.
+
+        If delete_empty_dirs is True, after moving files out of a directory, if the directory or any of its parent
+        directories are empty, they will be deleted. (The root folder or current working directory will not be
+        deleted regardless.)
 
         Returns a dict mapping paths of files that were moved, to their final paths.
         """
@@ -110,11 +121,22 @@ class Notesdir:
             if dest.is_dir():
                 dest = dest.joinpath(src.name)
 
-            dest = _find_available_name(dest)
+            dest = _find_available_name(dest) if check_exists else dest
             final_moves[src] = dest
+            if create_missing_dirs:
+                dest.parent.mkdir(exist_ok=True, parents=True)
 
         edits = edits_for_rearrange(self.repo, final_moves)
         self.repo.change(edits)
+
+        if delete_empty_dirs:
+            for src in final_moves.keys():
+                path = src.parent
+                while (path not in [Path.root, Path.cwd, path.parent]
+                       and ((not path.exists()) or not sum(1 for _ in path.iterdir()))):
+                    if path.exists():
+                        path.rmdir()
+                    path = path.parent
 
         return final_moves
 
@@ -167,16 +189,10 @@ class Notesdir:
             dest = Path(self.conf.path_organizer(info))
             if info.path == dest:
                 continue
+            dest = _find_available_name(dest)
             moves[info.path] = dest
-            dest.parent.mkdir(exist_ok=True, parents=True)
-        final_moves = self.move(moves, into_dirs=False)
-        for src in final_moves.keys():
-            path = src.parent
-            while (path not in [Path.root, Path.cwd, path.parent, *self.conf.repo_conf.root_paths]
-                   and ((not path.exists()) or not sum(1 for _ in path.iterdir()))):
-                if path.exists():
-                    path.rmdir()
-                path = path.parent
+        final_moves = self.move(moves, into_dirs=False, check_exists=False,
+                                create_missing_dirs=True, delete_empty_dirs=True)
         return final_moves
 
     def add_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:

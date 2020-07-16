@@ -174,7 +174,8 @@ def test_org_no_function(fs, capsys):
     assert json.loads(out) == {}
 
 
-def test_org_simple(fs, capsys):
+def test_org_simple(fs, capsys, mocker):
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     nd_setup(fs, extra_conf="""
 conf.path_organizer = lambda info: info.path.with_name(info.path.name.replace('hi', 'hello'))
 """)
@@ -196,6 +197,16 @@ conf.path_organizer = lambda info: info.path.with_name(info.path.name.replace('h
     assert path2.read_text() == 'I link to [hi](hello.md).'
     assert not path3.exists()
     assert path4.read_text() == 'I link to [one](one.md).'
+    capsys.readouterr()
+
+    path5 = Path('/notes/cwd/hello_uuid1.md')
+    fs.create_file(path3, contents='I am a duplicate name')
+    assert cli.main(['org', '-j']) == 0
+    assert not path3.exists()
+    assert path4.read_text() == 'I link to [one](one.md).'
+    assert path5.read_text() == 'I am a duplicate name'
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {'/notes/cwd/hi.md': '/notes/cwd/hello_uuid1.md'}
 
 
 def test_org_dirs(fs, capsys):
