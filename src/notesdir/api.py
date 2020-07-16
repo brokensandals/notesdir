@@ -9,7 +9,8 @@ from typing import Dict, Set, Optional
 from mako.template import Template
 import shortuuid
 from notesdir.conf import NotesdirConf
-from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives,\
+    DependentPathFn, FileInfo
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
@@ -183,14 +184,39 @@ class Notesdir:
         """
         infos = self.repo.query('', FileInfoReq.full())
         moves = {}
+        move_fns = {}
+        info_map = {}
         for info in infos:
             if not info.path.is_file():
                 continue
-            dest = Path(self.conf.path_organizer(info))
-            if info.path == dest:
-                continue
-            dest = _find_available_name(dest)
-            moves[info.path] = dest
+            info_map[info.path] = info
+            dest = self.conf.path_organizer(info)
+            if isinstance(dest, DependentPathFn):
+                move_fns[info.path] = dest
+            else:
+                dest = Path(self.conf.path_organizer(info))
+                if info.path == dest:
+                    continue
+                dest = _find_available_name(dest)
+                moves[info.path] = dest
+
+        def process_fn(src: Path):
+            dpfn = move_fns[src]
+            determinant = Path(dpfn.determinant).resolve()
+            dinfo = info_map.get(determinant, FileInfo(determinant))
+            if determinant in move_fns:
+                process_fn(determinant)
+            if determinant in moves:
+                dinfo = replace(dinfo, path=moves[determinant])
+            srcdest = Path(dpfn.fn(dinfo))
+            del move_fns[src]
+            if src == srcdest:
+                return
+            moves[src] = _find_available_name(srcdest)
+
+        while move_fns:
+            process_fn(next(iter(move_fns)))
+
         final_moves = self.move(moves, into_dirs=False, check_exists=False,
                                 create_missing_dirs=True, delete_empty_dirs=True)
         return final_moves

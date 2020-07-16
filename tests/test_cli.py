@@ -237,6 +237,27 @@ conf.path_organizer = lambda info: f'/notes/{sorted(info.tags)[0] if info.tags e
     assert json.loads(out) == {str(path3): str(path5), str(path4): str(path6)}
 
 
+def test_org_recommended(fs, capsys):
+    nd_setup(fs, extra_conf="""
+def path_organizer(info):
+    path = rewrite_name_using_title(info)
+    return resource_path_fn(path) or path
+conf.path_organizer = path_organizer
+""")
+    paths1 = [Path('/notes/I Will Be Renamed.md'),
+              Path('/notes/I Will Be Renamed.md.resources/I Will Not.png'),
+              Path('/notes/I Will Be Renamed.md.resources/weird'),
+              Path('/notes/I Will Be Renamed.md.resources/weird.resources/blah.txt')]
+    for path in paths1:
+        fs.create_file(path)
+    paths1[0].write_text('---\ntitle: New Name\n...\n')
+    assert cli.main(['org', '-j']) == 0
+    assert [p for p in paths1 if p.exists()] == []
+    paths2 = [Path('/notes/new-name.md'), Path('/notes/new-name.md.resources/I Will Not.png'),
+              Path('/notes/new-name.md.resources/weird'), Path('/notes/new-name.md.resources/weird.resources/blah.txt')]
+    assert [p for p in paths2 if p.exists()] == paths2
+
+
 def test_norm_nothing(fs, capsys):
     doc = """---
 created: 2001-02-03T04:05:06Z

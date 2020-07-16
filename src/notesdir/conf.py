@@ -1,12 +1,77 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Callable, Set
-from notesdir.models import FileInfo, PathIsh
+import re
+from typing import Callable, Set, Optional
+from notesdir.models import FileInfo, PathIsh, DependentPathFn
 
 
 def default_ignore(path: Path) -> bool:
-    return path.name.startswith('.') or path.suffix == '.icloud'
+    return path.name.startswith('.') or any(p.name.startswith('.') for p in path.parents) or path.suffix == '.icloud'
+
+
+def resource_path_fn(path: Path) -> Optional[DependentPathFn]:
+    """Enables moving files in ``.resources`` directories when the owner moves.
+
+    This is meant for use in a :attr:`NotesdirConf.path_organizer` if you'd like to follow the convention of
+    putting attachments for a file in a directory next to the file, with a suffix of ``.resources``. For example,
+    an attachment ``cat.png`` for the file ``/notes/foo.md`` would be at ``/notes/foo.md.resources/cat.png``.
+
+    This function lets you ensure that if ``foo.md`` is renamed by your organizer, ``foo.md.resources`` will be too.
+
+    Example usage:
+
+    .. code-block:: python
+
+       def my_path_organizer(info):
+           rewrite = resource_path_fn(info.path)
+           if rewrite:
+               return rewrite
+           # put the rest of your organizer rules here
+       conf.path_organizer = my_path_organizer
+    """
+    for ancestor in path.parents:
+        if ancestor.suffix == '.resources':
+            owner = ancestor.with_suffix('')
+
+            def mkpath(info: FileInfo) -> Path:
+                resdir = info.path.with_name(f'{info.path.name}.resources')
+                return resdir.joinpath(path.relative_to(ancestor))
+
+            return DependentPathFn(owner, mkpath)
+    return None
+
+
+def rewrite_name_using_title(info: FileInfo) -> Path:
+    """If the given info has a title, returns an updated path using that title.
+
+    The following adjustments are made:
+
+    * Title is truncated to 60 characters
+    * Characters are converted to lowercase
+    * Only the letters a-z and digits 0-9 are kept; all other characters are replaced with dashes
+    * Consecutive dashes are collapsed to a single dash
+    * Leading and trailing dashes are removed
+
+    For example, for a file at ``/foo/bar.md`` with title "Everything is awful", the path returned would be
+    ``/foo/everything-is-awful.md``.
+
+    The file extension from the original path is kept, but note that currently this will not work properly for
+    files with multiple extensions (eg ``tar.gz``). That shouldn't be an issue right now since none of the file types
+    for which title metadata is supported typically use multiple extensions.
+
+    If there is no title, the path is returned unchanged.
+
+    This is meant to be used as, or as part of, a :attr:`NotesdirConf.path_organizer`.
+    """
+    if info.title:
+        title = info.title.lower()[:60]
+        title = re.sub(r'[^a-z0-9]', '-', title)
+        title = re.sub(r'-+', '-', title)
+        title = title.strip('-')
+        return info.path.with_name(f'{title}{info.path.suffix}')
+    else:
+        return info.path
 
 
 @dataclass
@@ -118,7 +183,10 @@ class NotesdirConf:
        
        conf.path_organizer = path_organizer
     
-    The default function does nothing.
+    Some helper functions are provided for use in path organizers:
+    
+    * :func:`resource_path_fn`
+    * :func:`rewrite_name_using_title`
     """
 
     @classmethod

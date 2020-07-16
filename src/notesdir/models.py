@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Set, Optional, Union, Iterable, List
+from typing import Set, Optional, Union, Iterable, List, Callable
 from urllib.parse import urlparse, unquote_plus
 
 
@@ -300,3 +300,16 @@ class TemplateDirectives:
     and the template's suggestion will take precedence.
     If the path already exists, notesdir will adjust it further to get a unique path before creating the file.
     """
+
+
+@dataclass
+class DependentPathFn:
+    """Indicates that a path can be calculated based on the FileInfo for another path.
+
+    You can return this from a :class:`notesdir.conf.NotesdirConf.path_organizer` when one file's path depends on
+    another's. :meth:`notesdir.api.Notesdir.organize` will call the given :attr:`fn` with the info for the path
+    specified by :attr:`determinant`, but the path in the info will reflect any pending move for that file (even
+    if they have not been executed in the filesystem yet).
+    """
+    determinant: PathIsh
+    fn: Callable[[FileInfo], PathIsh]

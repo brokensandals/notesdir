@@ -1,6 +1,5 @@
 import os.path
 from pathlib import Path
-from freezegun import freeze_time
 import pytest
 from notesdir.api import Notesdir
 from notesdir.conf import DirectRepoConf, NotesdirConf
