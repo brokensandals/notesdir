@@ -74,19 +74,16 @@ Nothing to see here, move along."""
     fs.create_file('/notes/templates/simple.md.mako', contents=template)
     assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
-    assert out == 'testing-in-may-2012.md\n'
-    assert Path('/notes/cwd/testing-in-may-2012.md').read_text() == """---
+    assert out == 'simple.md\n'
+    assert Path('/notes/cwd/simple.md').read_text() == """---
 created: 2012-05-02 03:04:05
 title: Testing in May 2012
 ...
 Nothing to see here, move along."""
-    assert not Path('/notes/cwd/testing-in-may-2012.md.resources').exists()
-    assert cli.main(['new', 'simple', 'this-is-not-the-final-name.md']) == 0
-    # the supplied dest is not very effective here because the template sets a title which will be used by norm() to
-    # reset the filename
+    assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
-    assert out == 'testing-in-may-2012_uuid1.md\n'
-    assert Path('/notes/cwd/testing-in-may-2012_uuid1.md').exists()
+    assert out == 'simple_uuid1.md\n'
+    assert Path('/notes/cwd/simple_uuid1.md').exists()
 
     template2 = """All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
     fs.create_file('/notes/other-template.md.mako', contents=template2)
@@ -255,38 +252,6 @@ title: foo-bar
 some text"""
     out, err = capsys.readouterr()
     assert not out
-
-
-def test_norm_move(fs, capsys):
-    doc = """---
-created: 2012-03-04 05:06:07
-title: Foo Bar! Hooray!
-...
-some text"""
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foobar.md', contents=doc)
-    assert cli.main(['norm', '-j', 'foobar.md']) == 0
-    assert not Path('/notes/cwd/foobar.md').exists()
-    assert Path('/notes/cwd/foo-bar-hooray.md').read_text() == doc
-    out, err = capsys.readouterr()
-    assert json.loads(out) == {'foobar.md': 'foo-bar-hooray.md'}
-
-
-def test_norm_move_and_set_title(fs, capsys):
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/+foo-Bar-.md', contents="""---
-created: 2012-03-04 05:06:07
-...
-some text""")
-    assert cli.main(['norm', '+foo-Bar-.md']) == 0
-    assert not Path('/notes/cwd/+foo-Bar-.md').exists()
-    assert Path('/notes/cwd/foo-bar.md').read_text() == """---
-created: 2012-03-04 05:06:07
-title: +foo-Bar-
-...
-some text"""
-    out, err = capsys.readouterr()
-    assert 'Moved +foo-Bar-.md to foo-bar.md' in out
 
 
 def test_tags(fs, capsys):

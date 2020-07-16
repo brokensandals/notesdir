@@ -118,19 +118,13 @@ class Notesdir:
 
         return final_moves
 
-    def normalize(self, path: PathIsh) -> Dict[Path, Path]:
-        """Updates metadata and/or moves a file to adhere to conventions.
+    def normalize(self, path: PathIsh) -> None:
+        """Updates metadata to adhere to conventions.
 
         If the file does not have a title, one is set based on the filename.
-        If the file has a title, the filename is derived from it.
-        In either case, the ``filename_template`` from the config is applied. The name ``info`` will be set in the
-        template's namespace to the :class:`notesdir.models.FileInfo` object. ``.strip()`` is called on the template's
-        result.
 
         If the file does not have created set in its metadata, it is set
         based on the birthtime or ctime of the file.
-
-        Returns a dict mapping paths of files that were moved, to their final paths.
         """
         path = Path(path)
         if not path.exists():
@@ -140,15 +134,8 @@ class Notesdir:
             raise Error(f'Cannot parse file: {path}')
 
         edits = []
-        moves = {}
 
         title = info.title or path.stem
-        name = self.conf.filename_template.render(info=replace(info, title=title)).strip()
-        if not path.name == name:
-            moves = self.move({path: path.with_name(name)})
-            if path in moves:
-                path = moves[path]
-                info = self.repo.info(path)
         if not title == info.title:
             edits.append(SetTitleCmd(path, title))
 
@@ -157,8 +144,6 @@ class Notesdir:
 
         if edits:
             self.repo.change(edits)
-
-        return moves
 
     def organize(self) -> Dict[Path, Path]:
         """Reorganizes files using the function set in :attr:`notesdir.conf.NotesdirConf.path_organizer`.
@@ -277,7 +262,8 @@ class Notesdir:
         td.dest.write_text(content)
         changed = {td.dest}
         self.repo.invalidate(changed)
-        return self.normalize(td.dest).get(td.dest, td.dest)
+        self.normalize(td.dest)
+        return td.dest
 
     def close(self):
         """Closes the associated repo and releases any other resources."""

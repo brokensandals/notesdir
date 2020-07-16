@@ -73,12 +73,7 @@ def _org(args, nd: Notesdir) -> int:
 
 
 def _norm(args, nd: Notesdir) -> int:
-    moves = nd.normalize(args.path[0])
-    if args.json:
-        print(json.dumps({str(k): str(v) for k, v in moves.items()}))
-    elif moves:
-        for k, v in moves.items():
-            print(f'Moved {k} to {v}')
+    nd.normalize(args.path[0])
     return 0
 
 
@@ -228,12 +223,10 @@ def argparser() -> argparse.ArgumentParser:
 
     p_norm = subs.add_parser(
         'norm',
-        help='Normalize a file. First, this checks that the title and created date metadata have been stored in '
+        help='Normalize a file. This checks that the title and created date metadata have been stored in '
              'the file in the manner appropriate to its file type. If not, they are updated using the filename '
-             'and the best guess at creation date available from the filesystem. Then, the filename is updated '
-             'based on the title.')
+             'and the best guess at creation date available from the filesystem.')
     p_norm.add_argument('path', help='File to normalize.', nargs=1)
-    p_norm.add_argument('-j', '--json', action='store_true', help='Output as JSON, in same format as the `mv` command.')
     p_norm.set_defaults(func=_norm)
 
     p_tags_add = subs.add_parser(

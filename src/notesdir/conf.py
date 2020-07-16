@@ -1,20 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Callable, Set, Union
-from mako.template import Template
+from typing import Callable, Set
 from notesdir.models import FileInfo, PathIsh
-
-
-_DEFAULT_FILENAME_TEMPLATE = Template("""<%
-    import re
-    title = info.title.lower()[:60]
-    title = re.sub(r'[^a-z0-9]', '-', title)
-    title = re.sub(r'-+', '-', title)
-    title = title.strip('-')
-%>
-${title}${info.path.suffix}
-""")
 
 
 def default_ignore(path: Path) -> bool:
@@ -102,15 +90,6 @@ class NotesdirConf:
     This is used for the CLI command ``new``, and template-related methods of :class:`notesdir.api.Notesdir`.
     """
 
-    filename_template: Union[str, Template] = _DEFAULT_FILENAME_TEMPLATE
-    """Mako template for generating a normalized filename from a :class:`notesdir.models.FileInfo` instance.
-    
-    The default template truncates the title to 60 characters, downcases it, and ensures it contains only letters,
-    numbers, and dashes.
-    
-    See :meth:`notesdir.api.Notesdir.normalize`
-    """
-
     path_organizer: Callable[[FileInfo], PathIsh] = lambda info: info.path
     """Defines the rule for rewriting paths used by the ``org`` command and :meth:`notesdir.api.Notesdir.organize`.
 
@@ -155,11 +134,9 @@ class NotesdirConf:
         return context['conf']
 
     def normalize(self):
-        fntemplate = self.filename_template
         return replace(
             self,
-            repo_conf=self.repo_conf.normalize(),
-            filename_template=fntemplate if isinstance(fntemplate, Template) else Template(fntemplate)
+            repo_conf=self.repo_conf.normalize()
         )
 
     def instantiate(self):
