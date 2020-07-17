@@ -14,13 +14,22 @@ from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, Fi
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def _find_available_name(dest: Path, also_unavailable: Set[Path]) -> Path:
+def _find_available_name(dest: Path, also_unavailable: Set[Path], src: Path = None) -> Path:
     parts = dest.name.split('.', 1)
     if len(parts) > 1:
         suffix = f'.{parts[1]}'
     else:
         suffix = ''
     while dest in also_unavailable or dest.exists():
+        if src:
+            # HACK: This is so that if `organize` has to attach a UUID to the end of a
+            # filename because of a conflict, it will try to assign the same UUID next time around.
+            if src.name == f'{parts[0]}{src.name[len(parts[0]):len(parts[0])+23]}{suffix}':
+                dest = dest.with_name(src.name)
+                if src == dest:
+                    break
+                src = None
+                continue
         dest = dest.with_name(f'{parts[0]}_{shortuuid.uuid()}{suffix}')
     return dest
 
@@ -123,7 +132,7 @@ class Notesdir:
             if dest.is_dir():
                 dest = dest.joinpath(src.name)
 
-            dest = _find_available_name(dest, unavailable) if check_exists else dest
+            dest = _find_available_name(dest, unavailable, src) if check_exists else dest
             final_moves[src] = dest
             unavailable.add(dest)
             if create_missing_dirs:
@@ -200,7 +209,7 @@ class Notesdir:
                 dest = Path(self.conf.path_organizer(info))
                 if info.path == dest:
                     continue
-                dest = _find_available_name(dest, unavailable)
+                dest = _find_available_name(dest, unavailable, info.path)
                 moves[info.path] = dest
                 unavailable.add(dest)
 
@@ -216,7 +225,7 @@ class Notesdir:
             del move_fns[src]
             if src == srcdest:
                 return
-            srcdest = _find_available_name(srcdest, unavailable)
+            srcdest = _find_available_name(srcdest, unavailable, src)
             moves[src] = srcdest
             unavailable.add(srcdest)
 

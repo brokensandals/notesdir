@@ -261,7 +261,7 @@ conf.path_organizer = path_organizer
 
 
 def test_org_conflict(fs, capsys, mocker):
-    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
+    mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}abcdefghijklmnopq' for i in itertools.count(1)))
     nd_setup(fs, extra_conf='conf.path_organizer = lambda x: "/notes/foo.md"')
     paths = [Path('/notes/one.md'), Path('/notes/two.md')]
     for path in paths:
@@ -269,9 +269,16 @@ def test_org_conflict(fs, capsys, mocker):
     assert cli.main(['org', '-j']) == 0
     assert [p for p in paths if p.exists()] == []
     assert Path('/notes/foo.md').exists()
-    assert Path('/notes/foo_uuid1.md').exists()
+    assert Path('/notes/foo_uuid1abcdefghijklmnopq.md').exists()
     out, err = capsys.readouterr()
-    assert json.loads(out) == {'/notes/one.md': '/notes/foo.md', '/notes/two.md': '/notes/foo_uuid1.md'}
+    assert json.loads(out) == {'/notes/one.md': '/notes/foo.md',
+                               '/notes/two.md': '/notes/foo_uuid1abcdefghijklmnopq.md'}
+    assert cli.main(['org', '-j']) == 0
+    assert Path('/notes/foo.md').exists()
+    assert not Path('/notes/foo_uuid2abcdefghijklmnopq.md').exists()
+    assert Path('/notes/foo_uuid1abcdefghijklmnopq.md').exists()
+    out, err = capsys.readouterr()
+    assert json.loads(out) == {}
 
 
 def test_norm_nothing(fs, capsys):
