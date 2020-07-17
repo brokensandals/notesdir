@@ -100,6 +100,7 @@ class HTMLAccessor(Accessor):
             return
         tags.remove(tag)
         self._keywords_el['content'] = ', '.join(sorted(tags))
+        self.edited = True
 
     def _title(self):
         return self._title_el and self._title_el.get_text()
