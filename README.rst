@@ -15,7 +15,7 @@ It can assist with:
 - Templating
     - write `Mako <https://www.makotemplates.org/>`__ templates for quickly creating new notes
 - Organizing
-    - write rules in Python for mapping metadata to file paths
+    - write rules in Python for organizing directories based on file metadata or relations between files
 
 Philosophy
 ----------
