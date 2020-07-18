@@ -5,5 +5,6 @@ Contents
 
    index
    links
+   metadata
    cli
    development

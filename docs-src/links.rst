@@ -15,7 +15,7 @@ File type support
 Links **to** any type of file or folder can be detected, as long as the link is **from** a supported file type:
 
 - **Markdown**: links like ``[link text](path/to/file.xyz)`` are recognized, along with some but not all other syntaxes.
-  See :class:`notesdir.accessors.markdown.MarkdownAccessor` for moe details of what is supported.
+  See :class:`notesdir.accessors.markdown.MarkdownAccessor` for more details of what is supported.
 - **HTML**: links like ``<a href="path/to/file.xyz">link text</a>`` are recognized, along with references to resources in various elements like ``img``.
   See :class:`notesdir.accessors.html.HTMLAccessor` for more details of what is supported.
 
