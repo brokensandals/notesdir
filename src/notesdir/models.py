@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Set, Optional, Union, Iterable, List, Callable
+from typing import Set, Optional, Union, Iterable, List, Callable, Iterator
 from urllib.parse import urlparse, unquote_plus
 
 
@@ -281,6 +281,18 @@ class FileQuery:
             elif lower.startswith('-tag:'):
                 query.exclude_tags.update(unquote_plus(t) for t in lower[5:].split(','))
         return query
+
+    def apply_filtering(self, infos: Iterable[FileInfo]) -> Iterator[FileInfo]:
+        """Yields the entries from the given iterable which match the criteria of this query."""
+        for info in infos:
+            if not info:
+                # TODO should probably log a warning
+                continue
+            if self.include_tags and not self.include_tags.issubset(info.tags):
+                continue
+            if self.exclude_tags and not self.exclude_tags.isdisjoint(info.tags):
+                continue
+            yield info
 
 
 FileQueryIsh = Union[str, FileQuery]

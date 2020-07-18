@@ -233,16 +233,7 @@ class SqliteRepo(DirectRepo):
         #       the query as we reasonably can.
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
-        for (path,) in cursor:
-            info = self.info(Path(path), fields)
-            if not info:
-                # TODO log warning
-                continue
-            if query.include_tags and not query.include_tags.issubset(info.tags):
-                continue
-            if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):
-                continue
-            yield info
+        yield from query.apply_filtering(self.info(Path(path), fields) for (path,) in cursor)
 
     def change(self, edits: List[FileEditCmd]):
         try:

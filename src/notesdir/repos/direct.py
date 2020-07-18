@@ -84,15 +84,7 @@ class DirectRepo(Repo):
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
         query = FileQuery.parse(query)
-        for path in self._paths():
-            info = self.info(path, fields)
-            if not info:
-                continue
-            if query.include_tags and not query.include_tags.issubset(info.tags):
-                continue
-            if query.exclude_tags and not query.exclude_tags.isdisjoint(info.tags):
-                continue
-            yield info
+        yield from query.apply_filtering(self.info(path, fields) for path in self._paths())
 
     def tag_counts(self, query: FileQueryIsh = FileQuery()) -> Dict[str, int]:
         query = FileQuery.parse(query)
