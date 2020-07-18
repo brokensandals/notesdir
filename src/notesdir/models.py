@@ -291,7 +291,7 @@ class FileQuerySort:
         elif self.field == FileQuerySortField.TITLE:
             if info.title:
                 return info.title.lower() if self.ignore_case else info.title
-            return '' if self.missing_first else '\uffff'  # TODO probably not the best value to use
+            return '' if self.missing_first else chr(0x10ffff)
 
 
 @dataclass
