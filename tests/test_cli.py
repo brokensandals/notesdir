@@ -373,3 +373,11 @@ This is a test doc."""
     assert cli.main(['query', 'tag:has+space']) == 0
     out, err = capsys.readouterr()
     assert out
+
+
+def test_relink(fs):
+    nd_setup(fs)
+    path1 = Path('/notes/foo.md')
+    fs.create_file(path1, contents='I link to [bar](/notes/subdir1/bar.md#section)')
+    assert cli.main(['relink', '/notes/subdir1/bar.md', '/blah/baz.md']) == 0
+    assert path1.read_text() == 'I link to [bar](../blah/baz.md#section)'

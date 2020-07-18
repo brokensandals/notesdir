@@ -103,6 +103,11 @@ def _untag(args, nd: Notesdir) -> int:
     return 0
 
 
+def _relink(args, nd: Notesdir) -> int:
+    nd.replace_path_hrefs(args.old[0], args.new[0])
+    return 0
+
+
 def _query(args, nd: Notesdir) -> int:
     query = args.query or ''
     infos = [i for i in nd.repo.query(query) if i.path.is_file()]
@@ -253,6 +258,17 @@ def argparser() -> argparse.ArgumentParser:
                               help='Output as JSON. The output is an object whose keys are tags and whose values '
                                    'are the number of notes that matched the query and also possess that tag.')
     p_tags_count.set_defaults(func=_tags)
+
+    p_relink = subs.add_parser(
+        'relink',
+        help='Replace all links to one file with links to another. Note that this does not '
+             'currently replace links to children of the original path - e.g., if the '
+             'old path is "/foo/bar", a link to "/foo/bar/baz" will not be updated. '
+             'No files are moved, and this command does not care whether or not the old '
+             'or new paths refer to actual files.')
+    p_relink.add_argument('old', nargs=1)
+    p_relink.add_argument('new', nargs=1)
+    p_relink.set_defaults(func=_relink)
 
     return parser
 
