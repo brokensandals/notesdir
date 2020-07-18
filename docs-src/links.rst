@@ -80,3 +80,15 @@ Now your directory tree and files will look like this:
         one.md : "I link to [file two](subdir/newname.md)"
         subdir/
             newname.md : "I link to [file one](../one.md)"
+
+Replacing links
+---------------
+
+Sometimes you may want to replace links without moving any files.
+For example, if you convert an HTML file to Markdown, you would want to find all links to the old ``.html`` file and replace them with links to the new ``.md`` file.
+Use the ``relink`` command to do this.
+It does not move any files, or even care whether the old or new paths refer to real files.
+
+.. code-block:: bash
+
+   notesdir relink old.html new.md
