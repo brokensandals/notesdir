@@ -87,12 +87,6 @@ def _norm(args, nd: Notesdir) -> int:
     return 0
 
 
-def _tag(args, nd: Notesdir) -> int:
-    tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
-    nd.add_tags(tags, args.paths)
-    return 0
-
-
 def _tags(args, nd: Notesdir) -> int:
     query = args.query or ''
     counts = nd.repo.tag_counts(query)
@@ -104,12 +98,6 @@ def _tags(args, nd: Notesdir) -> int:
         table = AsciiTable(data)
         table.justify_columns[2] = 'right'
         print(table.table)
-    return 0
-
-
-def _untag(args, nd: Notesdir) -> int:
-    tags = {t.strip() for t in args.tags[0].lower().split(',') if t.strip()}
-    nd.remove_tags(tags, args.paths)
     return 0
 
 
@@ -253,20 +241,6 @@ def argparser() -> argparse.ArgumentParser:
              'and the best guess at creation date available from the filesystem.')
     p_norm.add_argument('path', help='File to normalize.', nargs=1)
     p_norm.set_defaults(func=_norm)
-
-    p_tags_add = subs.add_parser(
-        'tag',
-        help='Add tags to files (if not already present).')
-    p_tags_add.add_argument('tags', help='Comma-separated list of tags to add.', nargs=1)
-    p_tags_add.add_argument('paths', help='Files to add tags to.', nargs='+')
-    p_tags_add.set_defaults(func=_tag)
-
-    p_tags_rm = subs.add_parser(
-        'untag',
-        help='Remove tags from files (if present).')
-    p_tags_rm.add_argument('tags', help='Comma-separated list of tags to remove.', nargs=1)
-    p_tags_rm.add_argument('paths', help='Files to remove tags from.', nargs='+')
-    p_tags_rm.set_defaults(func=_untag)
 
     p_tags_count = subs.add_parser(
         'tags',

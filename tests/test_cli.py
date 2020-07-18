@@ -309,15 +309,6 @@ some text"""
     assert not out
 
 
-def test_tags(fs, capsys):
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foo.md')
-    assert cli.main(['tag', 'One,two, , three', 'foo.md']) == 0
-    assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- one\n- three\n- two\n...\n'
-    assert cli.main(['untag', 'oNe,tWo', 'foo.md']) == 0
-    assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- three\n...\n'
-
-
 def test_change(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/foo.md', contents='some text')

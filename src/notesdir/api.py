@@ -254,34 +254,6 @@ class Notesdir:
                 edits.append(SetCreatedCmd(path, created))
         self.repo.change(edits)
 
-    def add_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:
-        """Adds (if not already present) the given set of tags to each of the given files.
-
-        If some of the files are of unknown types or types for which tags are
-        not supported, an :exc:`notesdir.accessors.base.UnsupportedChangeError` will be raised. In that case,
-        the tags may or may not have been added to some or all of the other files.
-        """
-        paths = {Path(p) for p in paths}
-        for path in paths:
-            if not path.exists():
-                raise FileNotFoundError(f'File does not exist: {path}')
-            edits = [AddTagCmd(path, t.lower()) for t in tags]
-            self.repo.change(edits)
-
-    def remove_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:
-        """Removes (if present) the given set of tags from each of the given files.
-
-        If some of the files are of unknown types or types for which tags are
-        not supported, an :exc:`notesdir.accessors.base.UnsupportedChangeError` will be raised. In that case,
-        the tags may or may not have been removed from some or all of the other files.
-        """
-        paths = {Path(p) for p in paths}
-        for path in paths:
-            if not path.exists():
-                raise FileNotFoundError(f'File does not exist: {path}')
-            edits = [DelTagCmd(path, t.lower()) for t in tags]
-            self.repo.change(edits)
-
     def templates_by_name(self) -> Dict[str, Path]:
         """Returns paths of note templates that are known based on the config.
 
