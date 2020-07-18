@@ -5,11 +5,10 @@ The most important classes are :class:`FileInfo` , :class:`FileEditCmd` , and :c
 
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from pytz import UTC
 from typing import Set, Optional, Union, Iterable, List, Callable, Iterator, Tuple
 from urllib.parse import urlparse, unquote_plus
 
@@ -281,7 +280,7 @@ class FileQuerySort:
         elif self.field == FileQuerySortField.CREATED:
             created = info.created or (datetime(1,1,1) if self.missing_first else datetime(9999,12,31, 23, 59, 59, 999999))
             if not created.tzinfo:
-                created = created.replace(tzinfo=UTC)
+                created = created.replace(tzinfo=timezone.utc)
             return created
         elif self.field == FileQuerySortField.FILENAME:
             return info.path.name.lower() if self.ignore_case else info.path.name
