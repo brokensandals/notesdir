@@ -175,9 +175,8 @@ def argparser() -> argparse.ArgumentParser:
 
     p_q = subs.add_parser(
         'query',
-        help='Query for files. Currently, this only supports searching for files that include or exclude '
-             'specified tags. For example, the query "tag:journal,food -tag:personal" would list all '
-             'files that have both the "journal" tag and the "food" tag but do not have the "personal" tag.')
+        help='Query for files. For full query syntax, see the documentation of '
+             'notesdir.models.FileQuery.parse - an example query is "tag:foo sort:title,-created".')
     p_q.add_argument('query', nargs='?', help='Query string. If omitted, the query matches all files.')
     p_q.add_argument('-f', '--fields', nargs=1,
                      help=f'Comma-separated list of fields to show. {fields_help} Not all fields are shown by default.')

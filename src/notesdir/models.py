@@ -6,9 +6,10 @@ The most important classes are :class:`FileInfo` , :class:`FileEditCmd` , and :c
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import datetime
+from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Set, Optional, Union, Iterable, List, Callable, Iterator
+from typing import Set, Optional, Union, Iterable, List, Callable, Iterator, Tuple
 from urllib.parse import urlparse, unquote_plus
 
 
@@ -241,6 +242,55 @@ class MoveCmd(FileEditCmd):
     """The new filename."""
 
 
+class FileQuerySortField(Enum):
+    BACKLINKS_COUNT = 'backlinks'
+    CREATED = 'created'
+    FILENAME = 'filename'
+    PATH = 'path'
+    TAGS_COUNT = 'tags'
+    TITLE = 'title'
+
+
+@dataclass
+class FileQuerySort:
+    field: FileQuerySortField
+
+    reverse: bool = False
+    """If True, sort descending."""
+
+    ignore_case: bool = True
+    """If True, strings are sorted as if they were lower case."""
+
+    missing_first: bool = False
+    """Affects the behavior for None values and empty strings.
+    
+    If True, they should come before other values; if False, they should come after.
+    This definition is based on the assumption that reverse=False; when reverse=True, the ultimate result
+    will be the opposite.
+    """
+
+    def key(self, info: FileInfo) -> Union[str, int, datetime]:
+        """Returns sort key for the given file info for the :attr:`field` specified in this instance.
+
+        This is affected by the values of :attr:`ignore_case` and :attr:`missing_first`, but not the
+        value of :attr:`reverse`.
+        """
+        if self.field == FileQuerySortField.BACKLINKS_COUNT:
+            return len(info.backlinks)
+        elif self.field == FileQuerySortField.CREATED:
+            return info.created or (datetime(1,1,1) if self.missing_first else datetime(9999,12,31, 23, 59, 59, 999999))
+        elif self.field == FileQuerySortField.FILENAME:
+            return info.path.name.lower() if self.ignore_case else info.path.name
+        elif self.field == FileQuerySortField.PATH:
+            return str(info.path).lower() if self.ignore_case else str(info.path)
+        elif self.field == FileQuerySortField.TAGS_COUNT:
+            return len(info.tags)
+        elif self.field == FileQuerySortField.TITLE:
+            if info.title:
+                return info.title.lower() if self.ignore_case else info.title
+            return '' if self.missing_first else '\uffff'  # TODO probably not the best value to use
+
+
 @dataclass
 class FileQuery:
     """Represents criteria for searching for notes.
@@ -257,6 +307,14 @@ class FileQuery:
     exclude_tags: Set[str] = field(default_factory=set)
     """If non-empty, the query should only return files that have *none* of the specified tags."""
 
+    sort_by: List[FileQuerySort] = field(default_factory=list)
+    """Indicates how to sort the results.
+    
+    For example, ``[(FileQuerySort.BACKLINKS_COUNT, Order.DESC), (FileQuerySort.FILENAME, Order.ASC)]``
+    would sort the results so that the most-linked-to files appear first; files with equal numbers of backlinks
+    would be sorted lexicographically.
+    """
+
     @classmethod
     def parse(cls, strquery: FileQueryIsh) -> FileQuery:
         """Converts the parameter to a FileQuery, if it isn't one already.
@@ -265,6 +323,11 @@ class FileQuery:
 
         * ``tag:TAG1,TAG2`` - notes must include all the specified tags
         * ``-tag:TAG1,TAG2`` - notes must not include any of the specified tags
+        * ``sort:FIELD1,FIELD2`` - sort by the given fields
+            * fields on the left take higher priority, e.g. ``sort:created,title`` sorts by created date first
+            * a minus sign in front of a field name indicates to sort descending, e.g. ``sort:-backlinks`` or
+              ``sort:filename,-created``
+            * supported fields: ``backlinks`` (count), ``created``, ``filename``, ``tags`` (count) ``title``, ``path``
 
         Examples:
 
@@ -280,6 +343,15 @@ class FileQuery:
                 query.include_tags.update(unquote_plus(t) for t in lower[4:].split(','))
             elif lower.startswith('-tag:'):
                 query.exclude_tags.update(unquote_plus(t) for t in lower[5:].split(','))
+            elif lower.startswith('sort:'):
+                for sortstr in lower[5:].split(','):
+                    sort = FileQuerySort(FileQuerySortField.TITLE)  # placeholder value
+                    if sortstr.startswith('-'):
+                        sortstr = sortstr[1:]
+                        sort.reverse = True
+                    # TODO perhaps expose missing_first and ignore_case
+                    sort.field = FileQuerySortField(sortstr)
+                    query.sort_by.append(sort)
         return query
 
     def apply_filtering(self, infos: Iterable[FileInfo]) -> Iterator[FileInfo]:
@@ -293,6 +365,13 @@ class FileQuery:
             if self.exclude_tags and not self.exclude_tags.isdisjoint(info.tags):
                 continue
             yield info
+
+    def apply_sorting(self, infos: Iterable[FileInfo]) -> List[FileInfo]:
+        """Returns a copy of the given file info collection sorted using this query's sort_by."""
+        result = list(infos)
+        for sort in reversed(self.sort_by):
+            result.sort(key=lambda info: sort.key(info), reverse=sort.reverse)
+        return result
 
 
 FileQueryIsh = Union[str, FileQuery]

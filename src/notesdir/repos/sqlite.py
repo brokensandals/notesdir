@@ -233,7 +233,8 @@ class SqliteRepo(DirectRepo):
         #       the query as we reasonably can.
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
-        yield from query.apply_filtering(self.info(Path(path), fields) for (path,) in cursor)
+        filtered = query.apply_filtering(self.info(Path(path), fields) for (path,) in cursor)
+        yield from query.apply_sorting(filtered)
 
     def change(self, edits: List[FileEditCmd]):
         try:

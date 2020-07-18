@@ -88,6 +88,8 @@ def test_query(fs):
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3 -tag:tag4'))}
     assert paths == {Path('/notes/two.md')}
 
+    assert [i.path.name for i in repo.query('sort:filename')] == ['one.md', 'three.md', 'two.md']
+
 
 def test_tag_counts(fs):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')
