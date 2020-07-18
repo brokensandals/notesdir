@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import replace
+from datetime import datetime
 from glob import glob
 from pathlib import Path
 import re
@@ -63,7 +64,7 @@ class Notesdir:
        from notesdir.api import Notesdir
        with Notesdir.for_user() as nd:
            infos = nd.repo.query('tag:journal', 'path')
-           nd.add_tags({'personal'}, {info.path for info in infos})
+           nd.change({info.path for info in infos}, add_tags={'personal'})
     """
 
     @staticmethod
@@ -235,6 +236,23 @@ class Notesdir:
         final_moves = self.move(moves, into_dirs=False, check_exists=False,
                                 create_missing_dirs=True, delete_empty_dirs=True)
         return final_moves
+
+    def change(self, paths: Set[PathIsh], add_tags=Set[str], del_tags=Set[str], title=Optional[str],
+               created=Optional[datetime]) -> None:
+        """Applies all the specified changes to the specified paths.
+
+        This is a convenience method that wraps :meth:`notesdir.repos.base.Repo.change`
+        """
+        edits = []
+        for path in paths:
+            path = Path(path)
+            edits.extend(AddTagCmd(path, t.lower()) for t in add_tags)
+            edits.extend(DelTagCmd(path, t.lower()) for t in del_tags)
+            if title is not None:
+                edits.append(SetTitleCmd(path, title))
+            if created is not None:
+                edits.append(SetCreatedCmd(path, created))
+        self.repo.change(edits)
 
     def add_tags(self, tags: Set[str], paths: Set[PathIsh]) -> None:
         """Adds (if not already present) the given set of tags to each of the given files.

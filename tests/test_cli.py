@@ -318,6 +318,28 @@ def test_tags(fs, capsys):
     assert Path('/notes/cwd/foo.md').read_text() == '---\nkeywords:\n- three\n...\n'
 
 
+def test_change(fs, capsys):
+    nd_setup(fs)
+    fs.create_file('/notes/cwd/foo.md', contents='some text')
+    assert cli.main(['change', '-a', 'tag1,tag2', '-c', '2012-02-03', '-t', 'A Bland Note', 'foo.md']) == 0
+    assert Path('/notes/cwd/foo.md').read_text() == """---
+created: 2012-02-03 00:00:00
+keywords:
+- tag1
+- tag2
+title: A Bland Note
+...
+some text"""
+    assert cli.main(['change', '-d', 'tag1', '-t', 'A Better Note', 'foo.md']) == 0
+    assert Path('/notes/cwd/foo.md').read_text() == """---
+created: 2012-02-03 00:00:00
+keywords:
+- tag2
+title: A Better Note
+...
+some text"""
+
+
 def test_tags_count(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2')

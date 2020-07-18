@@ -3,6 +3,7 @@
 
 import argparse
 import dataclasses
+from datetime import datetime
 import json
 from operator import itemgetter, attrgetter
 from os.path import relpath
@@ -47,6 +48,15 @@ def _info(args, nd: Notesdir) -> int:
 
 def _new(args, nd: Notesdir) -> int:
     print(nd.new(args.template[0], args.dest))
+    return 0
+
+
+def _change(args, nd: Notesdir) -> int:
+    nd.change(set(args.paths),
+              add_tags={t.strip() for t in (args.add_tags or [''])[0].lower().split(',') if t.strip()},
+              del_tags={t.strip() for t in (args.del_tags or [''])[0].lower().split(',') if t.strip()},
+              title=args.title[0] if args.title else None,
+              created=datetime.fromisoformat(args.created[0]) if args.created else None)
     return 0
 
 
@@ -198,6 +208,16 @@ def argparser() -> argparse.ArgumentParser:
                      help='Suggested destination filename. This may be overridden by the template, or adjusted '
                           'if it conflicts with an existing file. A filename will be selected for you if omitted.')
     p_c.set_defaults(func=_new)
+
+    p_change = subs.add_parser('change', help='Update metadata of the specified files.')
+    p_change.add_argument('paths', nargs='+', help='Files to update.')
+    p_change.add_argument('-a', '--add-tags', nargs=1,
+                          help='Comma-separated list of tags to add (if not already present).')
+    p_change.add_argument('-d', '--del-tags', nargs=1,
+                          help='Comma-separated list of tags to remove (if present).')
+    p_change.add_argument('-t', '--title', nargs=1, help='New title for files')
+    p_change.add_argument('-c', '--created', nargs=1, help='New created datetime for files, in ISO8601 format')
+    p_change.set_defaults(func=_change)
 
     p_mv = subs.add_parser(
         'mv',
