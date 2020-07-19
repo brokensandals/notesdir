@@ -15,7 +15,7 @@ def test_init():
 def test_info_unknown(fs):
     fs.create_file('/notes/one.md', contents='Hello')
     repo = config().instantiate()
-    assert repo.info(Path('/notes/two.md')) == FileInfo(Path('/notes/two.md'))
+    assert repo.info('/notes/two.md') == FileInfo('/notes/two.md')
 
 
 def test_info_and_referrers(fs):
@@ -24,9 +24,9 @@ title: A Note
 created: 2012-01-02 03:04:05
 ...
 I link to [two](two.md) and [three](../otherdir/three.md#heading) and have #two #tags."""
-    path1 = Path('/notes/dir/one.md')
-    path2 = Path('/notes/dir/two.md')
-    path3 = Path('/notes/otherdir/three.md')
+    path1 = '/notes/dir/one.md'
+    path2 = '/notes/dir/two.md'
+    path3 = '/notes/otherdir/three.md'
     fs.create_file(path1, contents=doc)
     fs.create_file(path2, contents='---\ntitle: Note 2\n...\n')
     repo = config().instantiate()
@@ -46,8 +46,8 @@ I link to [two](two.md) and [three](../otherdir/three.md#heading) and have #two 
 
 def test_duplicate_links(fs):
     doc = """I link to [two](two.md) [two](two.md) times."""
-    path1 = Path('/notes/one.md')
-    path2 = Path('/notes/two.md')
+    path1 = '/notes/one.md'
+    path2 = '/notes/two.md'
     fs.create_file(path1, contents=doc)
     repo = config().instantiate()
     assert repo.info(path1).links == [LinkInfo(path1, 'two.md'), LinkInfo(path1, 'two.md')]
@@ -56,14 +56,14 @@ def test_duplicate_links(fs):
 
 def test_invalidate(fs):
     repo = config().instantiate()
-    path = Path('/notes/one.md')
+    path = '/notes/one.md'
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path)
     fs.create_file(path, contents='#hello [link](foo.md)')
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path)
     repo.invalidate()
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path, tags={'hello'}, links=[LinkInfo(path, 'foo.md')])
     repo.invalidate()
-    path.write_text('#goodbye')
+    Path(path).write_text('#goodbye')
     repo.invalidate()
     assert repo.info(path, FileInfoReq.full()) == FileInfo(path, tags={'goodbye'})
 
@@ -74,21 +74,21 @@ def test_query(fs):
     fs.create_file('/notes/three.md', contents='#tag1 #tag3 #tag4')
     repo = config().instantiate()
     paths = {i.path for i in repo.query(FileQuery())}
-    assert paths == {Path('/notes/one.md'), Path('/notes/two.md'), Path('/notes/three.md')}
+    assert paths == {'/notes/one.md', '/notes/two.md', '/notes/three.md'}
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3'))}
-    assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
+    assert paths == {'/notes/two.md', '/notes/three.md'}
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag1,tag4'))}
-    assert paths == {Path('/notes/one.md'), Path('/notes/three.md')}
+    assert paths == {'/notes/one.md', '/notes/three.md'}
     assert not list(repo.query(FileQuery.parse('tag:bogus')))
     paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2'))}
-    assert paths == {Path('/notes/two.md'), Path('/notes/three.md')}
+    assert paths == {'/notes/two.md', '/notes/three.md'}
     paths = {i.path for i in repo.query(FileQuery.parse('-tag:tag2,tag4'))}
-    assert paths == {Path('/notes/two.md')}
+    assert paths == {'/notes/two.md'}
     assert not list(repo.query(FileQuery.parse('-tag:tag1')))
     paths = {i.path for i in repo.query(FileQuery.parse('tag:tag3 -tag:tag4'))}
-    assert paths == {Path('/notes/two.md')}
+    assert paths == {'/notes/two.md'}
 
-    assert [i.path.name for i in repo.query('sort:filename')] == ['one.md', 'three.md', 'two.md']
+    assert [Path(i.path).name for i in repo.query('sort:filename')] == ['one.md', 'three.md', 'two.md']
 
 
 def test_tag_counts(fs):
@@ -102,9 +102,9 @@ def test_tag_counts(fs):
 
 def test_change(fs):
     fs.cwd = '/notes'
-    path1 = Path('/notes/one.md')
-    path2 = Path('/notes/two.md')
-    path3 = Path('/notes/moved.md')
+    path1 = '/notes/one.md'
+    path2 = '/notes/two.md'
+    path3 = '/notes/moved.md'
     fs.create_file(path1, contents='[1](old)')
     fs.create_file(path2, contents='[2](foo)')
     edits = [SetTitleCmd(path1, 'New Title'),
@@ -113,43 +113,18 @@ def test_change(fs):
              ReplaceHrefCmd(path2, 'foo', 'bar')]
     repo = config().instantiate()
     repo.change(edits)
-    assert not path1.exists()
-    assert path3.read_text() == '---\ntitle: New Title\n...\n[1](new)'
-    assert path2.read_text() == '[2](bar)'
+    assert not Path(path1).exists()
+    assert Path(path3).read_text() == '---\ntitle: New Title\n...\n[1](new)'
+    assert Path(path2).read_text() == '[2](bar)'
     assert repo.info(path1, FileInfoReq.full()) == FileInfo(path1)
     assert repo.info(path3, FileInfoReq.full()) == FileInfo(path3, title='New Title', links=[LinkInfo(path3, 'new')])
     assert repo.info(path2, FileInfoReq.full()) == FileInfo(path2, links=[LinkInfo(path2, 'bar')])
-    assert repo.info(Path('old'), FileInfoReq.full()) == FileInfo(Path('/notes/old'))
-    assert repo.info(Path('foo'), FileInfoReq.full()) == FileInfo(Path('/notes/foo'))
-    assert repo.info(Path('new'), FileInfoReq.full()) == FileInfo(Path('/notes/new'),
-                                                                  backlinks=[LinkInfo(path3, 'new')])
-    assert repo.info(Path('bar'), FileInfoReq.full()) == FileInfo(Path('/notes/bar'),
-                                                                  backlinks=[LinkInfo(path2, 'bar')])
+    assert repo.info('old', FileInfoReq.full()) == FileInfo('/notes/old')
+    assert repo.info('foo', FileInfoReq.full()) == FileInfo('/notes/foo')
+    assert repo.info('new', FileInfoReq.full()) == FileInfo('/notes/new', backlinks=[LinkInfo(path3, 'new')])
+    assert repo.info('bar', FileInfoReq.full()) == FileInfo('/notes/bar', backlinks=[LinkInfo(path2, 'bar')])
     # regression test for bug where invalidate removed entries for files that were referred to
     # only by files that had not been changed
     repo.invalidate()
-    assert repo.info(Path('new'), FileInfoReq.full()) == FileInfo(Path('/notes/new'),
-                                                                  backlinks=[LinkInfo(path3, 'new')])
-    assert repo.info(Path('bar'), FileInfoReq.full()) == FileInfo(Path('/notes/bar'),
-                                                                  backlinks=[LinkInfo(path2, 'bar')])
-
-
-def test_skip_parse(fs):
-    path1 = Path('/notes/one.md')
-    path2 = Path('/notes/skip.md')
-    path3 = Path('/notes/moved.md')
-    fs.create_file(path1, contents='I have #tags and a [link](skip.md).')
-    fs.create_file(path2, contents='I #also have #tags.')
-    conf = config()
-    conf.skip_parse = lambda p: p.stem == 'skip'
-    repo = conf.instantiate()
-    assert repo.info(path1, FileInfoReq.full()) == FileInfo(path1, tags={'tags'}, links=[LinkInfo(path1, 'skip.md')])
-    assert repo.info(path2, FileInfoReq.full()) == FileInfo(path2, backlinks=[LinkInfo(path1, 'skip.md')])
-    assert repo.info(path3, FileInfoReq.full()) == FileInfo(path3)
-    assert not list(repo.query(FileQuery(include_tags={'also'})))
-    repo.change([ReplaceHrefCmd(path1, original='skip.md', replacement='moved.md'), MoveCmd(path2, path3)])
-    assert repo.info(path1, FileInfoReq.full()) == FileInfo(path1, tags={'tags'}, links=[LinkInfo(path1, 'moved.md')])
-    assert repo.info(path2, FileInfoReq.full()) == FileInfo(path2)
-    assert repo.info(path3, FileInfoReq.full()) == FileInfo(
-        path3, tags={'also', 'tags'}, backlinks=[LinkInfo(path1, 'moved.md')])
-    assert list(repo.query(FileQuery(include_tags={'also'}))) == [repo.info(path3)]
+    assert repo.info('new', FileInfoReq.full()) == FileInfo('/notes/new', backlinks=[LinkInfo(path3, 'new')])
+    assert repo.info('bar', FileInfoReq.full()) == FileInfo('/notes/bar', backlinks=[LinkInfo(path2, 'bar')])
