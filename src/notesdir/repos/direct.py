@@ -32,8 +32,11 @@ class DirectRepo(Repo):
     def _should_skip_parse(self, path: Path) -> bool:
         return any(self.conf.skip_parse(p) for p in reversed(path.parents)) or self.conf.skip_parse(path)
 
-    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
-        path = Path(path).resolve()
+    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal(),
+             path_resolved=False) -> FileInfo:
+        path = Path(path)
+        if not path_resolved:
+            path = path.resolve()
         fields = FileInfoReq.parse(fields)
 
         if self._should_skip_parse(path) or not path.exists():
@@ -74,6 +77,8 @@ class DirectRepo(Repo):
         for child in path.iterdir():
             if self.conf.ignore(child):
                 continue
+            if child.is_symlink():
+                continue
             if child.is_dir():
                 yield from self._paths_in(child)
             else:
@@ -84,7 +89,7 @@ class DirectRepo(Repo):
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
         query = FileQuery.parse(query)
-        filtered = query.apply_filtering(self.info(path, fields) for path in self._paths())
+        filtered = query.apply_filtering(self.info(path, fields, path_resolved=True) for path in self._paths())
         yield from query.apply_sorting(filtered)
 
     def tag_counts(self, query: FileQueryIsh = FileQuery()) -> Dict[str, int]:

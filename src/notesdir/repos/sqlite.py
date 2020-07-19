@@ -119,7 +119,7 @@ class SqliteRepo(DirectRepo):
                     and row.stat_mtime == stat.st_mtime
                     and row.stat_size == stat.st_size):
                 continue
-            info = super().info(path)
+            info = super().info(path, path_resolved=True)
             if row:
                 file_id = row.id
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))
@@ -194,13 +194,15 @@ class SqliteRepo(DirectRepo):
         # TODO support `only`
         self._needs_refresh = True
 
-    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
+    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal(), path_resolved=False) -> FileInfo:
         self._refresh_if_needed()
-        path = Path(path).resolve()
+        path = Path(path)
+        if not path_resolved:
+            path = path.resolve()
         fields = FileInfoReq.parse(fields)
         cursor = self.connection.cursor()
         cursor.execute('SELECT id, title, created FROM files WHERE path = ?',
-                       (str(path.resolve()),))
+                       (str(path),))
         file_row = cursor.fetchone()
         info = FileInfo(path)
         if file_row:
@@ -233,7 +235,7 @@ class SqliteRepo(DirectRepo):
         #       the query as we reasonably can.
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
-        filtered = query.apply_filtering(self.info(Path(path), fields) for (path,) in cursor)
+        filtered = query.apply_filtering(self.info(Path(path), fields, path_resolved=True) for (path,) in cursor)
         yield from query.apply_sorting(filtered)
 
     def change(self, edits: List[FileEditCmd]):
