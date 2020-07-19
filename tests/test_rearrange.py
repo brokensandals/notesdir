@@ -8,126 +8,126 @@ from notesdir.rearrange import href_path, path_as_href, edits_for_rearrange
 
 
 def test_ref_path_same_file():
-    src = Path('foo/bar')
-    dest = Path('foo/bar')
-    assert href_path(src, dest) == Path('bar')
+    src = 'foo/bar'
+    dest = 'foo/bar'
+    assert href_path(src, dest) == 'bar'
 
 
 def test_ref_path_same_dir():
-    src = Path('foo/bar')
-    dest = Path('foo/baz')
-    assert href_path(src, dest) == Path('baz')
+    src = 'foo/bar'
+    dest = 'foo/baz'
+    assert href_path(src, dest) == 'baz'
 
 
 def test_ref_path_sibling_descendant():
-    src = Path('foo/bar')
-    dest = Path('foo/baz/meh')
-    assert href_path(src, dest) == Path('baz/meh')
+    src = 'foo/bar'
+    dest = 'foo/baz/meh'
+    assert href_path(src, dest) == 'baz/meh'
 
 
 def test_ref_path_common_ancestor():
-    src = Path('foo/bar/baz')
-    dest = Path('foo/meh')
-    assert href_path(src, dest) == Path('../meh')
+    src = 'foo/bar/baz'
+    dest = 'foo/meh'
+    assert href_path(src, dest) == '../meh'
 
 
 def test_ref_path_root_is_only_common_ancestor():
-    src = Path('/foo/bar')
-    dest = Path('/baz/meh')
-    assert href_path(src, dest) == Path('../baz/meh')
+    src = '/foo/bar'
+    dest = '/baz/meh'
+    assert href_path(src, dest) == '../baz/meh'
 
 
 def test_ref_path_root_is_only_common_ancestor_relative(fs):
-    src = Path('foo/bar')
-    dest = Path('baz/meh')
+    src = 'foo/bar'
+    dest = 'baz/meh'
     fs.cwd = '/'
-    assert href_path(src, dest) == Path('../baz/meh')
+    assert href_path(src, dest) == '../baz/meh'
 
 
 def test_ref_path_child():
-    src = Path('foo')
-    dest = Path('foo/bar')
-    assert href_path(src, dest) == Path('foo/bar')
+    src = 'foo'
+    dest = 'foo/bar'
+    assert href_path(src, dest) == 'foo/bar'
 
 
 def test_ref_path_parent():
-    src = Path('foo/bar')
-    dest = Path('foo')
-    assert href_path(src, dest) == Path('.')
+    src = 'foo/bar'
+    dest = 'foo'
+    assert href_path(src, dest) == '.'
 
 
 def test_ref_path_relative_to_absolute(fs):
-    src = Path('foo/bar')
-    dest = Path('/somewhere/beta/file')
+    src = 'foo/bar'
+    dest = '/somewhere/beta/file'
     fs.cwd = '/somewhere/alpha'
-    assert href_path(src, dest) == Path('../../beta/file')
+    assert href_path(src, dest) == '../../beta/file'
 
 
 def test_ref_path_absolute_to_relative(fs):
-    src = Path('/somewhere/beta/file')
-    dest = Path('foo/bar')
+    src = '/somewhere/beta/file'
+    dest = 'foo/bar'
     fs.cwd = '/somewhere/alpha'
-    assert href_path(src, dest) == Path('../alpha/foo/bar')
+    assert href_path(src, dest) == '../alpha/foo/bar'
 
 
 def test_ref_path_symlinks(fs):
-    src = Path('/foo/bar/baz')
-    dest = Path('/whatever/hello')
+    src = '/foo/bar/baz'
+    dest = '/whatever/hello'
     fs.create_symlink('/whatever', '/foo/meh')
-    assert href_path(src, dest) == Path('../meh/hello')
+    assert href_path(src, dest) == '../meh/hello'
 
 
 def test_ref_path_symlinks_relative(fs):
-    src = Path('foo/bar/baz')
-    dest = Path('whatever/hello')
+    src = 'foo/bar/baz'
+    dest = 'whatever/hello'
     fs.create_symlink('/cwd/whatever', '/cwd/foo/meh')
     fs.cwd = '/cwd'
-    assert href_path(src, dest) == Path('../meh/hello')
+    assert href_path(src, dest) == '../meh/hello'
 
 
 def test_path_as_ref_absolute():
-    assert path_as_href(Path('/foo/bar/baz')) == '/foo/bar/baz'
+    assert path_as_href('/foo/bar/baz') == '/foo/bar/baz'
 
 
 def test_path_as_ref_relative():
-    assert path_as_href(Path('../bar/baz')) == '../bar/baz'
+    assert path_as_href('../bar/baz') == '../bar/baz'
 
 
 def test_path_as_ref_absolute_into_url():
     parts = urlparse('/foo/bar/baz#f?k=v')
-    assert path_as_href(Path('/meh/ok'), parts) == '/meh/ok#f?k=v'
+    assert path_as_href('/meh/ok', parts) == '/meh/ok#f?k=v'
 
 
 def test_path_as_ref_relative_into_url():
     parts = urlparse('/foo/bar/baz#f?k=v')
-    assert path_as_href(Path('../meh/ok'), parts) == '../meh/ok#f?k=v'
+    assert path_as_href('../meh/ok', parts) == '../meh/ok#f?k=v'
 
 
 def test_path_as_ref_absolute_into_url_with_scheme():
     parts = urlparse('file://localhost/foo/bar/baz')
-    assert path_as_href(Path('/meh/ok'), parts) == 'file://localhost/meh/ok'
+    assert path_as_href('/meh/ok', parts) == 'file://localhost/meh/ok'
 
 
 def test_path_as_ref_relative_into_url_with_scheme():
     parts = urlparse('file://localhost/foo/bar/baz')
     with pytest.raises(ValueError):
-        path_as_href(Path('../meh/ok'), parts)
+        path_as_href('../meh/ok', parts)
 
 
 def test_path_as_ref_special_characters():
-    assert path_as_href(Path('/a dir/a file!.md')) == '/a%20dir/a%20file%21.md'
+    assert path_as_href('/a dir/a file!.md') == '/a%20dir/a%20file%21.md'
 
 
 def test_path_as_ref_special_characters_into_url():
     parts = urlparse('/foo/bar/baz#f?k=v')
-    assert path_as_href(Path('/a dir/a file!.md'), parts) == '/a%20dir/a%20file%21.md#f?k=v'
+    assert path_as_href('/a dir/a file!.md', parts) == '/a%20dir/a%20file%21.md#f?k=v'
 
 
 def test_rearrange_selfreference(fs):
     doc = 'I link to [myself](one.md).'
     fs.create_file('/notes/one.md', contents=doc)
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
-    repo.change(edits_for_rearrange(repo, {Path('/notes/one.md'): Path('/notes/two.md')}))
+    repo.change(edits_for_rearrange(repo, {'/notes/one.md': '/notes/two.md'}))
     assert not Path('/notes/one.md').exists()
     assert Path('/notes/two.md').exists()
     assert Path('/notes/two.md').read_text() == 'I link to [myself](two.md).'
@@ -140,8 +140,8 @@ def test_rearrange_mutual(fs):
     fs.create_file('/notes/two.md', contents=doc2)
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     repo.change(edits_for_rearrange(repo, {
-        Path('/notes/one.md'): Path('/notes/three.md'),
-        Path('/notes/two.md'): Path('/notes/four.md')
+        '/notes/one.md': '/notes/three.md',
+        '/notes/two.md': '/notes/four.md'
     }))
     assert not Path('/notes/one.md').exists()
     assert not Path('/notes/two.md').exists()
@@ -159,8 +159,8 @@ def test_rearrange_mutual_subdirs(fs):
     Path('/notes/subdir2').mkdir()
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     repo.change(edits_for_rearrange(repo, {
-        Path('/notes/subdir1/one.md'): Path('/notes/one.md'),
-        Path('/notes/two.md'): Path('/notes/subdir2/two.md')
+        '/notes/subdir1/one.md': '/notes/one.md',
+        '/notes/two.md': '/notes/subdir2/two.md'
     }))
     assert not Path('/notes/subdir1/one.md').exists()
     assert not Path('/notes/two.md').exists()
@@ -177,8 +177,8 @@ def test_rearrange_swap(fs):
     fs.create_file('/notes/two.md', contents=doc2)
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     repo.change(edits_for_rearrange(repo, {
-        Path('/notes/one.md'): Path('/notes/two.md'),
-        Path('/notes/two.md'): Path('/notes/one.md')
+        '/notes/one.md': '/notes/two.md',
+        '/notes/two.md': '/notes/one.md'
     }))
     assert Path('/notes/one.md').exists()
     assert Path('/notes/two.md').exists()
@@ -194,7 +194,7 @@ def test_rearrange_special_characters(fs):
     Path('/notes/subdir').mkdir()
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     repo.change(edits_for_rearrange(repo, {
-        Path('/notes/first doc!.md'): Path('/notes/subdir/new loc!.md')}))
+        '/notes/first doc!.md': '/notes/subdir/new loc!.md'}))
     assert not Path('/notes/first doc!.md').exists()
     assert Path('/notes/second doc!.md').exists()
     assert Path('/notes/subdir/new loc!.md').exists()
@@ -213,7 +213,7 @@ def test_rearrange_folder(fs):
     Path('/notes/wrapper').mkdir()
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     repo.change(edits_for_rearrange(repo, {
-        Path('/notes/dir'): Path('/notes/wrapper/newdir')}))
+        '/notes/dir': '/notes/wrapper/newdir'}))
     assert not Path('/notes/dir').exists()
     assert Path('/notes/one.md').read_text() == 'I link to [two](wrapper/newdir/two.md).'
     assert Path('/notes/wrapper/newdir/two.md').read_text() == 'I link to [three](subdir/three.md).'

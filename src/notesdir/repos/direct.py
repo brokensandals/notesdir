@@ -36,7 +36,7 @@ class DirectRepo(Repo):
             path = os.path.abspath(path)
         fields = FileInfoReq.parse(fields)
 
-        if not path.exists():
+        if not os.path.exists(path):
             info = FileInfo(path)
         else:
             info = self.accessor_factory(path).info()
@@ -52,7 +52,7 @@ class DirectRepo(Repo):
         for group in _group_edits(edits):
             if isinstance(group[0], MoveCmd):
                 for edit in group:
-                    edit.path.rename(edit.dest)
+                    os.rename(edit.path, edit.dest)
             else:
                 acc = self.accessor_factory(group[0].path)
                 for edit in group:
