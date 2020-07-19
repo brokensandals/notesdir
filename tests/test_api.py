@@ -19,7 +19,7 @@ def test_for_user(fs):
 conf = NotesdirConf(repo_conf=DirectRepoConf(root_paths={'/notes'}))"""
     fs.create_file(os.path.expanduser('~/.notesdir.conf.py'), contents=confpy)
     nd = Notesdir.for_user()
-    assert nd.conf == config().normalize()
+    assert nd.conf == config().standardize()
 
 
 def test_replace_path_refs(fs):

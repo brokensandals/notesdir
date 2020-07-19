@@ -109,7 +109,7 @@ class RepoConf:
     def instantiate(self):
         raise NotImplementedError("Please use a subclass like SqliteRepoConf instead!")
 
-    def normalize(self):
+    def standardize(self):
         return replace(
             self,
             root_paths={os.path.realpath(p) for p in self.root_paths}
@@ -121,7 +121,7 @@ class DirectRepoConf(RepoConf):
     """Configures notesdir to access notes without caching, via :class:`notesdir.repos.DirectRepo`."""
     def instantiate(self):
         from notesdir.repos.direct import DirectRepo
-        return DirectRepo(self.normalize())
+        return DirectRepo(self.standardize())
 
 
 @dataclass
@@ -137,7 +137,7 @@ class SqliteRepoConf(DirectRepoConf):
 
     def instantiate(self):
         from notesdir.repos.sqlite import SqliteRepo
-        return SqliteRepo(self.normalize())
+        return SqliteRepo(self.standardize())
 
 
 @dataclass
@@ -154,7 +154,7 @@ class NotesdirConf:
     path_organizer: Callable[[FileInfo], str] = lambda info: info.path
     """Defines the rule for rewriting paths used by the ``org`` command and :meth:`notesdir.api.Notesdir.organize`.
 
-    You can use this to normalize filenames or to organize your files via tags, date, or other criteria.
+    You can use this to standardize filenames or to organize your files via tags, date, or other criteria.
 
     For example, the following converts all filenames to lowercase versions of the note title (if any):
     
@@ -202,12 +202,12 @@ class NotesdirConf:
                             f'in your config file: {path}')
         return context['conf']
 
-    def normalize(self):
+    def standardize(self):
         return replace(
             self,
-            repo_conf=self.repo_conf.normalize()
+            repo_conf=self.repo_conf.standardize()
         )
 
     def instantiate(self):
         from notesdir.api import Notesdir
-        return Notesdir(self.normalize())
+        return Notesdir(self.standardize())

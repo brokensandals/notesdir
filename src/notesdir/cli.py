@@ -237,7 +237,7 @@ def argparser() -> argparse.ArgumentParser:
         help='Normalize a file. This checks that the title and created date metadata have been stored in '
              'the file in the manner appropriate to its file type. If not, they are updated using the filename '
              'and the best guess at creation date available from the filesystem.')
-    p_norm.add_argument('path', help='File to normalize.', nargs=1)
+    p_norm.add_argument('path', help='File to standardize.', nargs=1)
     p_norm.set_defaults(func=_norm)
 
     p_tags_count = subs.add_parser(

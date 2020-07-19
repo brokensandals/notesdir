@@ -47,7 +47,7 @@ class Notesdir:
     Generally, you should get an instance using the :meth:`Notesdir.for_user` method. Call :meth:`close` when you're
     done with it, or else use it as a context manager.
 
-    This class contains various methods such as :meth:`Notesdir.move` and :meth:`Notesdir.normalize`
+    This class contains various methods such as :meth:`Notesdir.move` and :meth:`Notesdir.standardize`
     for performing high-level operations. The :attr:`repo` attribute, which is an instance of
     :class:`notesdir.repos.base.Repo`, provides additional operations, some lower-level.
 
@@ -290,7 +290,7 @@ class Notesdir:
         Raises :exc:`FileNotFoundError` if the template cannot be found.
 
         If dest is not given, a target file name will be generated. Regardless, the :meth:`Notesdir.norm` method
-        will be used to normalize the final filename.
+        will be used to standardize the final filename.
 
         The following names are defined in the template's namespace:
 

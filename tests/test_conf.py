@@ -1,4 +1,3 @@
-from pathlib import Path
 from notesdir.conf import default_ignore, resource_path_fn, rewrite_name_using_title
 from notesdir.models import FileInfo
 
