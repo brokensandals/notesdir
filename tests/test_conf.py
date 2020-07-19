@@ -19,32 +19,33 @@ def test_default_ignore():
 
 
 def test_resource_path_fn():
-    assert resource_path_fn(Path('/foo/bar/baz')) is None
+    assert resource_path_fn('/foo/bar/baz') is None
     # the next case shouldn't really come up since we don't call path_organizer on directories
-    assert resource_path_fn(Path('/foo/bar/baz.resources')) is None
-    assert resource_path_fn(Path('/foo/bar/baz')) is None
-    # the next case seems irrelevant
-    assert resource_path_fn(Path('/foo/bar/.resources/baz')) is None
+    assert resource_path_fn('/foo/bar/baz.resources') is None
+    assert resource_path_fn('/foo/bar/baz') is None
+    # the next case probably isn't good behavior, but it seems unimportant; leaving this
+    # test case as documentation of the current behavior
+    assert resource_path_fn('/foo/bar/.resources/baz')
 
-    result = resource_path_fn(Path('/foo/bar.resources/baz'))
-    assert result.determinant == Path('/foo/bar')
-    assert result.fn(FileInfo(Path('/somewhere/else'))) == Path('/somewhere/else.resources/baz')
-    assert result.fn(FileInfo(Path('/foo/bar'))) == Path('/foo/bar.resources/baz')
-    assert result.fn(FileInfo(Path('/foo/bar.md'))) == Path('/foo/bar.md.resources/baz')
+    result = resource_path_fn('/foo/bar.resources/baz')
+    assert result.determinant == '/foo/bar'
+    assert result.fn(FileInfo('/somewhere/else')) == '/somewhere/else.resources/baz'
+    assert result.fn(FileInfo('/foo/bar')) == '/foo/bar.resources/baz'
+    assert result.fn(FileInfo('/foo/bar.md')) == '/foo/bar.md.resources/baz'
 
-    result = resource_path_fn(Path('/foo/My File.md.resources/subdir/My Picture.png'))
-    assert result.determinant == Path('/foo/My File.md')
-    assert result.fn(FileInfo(Path('/foo/My File.md'))) == Path('/foo/My File.md.resources/subdir/My Picture.png')
-    assert result.fn(FileInfo(Path('/file.md'))) == Path('/file.md.resources/subdir/My Picture.png')
+    result = resource_path_fn('/foo/My File.md.resources/subdir/My Picture.png')
+    assert result.determinant == '/foo/My File.md'
+    assert result.fn(FileInfo('/foo/My File.md')) == '/foo/My File.md.resources/subdir/My Picture.png'
+    assert result.fn(FileInfo('/file.md')) == '/file.md.resources/subdir/My Picture.png'
 
 
 def test_rewrite_name_using_title():
     def call(p, t):
-        return rewrite_name_using_title(FileInfo(path=Path(p), title=t))
+        return rewrite_name_using_title(FileInfo(path=p, title=t))
 
-    assert call('/notes/Foo Bar.md', None) == Path('/notes/Foo Bar.md')
-    assert call('/notes/Foo Bar.md', 'Foo Bar') == Path('/notes/foo-bar.md')
-    assert call('/notes/blah.html', '-+-+Awesome  Document#1000!!!') == Path('/notes/awesome-document-1000.html')
+    assert call('/notes/Foo Bar.md', None) == '/notes/Foo Bar.md'
+    assert call('/notes/Foo Bar.md', 'Foo Bar') == '/notes/foo-bar.md'
+    assert call('/notes/blah.html', '-+-+Awesome  Document#1000!!!') == '/notes/awesome-document-1000.html'
     assert (call('/notes/blah.md', '01234567890123456789012345678901234567890123456789012345678901234567')
-            == Path('/notes/012345678901234567890123456789012345678901234567890123456789.md'))
-    assert call('/notes/blah.md', 'hi 😀 love you') == Path('/notes/hi-love-you.md')
+            == '/notes/012345678901234567890123456789012345678901234567890123456789.md')
+    assert call('/notes/blah.md', 'hi 😀 love you') == '/notes/hi-love-you.md'

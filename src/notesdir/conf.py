@@ -1,7 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
 import os.path
-from pathlib import Path
 import re
 from typing import Callable, Set, Optional
 from notesdir.models import FileInfo, DependentPathFn
@@ -11,7 +10,7 @@ def default_ignore(parentpath: str, filename: str) -> bool:
     return filename.startswith('.') or filename.endswith('.icloud')
 
 
-def resource_path_fn(path: Path) -> Optional[DependentPathFn]:
+def resource_path_fn(path: str) -> Optional[DependentPathFn]:
     """Enables moving files in ``.resources`` directories when the owner moves.
 
     This is meant for use in a :attr:`NotesdirConf.path_organizer` if you'd like to follow the convention of
@@ -31,19 +30,23 @@ def resource_path_fn(path: Path) -> Optional[DependentPathFn]:
            # put the rest of your organizer rules here
        conf.path_organizer = my_path_organizer
     """
-    for ancestor in path.parents:
-        if ancestor.suffix == '.resources':
-            owner = ancestor.with_suffix('')
+    prev = path
+    ancestor = os.path.dirname(path)
+    while ancestor and not ancestor == prev:
+        if ancestor.endswith('.resources'):
+            owner = ancestor[:-10]
 
-            def mkpath(info: FileInfo) -> Path:
-                resdir = info.path.with_name(f'{info.path.name}.resources')
-                return resdir.joinpath(path.relative_to(ancestor))
+            def mkpath(info: FileInfo) -> str:
+                resdir = f'{info.path}.resources'
+                return os.path.join(resdir, os.path.relpath(path, ancestor))
 
             return DependentPathFn(owner, mkpath)
+        prev = ancestor
+        ancestor = os.path.dirname(ancestor)
     return None
 
 
-def rewrite_name_using_title(info: FileInfo) -> Path:
+def rewrite_name_using_title(info: FileInfo) -> str:
     """If the given info has a title, returns an updated path using that title.
 
     The following adjustments are made:
@@ -66,11 +69,13 @@ def rewrite_name_using_title(info: FileInfo) -> Path:
     This is meant to be used as, or as part of, a :attr:`NotesdirConf.path_organizer`.
     """
     if info.title:
+        parent, filename = os.path.split(info.path)
+        suffix = os.path.splitext(filename)[1]
         title = info.title.lower()[:60]
         title = re.sub(r'[^a-z0-9]', '-', title)
         title = re.sub(r'-+', '-', title)
         title = title.strip('-')
-        return info.path.with_name(f'{title}{info.path.suffix}')
+        return os.path.join(parent, f'{title}{suffix}')
     else:
         return info.path
 
@@ -85,19 +90,6 @@ class RepoConf:
     Must not be empty.
     """
 
-    skip_parse: Callable[[str, str], bool] = lambda path: False
-    """Use this to indicate files that should not be parsed.
-    
-    The first argument is the path to the directory containing the file, and the second argument is the filename.
-    
-    Unlike :attr:`ignore`, backlinks are still calculated for these files, they can still be returned by queries,
-    and when moving them notesdir will still attempt to update links to them in other files.
-    
-    If this returns True for a path, that return value applies for all the child paths too.
-    
-    Nothing is skipped by default.
-    """
-
     ignore: Callable[[str, str], bool] = default_ignore
     """Use this to indicate files or folders that should not be processed by notesdir at all.
     
@@ -110,8 +102,6 @@ class RepoConf:
     The ``mv`` command may still move these files when explicitly instructed to do so or when moving a directory
     containing them.
     
-    See also :attr:`skip_parse`.
-    
     The current default behavior is to ignore all files or folders whose name begins with a period (``.``), and also
     ``.icloud`` files.
     """
@@ -122,7 +112,7 @@ class RepoConf:
     def normalize(self):
         return replace(
             self,
-            root_paths={os.path.abspath(p) for p in self.root_paths}
+            root_paths={os.path.realpath(p) for p in self.root_paths}
         )
 
 
@@ -138,7 +128,7 @@ class DirectRepoConf(RepoConf):
 class SqliteRepoConf(DirectRepoConf):
     """Configures notesdir to access notes with caching, via :class:`notesdir.repos.SqliteRepo`."""
 
-    cache_path: PathIsh = None
+    cache_path: str = None
     """Required. Path where the SQLite database file should be stored.
     
     The file will be created if it does not exist.
@@ -161,7 +151,7 @@ class NotesdirConf:
     This is used for the CLI command ``new``, and template-related methods of :class:`notesdir.api.Notesdir`.
     """
 
-    path_organizer: Callable[[FileInfo], PathIsh] = lambda info: info.path
+    path_organizer: Callable[[FileInfo], str] = lambda info: info.path
     """Defines the rule for rewriting paths used by the ``org`` command and :meth:`notesdir.api.Notesdir.organize`.
 
     You can use this to normalize filenames or to organize your files via tags, date, or other criteria.
@@ -170,10 +160,13 @@ class NotesdirConf:
     
     .. code-block:: python
     
+       import os.path
        def path_organizer(info):
+           dirname, filename = os.path.split(info.path)
+           suffix = os.path.splitext(filename)[1]
            if info.title:
-               return info.path.with_name(info.title.lower() + info.path.suffix.lower())
-           return info.path.with_name(info.path.name.lower())
+               return os.path.join(dirname, into.title.lower() + suffix)
+           return os.path.join(dirname, filename.lower())
 
        conf.path_organizer = path_organizer
     
@@ -197,11 +190,13 @@ class NotesdirConf:
 
     @classmethod
     def for_user(cls) -> NotesdirConf:
-        path = Path.home().joinpath('.notesdir.conf.py')
-        if not path.exists():
+        path = os.path.expanduser(os.path.join('~', '.notesdir.conf.py'))
+        if not os.path.exists(path):
             raise Exception(f'You need to create the config file: {path}')
+        with open(path, 'r') as file:
+            conf_script = file.read()
         context = {}
-        exec(Path.home().joinpath('.notesdir.conf.py').read_text(), context)
+        exec(conf_script, context)
         if 'conf' not in context or not isinstance(context['conf'], cls):
             raise Exception('You need to assign an instance of NotesdirConf to the variable `conf` '
                             f'in your config file: {path}')
