@@ -5,12 +5,17 @@ from notesdir.models import FileInfo
 
 def test_default_ignore():
     assert default_ignore(Path('.git'))
-    assert default_ignore(Path('/foo/.git/bar'))
+    assert default_ignore(Path('/foo/.git'))
     assert default_ignore(Path('/foo/bar.icloud'))
 
     assert not default_ignore(Path('/foo/bar'))
     assert not default_ignore(Path('/foo/baz.git/bar'))
     assert not default_ignore(Path('/foo/icloud.md'))
+    # The following path should be ignored, but default_ignore in isolation
+    # will not detect it, for performance reasons. DirectRepo._paths will still
+    # ignore the file, since default_ignore returns True for /foo/.git as a whole,
+    # causing the directory to be skipped.
+    assert not default_ignore(Path('/foo/.git/bar'))
 
 
 def test_resource_path_fn():

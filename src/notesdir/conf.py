@@ -7,7 +7,7 @@ from notesdir.models import FileInfo, PathIsh, DependentPathFn
 
 
 def default_ignore(path: Path) -> bool:
-    return path.name.startswith('.') or any(p.name.startswith('.') for p in path.parents) or path.suffix == '.icloud'
+    return path.name.startswith('.') or path.suffix == '.icloud'
 
 
 def resource_path_fn(path: Path) -> Optional[DependentPathFn]:
