@@ -128,3 +128,20 @@ def test_change(fs):
     repo.invalidate()
     assert repo.info('new', FileInfoReq.full()) == FileInfo('/notes/new', backlinks=[LinkInfo(path3, 'new')])
     assert repo.info('bar', FileInfoReq.full()) == FileInfo('/notes/bar', backlinks=[LinkInfo(path2, 'bar')])
+
+
+def test_ignore(fs):
+    path1 = '/notes/one.md'
+    path2 = '/notes/.two.md'
+    fs.create_file(path1, contents='I link to [two](.two.md)')
+    fs.create_file(path2, contents='I link to [one](one.md)')
+    with config().instantiate() as repo:
+        assert list(repo.query()) == [repo.info(path1)]
+        assert not repo.info(path1, FileInfoReq.full()).backlinks
+        assert repo.info(path2, FileInfoReq.full()).backlinks == [LinkInfo(path1, '.two.md')]
+    conf = config()
+    conf.ignore = lambda _1, _2: False
+    with conf.instantiate() as repo:
+        assert list(repo.query()) == [repo.info(path1), repo.info(path2)]
+        assert repo.info(path1, FileInfoReq.full()).backlinks == [LinkInfo(path2, 'one.md')]
+        assert repo.info(path2, FileInfoReq.full()).backlinks == [LinkInfo(path1, '.two.md')]

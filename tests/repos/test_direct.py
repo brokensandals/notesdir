@@ -95,6 +95,8 @@ def test_ignore(fs):
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     assert list(repo.query()) == [repo.info(path1)]
     assert not repo.info(path1, FileInfoReq.full()).backlinks
+    assert repo.info(path2, FileInfoReq.full()).backlinks == [LinkInfo(path1, '.two.md')]
     repo.conf.ignore = lambda _1, _2: False
     assert list(repo.query()) == [repo.info(path1), repo.info(path2)]
     assert repo.info(path1, FileInfoReq.full()).backlinks == [LinkInfo(path2, 'one.md')]
+    assert repo.info(path2, FileInfoReq.full()).backlinks == [LinkInfo(path1, '.two.md')]

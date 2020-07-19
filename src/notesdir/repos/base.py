@@ -4,7 +4,6 @@ The most important class is :class:`Repo`.
 """
 
 from datetime import datetime
-from pathlib import Path
 from typing import Dict, List, Iterator, Set
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\

@@ -100,7 +100,7 @@ class RepoConf:
     will be parsed, or returned in any queries, or affected by the ``org`` command.
     
     The ``mv`` command may still move these files when explicitly instructed to do so or when moving a directory
-    containing them.
+    containing them, and the ``info`` command will still show backlinks from other (non-ignored) files.
     
     The current default behavior is to ignore all files or folders whose name begins with a period (``.``), and also
     ``.icloud`` files.
