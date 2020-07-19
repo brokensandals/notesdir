@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime
 from glob import glob
-from pathlib import Path
+import os.path
 import re
 from typing import Dict, Set, Optional
 from mako.template import Template
@@ -15,23 +15,25 @@ from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, Fi
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
-def _find_available_name(dest: Path, also_unavailable: Set[Path], src: Path = None) -> Path:
-    parts = dest.name.split('.', 1)
+def _find_available_name(dest: str, also_unavailable: Set[str], src: str = None) -> str:
+    dirname, basename = os.path.split(dest)
+    parts = basename.split('.', 1)
     if len(parts) > 1:
         suffix = f'.{parts[1]}'
     else:
         suffix = ''
-    while dest in also_unavailable or dest.exists():
+    while dest in also_unavailable or os.path.exists(dest):
         if src:
             # HACK: This is so that if `organize` has to attach a UUID to the end of a
             # filename because of a conflict, it will try to assign the same UUID next time around.
-            if src.name == f'{parts[0]}{src.name[len(parts[0]):len(parts[0])+23]}{suffix}':
-                dest = dest.with_name(src.name)
+            srcname = os.path.split(src)[1]
+            if srcname == f'{parts[0]}{srcname[len(parts[0]):len(parts[0])+23]}{suffix}':
+                dest = os.path.join(dirname, srcname)
                 if src == dest:
                     break
                 src = None
                 continue
-        dest = dest.with_name(f'{parts[0]}_{shortuuid.uuid()}{suffix}')
+        dest = os.path.join(dirname, f'{parts[0]}_{shortuuid.uuid()}{suffix}')
     return dest
 
 
@@ -79,7 +81,7 @@ class Notesdir:
         self.conf = conf
         self.repo = conf.repo_conf.instantiate()
 
-    def replace_path_hrefs(self, original: PathIsh, replacement: PathIsh) -> None:
+    def replace_path_hrefs(self, original: str, replacement: str) -> None:
         """Finds and replaces links to the original path with links to the new path.
 
         Note that this does not currently replace links to children of the original path - e.g.,
@@ -89,7 +91,6 @@ class Notesdir:
         refer to actual files.
         """
         info = self.repo.info(original, FileInfoReq(path=True, backlinks=True))
-        replacement = Path(replacement)
         edits = []
         for link in info.backlinks:
             # TODO group links from the same referrer for this call
@@ -97,8 +98,8 @@ class Notesdir:
         if edits:
             self.repo.change(edits)
 
-    def move(self, moves: Dict[PathIsh], *, into_dirs=True, check_exists=True,
-             create_missing_dirs=False, delete_empty_dirs=False) -> Dict[Path, Path]:
+    def move(self, moves: Dict[str, str], *, into_dirs=True, check_exists=True,
+             create_missing_dirs=False, delete_empty_dirs=False) -> Dict[str, str]:
         """Moves files/directories and updates references to/from them appropriately.
 
         moves is a dict where the keys are source paths that should be moved, and the values are the destinations.
@@ -120,7 +121,6 @@ class Notesdir:
 
         Returns a dict mapping paths of files that were moved, to their final paths.
         """
-        moves = {Path(src): Path(dest) for src, dest in moves.items()}
         moves = {k: v for k, v in moves.items() if not k == v}
         if not moves:
             return {}
@@ -128,32 +128,38 @@ class Notesdir:
         final_moves = {}
         unavailable = set()
         for src, dest in moves.items():
-            if not src.exists():
+            if not os.path.exists(src):
                 raise FileNotFoundError(f'File does not exist: {src}')
-            if dest.is_dir():
-                dest = dest.joinpath(src.name)
+            if os.path.isdir(dest):
+                srcname = os.path.split(src)[1]
+                dest = os.path.join(dest, srcname)
 
             dest = _find_available_name(dest, unavailable, src) if check_exists else dest
             final_moves[src] = dest
             unavailable.add(dest)
             if create_missing_dirs:
-                dest.parent.mkdir(exist_ok=True, parents=True)
+                parent = os.path.split(dest)[0]
+                os.makedirs(parent, exist_ok=True)
 
         edits = edits_for_rearrange(self.repo, final_moves)
         self.repo.change(edits)
 
         if delete_empty_dirs:
             for src in final_moves.keys():
-                path = src.parent
-                while (path not in [Path.root, Path.cwd, path.parent]
-                       and ((not path.exists()) or not sum(1 for _ in path.iterdir()))):
-                    if path.exists():
-                        path.rmdir()
-                    path = path.parent
+                cwd = os.getcwd()
+                prev = src
+                path = os.path.split(src)[0]
+                while path not in [cwd, prev]:
+                    if os.path.exists(path):
+                        if sum(1 for _ in os.listdir(path)):
+                            break
+                        os.rmdir(path)
+                    prev = path
+                    path = os.path.split(src)[0]
 
         return final_moves
 
-    def normalize(self, path: PathIsh) -> None:
+    def normalize(self, path: str) -> None:
         """Updates metadata to adhere to conventions.
 
         If the file does not have a title, one is set based on the filename.
@@ -161,8 +167,7 @@ class Notesdir:
         If the file does not have created set in its metadata, it is set
         based on the birthtime or ctime of the file.
         """
-        path = Path(path)
-        if not path.exists():
+        if not os.path.exists(path):
             raise FileNotFoundError(f'File does not exist: {path}')
         info = self.repo.info(path)
         if not info:
@@ -170,7 +175,9 @@ class Notesdir:
 
         edits = []
 
-        title = info.title or path.stem
+        dirname, basename = os.path.split(path)
+        stem, ext = os.path.splitext(basename)
+        title = info.title or stem
         if not title == info.title:
             edits.append(SetTitleCmd(path, title))
 
@@ -180,7 +187,7 @@ class Notesdir:
         if edits:
             self.repo.change(edits)
 
-    def organize(self) -> Dict[Path, Path]:
+    def organize(self) -> Dict[str, str]:
         """Reorganizes files using the function set in :attr:`notesdir.conf.NotesdirConf.path_organizer`.
 
         For every file in your note directories (defined by :attr:`notesdir.conf.RepoConf.root_paths`), this
@@ -200,29 +207,29 @@ class Notesdir:
         info_map = {}
         unavailable = set()
         for info in infos:
-            if not info.path.is_file():
+            if not os.path.isfile(info.path):
                 continue
             info_map[info.path] = info
             dest = self.conf.path_organizer(info)
             if isinstance(dest, DependentPathFn):
                 move_fns[info.path] = dest
             else:
-                dest = Path(self.conf.path_organizer(info))
+                dest = self.conf.path_organizer(info)
                 if info.path == dest:
                     continue
                 dest = _find_available_name(dest, unavailable, info.path)
                 moves[info.path] = dest
                 unavailable.add(dest)
 
-        def process_fn(src: Path):
+        def process_fn(src: str):
             dpfn = move_fns[src]
-            determinant = Path(dpfn.determinant).resolve()
+            determinant = dpfn.determinant
             dinfo = info_map.get(determinant, FileInfo(determinant))
             if determinant in move_fns:
                 process_fn(determinant)
             if determinant in moves:
                 dinfo = replace(dinfo, path=moves[determinant])
-            srcdest = Path(dpfn.fn(dinfo))
+            srcdest = dpfn.fn(dinfo)
             del move_fns[src]
             if src == srcdest:
                 return
@@ -237,7 +244,7 @@ class Notesdir:
                                 create_missing_dirs=True, delete_empty_dirs=True)
         return final_moves
 
-    def change(self, paths: Set[PathIsh], add_tags=Set[str], del_tags=Set[str], title=Optional[str],
+    def change(self, paths: Set[str], add_tags=Set[str], del_tags=Set[str], title=Optional[str],
                created=Optional[datetime]) -> None:
         """Applies all the specified changes to the specified paths.
 
@@ -245,7 +252,6 @@ class Notesdir:
         """
         edits = []
         for path in paths:
-            path = Path(path)
             edits.extend(AddTagCmd(path, t.lower()) for t in add_tags)
             edits.extend(DelTagCmd(path, t.lower()) for t in del_tags)
             if title is not None:
@@ -254,33 +260,32 @@ class Notesdir:
                 edits.append(SetCreatedCmd(path, created))
         self.repo.change(edits)
 
-    def templates_by_name(self) -> Dict[str, Path]:
+    def templates_by_name(self) -> Dict[str, str]:
         """Returns paths of note templates that are known based on the config.
 
         The name is the part of the filename before any `.` character. If multiple templates
         have the same name, the one whose path is lexicographically first will appear in the dict.
         """
-        paths = [Path(p) for g in self.conf.template_globs for p in glob(g, recursive=True) if Path(p).is_file()]
+        paths = [p for g in self.conf.template_globs for p in glob(g, recursive=True) if os.path.isfile(p)]
         paths.sort()
-        return {p.name.split('.')[0].lower(): p for p in paths}
+        return {os.path.split(p)[1].split('.')[0].lower(): p for p in paths}
 
-    def template_for_name(self, name: str) -> Optional[Path]:
+    def template_for_name(self, name: str) -> Optional[str]:
         """Returns the path to the template for the given name, if one is found.
 
         If treating the name as a relative or absolute path leads to a file, that file is used.
         Otherwise, the name is looked up from :meth:`Notesdir.templates_by_name`, case-insensitively.
         Returns None if a matching template cannot be found.
         """
-        path = Path(name)
-        if path.is_file():
-            return path
+        if os.path.isfile(name):
+            return name
         else:
             return self.templates_by_name().get(name.lower())
 
-    def new(self, template_name: PathIsh, dest: PathIsh = None) -> Path:
+    def new(self, template_name: str, dest: str = None) -> str:
         """Creates a new file using the specified template.
 
-        If the template name is a str, it will be looked up using template_for_name.
+        The template name will be looked up using :meth:`template_for-name`.
 
         Raises :exc:`FileNotFoundError` if the template cannot be found.
 
@@ -295,18 +300,21 @@ class Notesdir:
 
         Returns the path of the created file.
         """
-        template_path = self.template_for_name(template_name) if isinstance(template_name, str) else Path(template_name)
-        if not (template_path and template_path.is_file()):
+        template_path = self.template_for_name(template_name)
+        if not (template_path and os.path.isfile(template_path)):
             raise FileNotFoundError(f'Template does not exist: {template_name}')
-        template = Template(filename=str(template_path.resolve()))
-        td = TemplateDirectives(dest=Path(dest) if dest is not None else None)
+        template = Template(filename=os.path.abspath(template_path))
+        td = TemplateDirectives(dest=dest if dest is not None else None)
         content = template.render(nd=self, directives=td, template_path=template_path)
         if not td.dest:
-            name, suffix = template_path.name.split('.', 1)[:2]
+            dirname, basename = os.path.split(template_path)
+            name, suffix = basename.split('.', 1)[:2]
             suffix = re.sub(r'[\.^]mako', '', suffix)
-            td.dest = Path(f'{name}.{suffix}')
+            td.dest = f'{name}.{suffix}'
+        td.dest = os.path.realpath(td.dest)
         td.dest = _find_available_name(td.dest, set())
-        td.dest.write_text(content)
+        with open(td.dest, 'w') as file:
+            file.write(content)
         changed = {td.dest}
         self.repo.invalidate(changed)
         self.normalize(td.dest)

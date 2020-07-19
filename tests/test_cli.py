@@ -74,7 +74,7 @@ Nothing to see here, move along."""
     fs.create_file('/notes/templates/simple.md.mako', contents=template)
     assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
-    assert out == 'simple.md\n'
+    assert out == '/notes/cwd/simple.md\n'
     assert Path('/notes/cwd/simple.md').read_text() == """---
 created: 2012-05-02 03:04:05
 title: Testing in May 2012
@@ -82,7 +82,7 @@ title: Testing in May 2012
 Nothing to see here, move along."""
     assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
-    assert out == 'simple_uuid1.md\n'
+    assert out == '/notes/cwd/simple_uuid1.md\n'
     assert Path('/notes/cwd/simple_uuid1.md').exists()
 
     template2 = """All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
@@ -91,14 +91,17 @@ Nothing to see here, move along."""
     fs.create_file('/notes/two.md', contents='#green #bright-green #best-green')
     assert cli.main(['new', '../other-template.md.mako', 'tags.md']) == 0
     out, err = capsys.readouterr()
-    assert out == 'tags.md\n'
+    assert out == '/notes/cwd/tags.md\n'
     assert Path('/notes/cwd/tags.md').read_text() == """---
 created: 2012-05-02 03:04:05
 title: tags
 ...
 All current tags: best-green, bright-green, green, happy, melancholy, sad"""
 
-    template3 = """<% directives.dest = template_path.parent.parent.joinpath('cool-note.md') %>"""
+    template3 = """<%
+    from pathlib import Path
+    directives.dest = Path(template_path).parent.parent.joinpath('cool-note.md')
+%>"""
     fs.create_file('/notes/templates/self-namer.md.mako', contents=template3)
     assert cli.main(['new', 'self-namer', 'unimportant.md']) == 0
     out, err = capsys.readouterr()
@@ -177,7 +180,7 @@ def test_org_no_function(fs, capsys):
 def test_org_simple(fs, capsys, mocker):
     mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     nd_setup(fs, extra_conf="""
-conf.path_organizer = lambda info: info.path.with_name(info.path.name.replace('hi', 'hello'))
+conf.path_organizer = lambda info: info.path.replace('hi', 'hello')
 """)
     path1 = Path('/notes/cwd/one.md')
     path2 = Path('/notes/cwd/two.md')
@@ -211,7 +214,9 @@ conf.path_organizer = lambda info: info.path.with_name(info.path.name.replace('h
 
 def test_org_dirs(fs, capsys):
     nd_setup(fs, extra_conf="""
-conf.path_organizer = lambda info: f'/notes/{sorted(info.tags)[0] if info.tags else "untagged"}/{info.path.name}'
+import os.path
+conf.path_organizer =\
+    lambda info: f'/notes/{sorted(info.tags)[0] if info.tags else "untagged"}/{os.path.split(info.path)[1]}'
 """)
     path1 = Path('/notes/cwd/one.md')
     path2 = Path('/notes/cwd/two.md')
@@ -219,7 +224,8 @@ conf.path_organizer = lambda info: f'/notes/{sorted(info.tags)[0] if info.tags e
     fs.create_file(path2, contents='I link to [one](one.md).')
     assert cli.main(['org']) == 0
     capsys.readouterr()
-    assert not any(p for p in [Path.cwd(), path1, path2] if p.exists())
+    assert Path.cwd().exists()
+    assert [p for p in [path1, path2] if p.exists()] == []
     path3 = Path('/notes/untagged/one.md')
     path4 = Path('/notes/untagged/two.md')
     assert path3.read_text() == 'I link to [two](two.md).'

@@ -6,8 +6,7 @@ import dataclasses
 from datetime import datetime
 import json
 from operator import itemgetter, attrgetter
-from os.path import relpath
-from pathlib import Path
+import os.path
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
 from notesdir.models import FileInfoReq, FileInfo
@@ -61,11 +60,11 @@ def _change(args, nd: Notesdir) -> int:
 
 
 def _mv(args, nd: Notesdir) -> int:
-    src = Path(args.src[0])
-    dest = Path(args.dest[0])
+    src = args.src[0]
+    dest = args.dest[0]
     moves = nd.move({src: dest})
     if args.json:
-        print(json.dumps({str(k): str(v) for k, v in moves.items()}))
+        print(json.dumps(moves))
     elif not moves == {src: dest}:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
@@ -108,7 +107,7 @@ def _relink(args, nd: Notesdir) -> int:
 
 def _query(args, nd: Notesdir) -> int:
     query = args.query or ''
-    infos = [i for i in nd.repo.query(query) if i.path.is_file()]
+    infos = [i for i in nd.repo.query(query) if os.path.isfile(i.path)]
     if args.fields:
         fields = FileInfoReq.parse(args.fields[0])
     else:
@@ -122,7 +121,7 @@ def _query(args, nd: Notesdir) -> int:
         for info in infos:
             row = ()
             if fields.path:
-                row += (info.path.name,)
+                row += (os.path.basename(info.path),)
             if fields.title:
                 row += (info.title or '',)
             if fields.created:
@@ -130,9 +129,9 @@ def _query(args, nd: Notesdir) -> int:
             if fields.tags:
                 row += ('\n'.join(sorted(info.tags)),)
             if fields.links:
-                row += ('\n'.join(sorted({str(relpath(link.referent())) for link in info.links if link.referent()})),)
+                row += ('\n'.join(sorted({os.path.relpath(link.referent()) for link in info.links if link.referent()})),)
             if fields.backlinks:
-                row += ('\n'.join(sorted({str(relpath(link.referrer)) for link in info.backlinks})),)
+                row += ('\n'.join(sorted({os.path.relpath(link.referrer) for link in info.backlinks})),)
             data.append(row)
         data.sort(key=itemgetter(0))
         heading = ()
