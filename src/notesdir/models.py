@@ -44,7 +44,7 @@ class LinkInfo:
                 referent = unquote_plus(url.path)
                 if not os.path.isabs(referent):
                     referent = os.path.join(self.referrer, '..', referent)
-                return os.path.abspath(referent)
+                return os.path.realpath(referent)
         except ValueError:
             # not a valid URL
             return None

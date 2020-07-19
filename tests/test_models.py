@@ -1,50 +1,50 @@
 from datetime import datetime
-from pathlib import Path
+import os.path
 
 from notesdir.models import FileQuery, FileInfoReq, LinkInfo, FileQuerySort, FileQuerySortField, FileInfo
 
 
 def test_referent_skips_invalid_urls():
-    assert LinkInfo(Path('foo'), 'file://no[').referent() is None
+    assert LinkInfo('foo', 'file://no[').referent() is None
 
 
 def test_referent_skips_non_file_schemes():
-    assert LinkInfo(Path('foo'), 'http:///bar').referent() is None
+    assert LinkInfo('foo', 'http:///bar').referent() is None
 
 
 def test_referent_skips_non_local_hosts():
-    assert LinkInfo(Path('foo'), 'file://example.com/bar').referent() is None
+    assert LinkInfo('foo', 'file://example.com/bar').referent() is None
 
 
 def test_referent_matches_absolute_paths():
-    assert LinkInfo(Path('foo'), '/bar').referent() == Path('/bar')
-    assert LinkInfo(Path('foo'), 'file:///bar').referent() == Path('/bar')
-    assert LinkInfo(Path('foo'), 'file://localhost/bar').referent() == Path('/bar')
+    assert LinkInfo('foo', '/bar').referent() == '/bar'
+    assert LinkInfo('foo', 'file:///bar').referent() == '/bar'
+    assert LinkInfo('foo', 'file://localhost/bar').referent() == '/bar'
 
 
 def test_referent_matches_relative_paths():
-    assert LinkInfo(Path('/baz/foo'), 'bar').referent() == Path('/baz/bar')
+    assert LinkInfo('/baz/foo', 'bar').referent() == '/baz/bar'
 
 
 def test_referent_resolves_symlinks(fs):
     fs.cwd = '/cwd'
     fs.create_symlink('/cwd/bar', '/cwd/target')
-    assert LinkInfo(Path('foo'), 'bar/baz').referent() == Path('/cwd/target/baz')
+    assert LinkInfo('foo', 'bar/baz').referent() == '/cwd/target/baz'
 
 
 def test_referent_ignores_query_and_fragment():
-    assert LinkInfo(Path('/foo'), 'bar#baz').referent() == Path('/bar')
-    assert LinkInfo(Path('/foo'), 'bar?baz').referent() == Path('/bar')
+    assert LinkInfo('/foo', 'bar#baz').referent() == '/bar'
+    assert LinkInfo('/foo', 'bar?baz').referent() == '/bar'
 
 
 def test_referent_resolves_relative_to_referrer(fs):
     fs.cwd = '/meh'
-    assert LinkInfo(Path('/foo/bar'), 'baz').referent() == Path('../foo/baz').resolve()
+    assert LinkInfo('/foo/bar', 'baz').referent() == os.path.realpath('../foo/baz')
 
 
 def test_referent_handles_special_characters():
-    assert LinkInfo(Path('/foo'), 'hi%20there%21').referent() == Path('/hi there!')
-    assert LinkInfo(Path('/foo'), 'hi+there%21').referent() == Path('/hi there!')
+    assert LinkInfo('/foo', 'hi%20there%21').referent() == '/hi there!'
+    assert LinkInfo('/foo', 'hi+there%21').referent() == '/hi there!'
 
 
 def test_parse_query():
@@ -59,13 +59,13 @@ def test_parse_query():
 
 def test_apply_sorting():
     data = [
-        FileInfo(Path('/a/one'), tags={'baz'},
-                 backlinks=[LinkInfo(referrer=Path('whatever'), href='whatever')]),
-        FileInfo(Path('/b/two'), title='Beta', created=datetime(2010, 1, 15)),
-        FileInfo(Path('/c/Three'), title='Gamma', created=datetime(2012, 1, 9),
-                 backlinks=[LinkInfo(referrer=Path('whatever'), href='whatever'),
-                            LinkInfo(referrer=Path('whatever'), href='whatever')]),
-        FileInfo(Path('/d/four'), title='delta', created=datetime(2012, 1, 9), tags={'foo', 'bar'})
+        FileInfo('/a/one', tags={'baz'},
+                 backlinks=[LinkInfo(referrer='whatever', href='whatever')]),
+        FileInfo('/b/two', title='Beta', created=datetime(2010, 1, 15)),
+        FileInfo('/c/Three', title='Gamma', created=datetime(2012, 1, 9),
+                 backlinks=[LinkInfo(referrer='whatever', href='whatever'),
+                            LinkInfo(referrer='whatever', href='whatever')]),
+        FileInfo('/d/four', title='delta', created=datetime(2012, 1, 9), tags={'foo', 'bar'})
     ]
 
     assert FileQuery.parse('sort:path').apply_sorting(data) == data
