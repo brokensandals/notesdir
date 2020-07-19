@@ -4,11 +4,11 @@ from collections import namedtuple
 from datetime import datetime
 import dataclasses
 from operator import attrgetter
-from pathlib import Path
+import os.path
 import sqlite3
 from typing import List, Iterator, Set
 from notesdir.conf import SqliteRepoConf
-from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh, PathIsh,\
+from notesdir.models import FileInfo, FileEditCmd, FileInfoReq, FileQuery, FileQueryIsh, FileInfoReqIsh,\
     LinkInfo
 from notesdir.repos.direct import DirectRepo
 
@@ -110,16 +110,16 @@ class SqliteRepo(DirectRepo):
         ids_by_path = {}
         links_to_add = []
 
-        for path in self._paths():
-            pathstr = str(path)
+        for entry in self._paths():
+            pathstr = entry.path
             found_paths.add(pathstr)
-            stat = path.stat()
+            stat = entry.stat()
             row = prior_rows_by_path.get(pathstr)
             if (row and row.stat_ctime == stat.st_ctime
                     and row.stat_mtime == stat.st_mtime
                     and row.stat_size == stat.st_size):
                 continue
-            info = super().info(path, path_resolved=True)
+            info = super().info(pathstr, path_resolved=True)
             if row:
                 file_id = row.id
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))
@@ -190,19 +190,17 @@ class SqliteRepo(DirectRepo):
         if self._needs_refresh:
             self._refresh()
 
-    def invalidate(self, only: Set[PathIsh] = None) -> None:
+    def invalidate(self, only: Set[str] = None) -> None:
         # TODO support `only`
         self._needs_refresh = True
 
-    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal(), path_resolved=False) -> FileInfo:
+    def info(self, path: str, fields: FileInfoReqIsh = FileInfoReq.internal(), path_resolved=False) -> FileInfo:
         self._refresh_if_needed()
-        path = Path(path)
         if not path_resolved:
-            path = path.resolve()
+            path = os.path.abspath(path)
         fields = FileInfoReq.parse(fields)
         cursor = self.connection.cursor()
-        cursor.execute('SELECT id, title, created FROM files WHERE path = ?',
-                       (str(path),))
+        cursor.execute('SELECT id, title, created FROM files WHERE path = ?', (path,))
         file_row = cursor.fetchone()
         info = FileInfo(path)
         if file_row:
@@ -221,7 +219,7 @@ class SqliteRepo(DirectRepo):
                                '  INNER JOIN file_links ON referrers.id = file_links.referrer_id'
                                ' WHERE file_links.referent_id = ?',
                                (file_id,))
-                info.backlinks = [LinkInfo(Path(referrer), href) for referrer, href in cursor]
+                info.backlinks = [LinkInfo(referrer, href) for referrer, href in cursor]
                 info.backlinks.sort(key=attrgetter('referrer', 'href'))
         return info
 
@@ -235,7 +233,7 @@ class SqliteRepo(DirectRepo):
         #       the query as we reasonably can.
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
-        filtered = query.apply_filtering(self.info(Path(path), fields, path_resolved=True) for (path,) in cursor)
+        filtered = query.apply_filtering(self.info(path, fields, path_resolved=True) for (path,) in cursor)
         yield from query.apply_sorting(filtered)
 
     def change(self, edits: List[FileEditCmd]):

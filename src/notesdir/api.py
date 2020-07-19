@@ -10,7 +10,7 @@ from typing import Dict, Set, Optional
 from mako.template import Template
 import shortuuid
 from notesdir.conf import NotesdirConf
-from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, PathIsh, TemplateDirectives,\
+from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, TemplateDirectives,\
     DependentPathFn, FileInfo
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 

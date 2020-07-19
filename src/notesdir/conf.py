@@ -1,13 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
+import os.path
 from pathlib import Path
 import re
 from typing import Callable, Set, Optional
-from notesdir.models import FileInfo, PathIsh, DependentPathFn
+from notesdir.models import FileInfo, DependentPathFn
 
 
-def default_ignore(path: Path) -> bool:
-    return path.name.startswith('.') or path.suffix == '.icloud'
+def default_ignore(parentpath: str, filename: str) -> bool:
+    return filename.startswith('.') or filename.endswith('.icloud')
 
 
 def resource_path_fn(path: Path) -> Optional[DependentPathFn]:
@@ -78,14 +79,16 @@ def rewrite_name_using_title(info: FileInfo) -> Path:
 class RepoConf:
     """Base class for repo config. Use a subclass such as :class:`SqliteRepoConf`."""
 
-    root_paths: Set[PathIsh]
+    root_paths: Set[str]
     """The folders that should be searched (recursively) when querying for notes, finding backlinks, etc.
     
     Must not be empty.
     """
 
-    skip_parse: Callable[[Path], bool] = lambda path: False
+    skip_parse: Callable[[str, str], bool] = lambda path: False
     """Use this to indicate files that should not be parsed.
+    
+    The first argument is the path to the directory containing the file, and the second argument is the filename.
     
     Unlike :attr:`ignore`, backlinks are still calculated for these files, they can still be returned by queries,
     and when moving them notesdir will still attempt to update links to them in other files.
@@ -95,8 +98,11 @@ class RepoConf:
     Nothing is skipped by default.
     """
 
-    ignore: Callable[[Path], bool] = default_ignore
+    ignore: Callable[[str, str], bool] = default_ignore
     """Use this to indicate files or folders that should not be processed by notesdir at all.
+    
+    The first argument is the path to the directory containing the file/folder, and the second argument is
+    the filename.
     
     If this function returns True for a given path, neither that path nor any of its child paths
     will be parsed, or returned in any queries, or affected by the ``org`` command.
@@ -116,7 +122,7 @@ class RepoConf:
     def normalize(self):
         return replace(
             self,
-            root_paths={Path(p).resolve() for p in self.root_paths}
+            root_paths={os.path.abspath(p) for p in self.root_paths}
         )
 
 

@@ -11,8 +11,8 @@ def test_info_garbage(fs):
     doc = '<nonsense️'
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    info = HTMLAccessor(path).info()
-    assert info == FileInfo(path)
+    info = HTMLAccessor(str(path)).info()
+    assert info == FileInfo(str(path))
 
 
 def test_info(fs):
@@ -30,12 +30,12 @@ def test_info(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    info = HTMLAccessor(path).info()
-    assert info.path == path
+    info = HTMLAccessor(str(path)).info()
+    assert info.path == str(path)
     assert info.title == 'I Am A Strange Knot'
     assert info.tags == {'mind', 'philosophy', 'consciousness'}
     assert info.created == datetime(2019, 10, 3, 23, 31, 14, 0, timezone(timedelta(hours=-8)))
-    assert info.links == [LinkInfo(path, href)
+    assert info.links == [LinkInfo(str(path), href)
                           for href in sorted(['../Another%20Note.md', 'me.html.resources/A%20Picture.png', '#nope'])]
 
 
@@ -48,9 +48,9 @@ def test_change_from_missing_attributes(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    acc = HTMLAccessor(path)
-    acc.edit(SetTitleCmd(path, 'A Delightful Note'))
-    acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
+    acc = HTMLAccessor(str(path))
+    acc.edit(SetTitleCmd(str(path), 'A Delightful Note'))
+    acc.edit(SetCreatedCmd(str(path), datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
     assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml') == BeautifulSoup(expected, 'lxml')
 
@@ -88,12 +88,12 @@ def test_change(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    acc = HTMLAccessor(path)
-    acc.edit(SetTitleCmd(path, 'A Delightful Note'))
-    acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
-    acc.edit(ReplaceHrefCmd(path, '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'))
-    acc.edit(ReplaceHrefCmd(path, 'http://example.com/foo.png', 'http://example.com/bar.png'))
-    acc.edit(ReplaceHrefCmd(path, 'media/something.weird', 'content/something.cool'))
+    acc = HTMLAccessor(str(path))
+    acc.edit(SetTitleCmd(str(path), 'A Delightful Note'))
+    acc.edit(SetCreatedCmd(str(path), datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
+    acc.edit(ReplaceHrefCmd(str(path), '../Mediocre%20Note.md', '../archive/Mediocre%20Note.md'))
+    acc.edit(ReplaceHrefCmd(str(path), 'http://example.com/foo.png', 'http://example.com/bar.png'))
+    acc.edit(ReplaceHrefCmd(str(path), 'media/something.weird', 'content/something.cool'))
     assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml',) == BeautifulSoup(expected, 'lxml')
 
@@ -117,8 +117,8 @@ def test_change_tags(fs):
 </html>"""
     path = Path('/fakenotes/test.html')
     fs.create_file(path, contents=doc)
-    acc = HTMLAccessor(path)
-    acc.edit(AddTagCmd(path, 'THREE'))
-    acc.edit(DelTagCmd(path, 'ONE'))
+    acc = HTMLAccessor(str(path))
+    acc.edit(AddTagCmd(str(path), 'THREE'))
+    acc.edit(DelTagCmd(str(path), 'ONE'))
     assert acc.save()
     assert BeautifulSoup(path.read_text(), 'lxml', ) == BeautifulSoup(expected, 'lxml')

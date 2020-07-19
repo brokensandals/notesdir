@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Iterator, Set
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
-    DelTagCmd, ReplaceHrefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh, PathIsh
+    DelTagCmd, ReplaceHrefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh
 
 
 class Repo:
@@ -18,7 +18,7 @@ class Repo:
     but add functionality that requires looking at more than one note in isolation (such as finding backlinks),
     and may also perform caching.
     """
-    def info(self, path: PathIsh, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
+    def info(self, path: str, fields: FileInfoReqIsh = FileInfoReq.internal()) -> FileInfo:
         """Looks up the specified fields for the given file or folder.
 
         Additional fields might or might not be populated.
@@ -40,7 +40,7 @@ class Repo:
         """
         raise NotImplementedError()
 
-    def invalidate(self, only: Set[PathIsh] = None) -> None:
+    def invalidate(self, only: Set[str] = None) -> None:
         """If the repo uses a cache, this tells it to update the cache before the next read.
 
         If ``only`` is non-empty, the repo might invalidate only those specific files, for the sake of performance.
@@ -68,25 +68,25 @@ class Repo:
         """Release any resources associated with the repo. Should be called when you're done with an instance."""
         pass
 
-    def add_tag(self, path: PathIsh, tag: str) -> None:
+    def add_tag(self, path: str, tag: str) -> None:
         """Convenience method equivalent to calling change with one :class`notesdir.models.AddTagCmd`"""
-        self.change([AddTagCmd(Path(path), tag)])
+        self.change([AddTagCmd(path, tag)])
 
-    def del_tag(self, path: PathIsh, tag: str) -> None:
+    def del_tag(self, path: str, tag: str) -> None:
         """Convenience method equivalent to calling change with one :class`notesdir.models.DelTagCmd`"""
-        self.change([DelTagCmd(Path(path), tag)])
+        self.change([DelTagCmd(path, tag)])
 
-    def set_created(self, path: PathIsh, created: datetime) -> None:
+    def set_created(self, path: str, created: datetime) -> None:
         """Convenience method equivalent to calling change with one :class:`notesdir.models.SetCreatedCmd`"""
-        self.change([SetCreatedCmd(Path(path), created)])
+        self.change([SetCreatedCmd(path, created)])
 
-    def set_title(self, path: PathIsh, title: str) -> None:
+    def set_title(self, path: str, title: str) -> None:
         """Convenience method equivalent to calling change with one :class:`notesdir.models.SetTitleCmd`"""
-        self.change([SetTitleCmd(Path(path), title)])
+        self.change([SetTitleCmd(path, title)])
 
-    def replace_href(self, path: PathIsh, original: str, replacement: str) -> None:
+    def replace_href(self, path: str, original: str, replacement: str) -> None:
         """Convenience method equivalent to calling change with one :class:`notesdir.models.ReplaceRefCmd`"""
-        self.change([ReplaceHrefCmd(Path(path), original, replacement)])
+        self.change([ReplaceHrefCmd(path, original, replacement)])
 
 
 def _group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:

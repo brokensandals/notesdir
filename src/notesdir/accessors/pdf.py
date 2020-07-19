@@ -54,7 +54,7 @@ class PDFAccessor(Accessor):
     cannot serialize it.
     """
     def _load(self):
-        with self.path.open('rb') as file:
+        with open(self.path, 'rb') as file:
             try:
                 pdf = PdfFileReader(file)
                 if pdf.isEncrypted:
@@ -77,7 +77,7 @@ class PDFAccessor(Accessor):
 
     def _save(self):
         merger = PdfFileMerger()
-        with self.path.open('rb') as file:
+        with open(self.path, 'rb') as file:
             merger.append(file)
         if '/AAPL:Keywords' in self._meta:
             # HACK: Some Apple software includes this field when producing PDFs.
@@ -86,7 +86,7 @@ class PDFAccessor(Accessor):
             # PyPDF will crash if we try to have it write an array to a document info field.
             del self._meta['/AAPL:Keywords']
         merger.addMetadata(self._meta)
-        with self.path.open('wb') as file:
+        with open(self.path, 'wb') as file:
             merger.write(file)
 
     def _add_tag(self, edit: AddTagCmd):

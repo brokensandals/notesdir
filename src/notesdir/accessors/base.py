@@ -3,7 +3,6 @@
 The most important class is :class:`Accessor`.
 """
 
-from pathlib import Path
 from typing import List
 
 from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, ReplaceHrefCmd, SetCreatedCmd, SetTitleCmd
@@ -11,7 +10,7 @@ from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, FileEditCmd, Replace
 
 class ParseError(Exception):
     """Raised when an :class:`Accessor` is unable to parse a file."""
-    def __init__(self, message: str, path: Path, cause: BaseException = None):
+    def __init__(self, message: str, path: str, cause: BaseException = None):
         self.message = message
         self.path = path
         self.cause = cause
@@ -37,14 +36,14 @@ class Accessor:
     Each instance is for working with a single file, specified to the constructor.
 
     .. attribute:: path
-       :type: Path
+       :type: str
 
     .. attribute:: edited
        :type: bool
 
        If True, indicates the instance has unsaved edits for the file.
     """
-    def __init__(self, path: Path):
+    def __init__(self, path: str):
         self.path = path
         self._loaded = False
         self.edited = False

@@ -93,7 +93,7 @@ keywords:
 As I have explained at length in [another note](../Another%20Note.md) and also
 published about online (see [this article](http://example.com/blah) among many others), ...
 """
-    path = Path('/fakenotes/test.md')
+    path = '/fakenotes/test.md'
     fs.create_file(path, contents=doc)
     info = MarkdownAccessor(path).info()
     assert info.path == path
@@ -125,7 +125,7 @@ As I have explained at length in [another note](moved/another-note.md) and also
 published about online (see [this article](http://example.com/blahblah) and
 [this one](https://example.com/meh) among many others), ...
 """
-    path = Path('/fakenotes/test.md')
+    path = '/fakenotes/test.md'
     fs.create_file(path, contents=doc)
     acc = MarkdownAccessor(path)
     acc.edit(ReplaceHrefCmd(path, '../Another%20Note.md', 'moved/another-note.md'))
@@ -133,7 +133,7 @@ published about online (see [this article](http://example.com/blahblah) and
     acc.edit(SetTitleCmd(path, 'A Close Examination of the Navel'))
     acc.edit(SetCreatedCmd(path, datetime(2019, 6, 4, 10, 12, 13, 0, timezone(timedelta(hours=-8)))))
     assert acc.save()
-    assert path.read_text() == expected
+    assert Path(path).read_text() == expected
 
 
 def test_change_metadata_tags(fs):
@@ -149,13 +149,13 @@ keywords:
 - two
 ...
 text"""
-    path = Path('/fakenotes/test.md')
+    path = '/fakenotes/test.md'
     fs.create_file(path, contents=doc)
     acc = MarkdownAccessor(path)
     acc.edit(AddTagCmd(path, 'THREE'))
     acc.edit(DelTagCmd(path, 'ONE'))
     assert acc.save()
-    assert path.read_text() == expected
+    assert Path(path).read_text() == expected
 
 
 def test_remove_hashtag(fs):
@@ -163,10 +163,10 @@ def test_remove_hashtag(fs):
     # TODO Currently none of the whitespace around a tag is removed when the tag is, which can leave things
     #      pretty ugly. But I'm not sure what the best approach is.
     expected = ' tag1 . tag1#tag1  #tag2 '
-    path = Path('/fakenotes/test.md')
+    path = '/fakenotes/test.md'
     fs.create_file(path, contents=doc)
     acc = MarkdownAccessor(path)
     assert acc.info().tags == {'tag1', 'tag2'}
     acc.edit(DelTagCmd(path, 'tag1'))
     assert acc.save()
-    assert path.read_text() == expected
+    assert Path(path).read_text() == expected

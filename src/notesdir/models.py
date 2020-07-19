@@ -7,13 +7,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from enum import Enum
-from os import PathLike
-from pathlib import Path
+import os
+import os.path
 from typing import Set, Optional, Union, Iterable, List, Callable, Iterator, Tuple
 from urllib.parse import urlparse, unquote_plus
-
-
-PathIsh = Union[str, bytes, PathLike]
 
 
 @dataclass
@@ -24,7 +21,7 @@ class LinkInfo:
     can be used to determine what local file, if any, the href targets.
     """
 
-    referrer: Path
+    referrer: str
     """The file that contains the link. This should be a resolved, absolute path."""
 
     href: str
@@ -34,7 +31,7 @@ class LinkInfo:
     or the ``href`` or ``src`` attribute of an HTML tag, etc.
     """
 
-    def referent(self) -> Optional[Path]:
+    def referent(self) -> Optional[str]:
         """Returns the resolved, absolute local path that this link refers to.
 
         The path will be returned even if no file or folder actually exists at that location.
@@ -44,10 +41,10 @@ class LinkInfo:
         try:
             url = urlparse(self.href)
             if (not url.scheme) or (url.scheme == 'file' and url.netloc in ['', 'localhost']):
-                referent = Path(unquote_plus(url.path))
-                if not referent.is_absolute():
-                    referent = self.referrer.joinpath('..', referent)
-                return referent.resolve()
+                referent = unquote_plus(url.path)
+                if not os.path.isabs(referent):
+                    referent = os.path.join(self.referrer, '..', referent)
+                return os.path.abspath(referent)
         except ValueError:
             # not a valid URL
             return None
@@ -56,9 +53,9 @@ class LinkInfo:
         """Returns a dict representing the instance, suitable for serializing as json."""
         referent = self.referent()
         return {
-            'referrer': str(self.referrer),
+            'referrer': self.referrer,
             'href': self.href,
-            'referent': str(referent) if referent else None
+            'referent': referent if referent else None
         }
 
 
@@ -74,7 +71,7 @@ class FileInfo:
     are supported for the file type and what data is populated in the particular file.
     """
 
-    path: Path
+    path: str
     """The resolved, absolute path for which this information applies."""
 
     links: List[LinkInfo] = field(default_factory=list)
@@ -99,7 +96,7 @@ class FileInfo:
     def as_json(self) -> dict:
         """Returns a dict representing the instance, suitable for serializing as json."""
         return {
-            'path': str(self.path),
+            'path': self.path,
             'title': self.title,
             'created': self.created.isoformat() if self.created else None,
             'tags': sorted(self.tags),
@@ -114,9 +111,9 @@ class FileInfo:
         """
         if self.created:
             return self.created
-        if not (self.path and self.path.exists()):
+        if not (self.path and os.path.exists(self.path)):
             return None
-        stat = self.path.stat()
+        stat = os.stat(self.path)
         try:
             return datetime.utcfromtimestamp(stat.st_birthtime)
         except AttributeError:
@@ -174,7 +171,7 @@ FileInfoReqIsh = Union[str, Iterable[str], FileInfoReq]
 class FileEditCmd:
     """Base class for requests to make changes to a file."""
 
-    path: Path
+    path: str
     """Path to the file or folder that should be changed."""
 
 
@@ -238,8 +235,8 @@ class MoveCmd(FileEditCmd):
     provided by :meth:`notesdir.api.Notesdir.move`.
     """
 
-    dest: Path
-    """The new filename."""
+    dest: str
+    """The new path and filename."""
 
 
 class FileQuerySortField(Enum):
@@ -283,9 +280,10 @@ class FileQuerySort:
                 created = created.replace(tzinfo=timezone.utc)
             return created
         elif self.field == FileQuerySortField.FILENAME:
-            return info.path.name.lower() if self.ignore_case else info.path.name
+            basename = os.path.basename(info.path)
+            return basename.lower() if self.ignore_case else basename
         elif self.field == FileQuerySortField.PATH:
-            return str(info.path).lower() if self.ignore_case else str(info.path)
+            return info.path.lower() if self.ignore_case else info.path
         elif self.field == FileQuerySortField.TAGS_COUNT:
             return len(info.tags)
         elif self.field == FileQuerySortField.TITLE:
@@ -387,7 +385,7 @@ class TemplateDirectives:
     It is used for passing data in and out of the template.
     """
 
-    dest: Optional[Path] = None
+    dest: Optional[str] = None
     """The path at which the new file should be created.
     
     If this is set before rendering the template, it is the path the user suggested. But the template can change it,
@@ -405,5 +403,5 @@ class DependentPathFn:
     specified by :attr:`determinant`, but the path in the info will reflect any pending move for that file (even
     if they have not been executed in the filesystem yet).
     """
-    determinant: PathIsh
-    fn: Callable[[FileInfo], PathIsh]
+    determinant: str
+    fn: Callable[[FileInfo], str]

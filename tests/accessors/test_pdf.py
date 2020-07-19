@@ -6,7 +6,7 @@ from notesdir.accessors.pdf import PDFAccessor
 
 
 def test_info(fs):
-    path = Path(__file__).parent.joinpath('test.pdf')
+    path = str(Path(__file__).parent.joinpath('test.pdf'))
     fs.add_real_file(path)
     info = PDFAccessor(path).info()
     assert info.path == path
@@ -16,7 +16,7 @@ def test_info(fs):
 
 
 def test_change(fs):
-    path = Path(__file__).parent.joinpath('test.pdf')
+    path = str(Path(__file__).parent.joinpath('test.pdf'))
     fs.add_real_file(path, read_only=False)
     acc = PDFAccessor(path)
     acc.edit(SetTitleCmd(path, 'Why Donuts Are Great'))
@@ -24,7 +24,7 @@ def test_change(fs):
     acc.edit(AddTagCmd(path, 'tag3'))
     acc.edit(DelTagCmd(path, 'tag2'))
     assert acc.save()
-    with path.open('rb') as file:
+    with open(path, 'rb') as file:
         pdf = PdfFileReader(file)
         assert 'I like donuts' in pdf.getPage(0).extractText()
         # Make sure we didn't destroy preexisting metadata

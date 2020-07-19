@@ -1,7 +1,5 @@
 """Provides the :class:`DelegatingAccessor` class."""
 
-from pathlib import Path
-
 from notesdir.accessors.base import Accessor, MiscAccessor
 from notesdir.models import FileInfo, FileEditCmd
 from notesdir.accessors.html import HTMLAccessor
@@ -21,13 +19,13 @@ class DelegatingAccessor(Accessor):
     * ``.pdf`` -> :class:`PDFAccessor`
     * anything else -> :class:`MiscAccessor`
     """
-    def __init__(self, path: Path):
+    def __init__(self, path: str):
         super().__init__(path)
-        if path.suffix == '.md':
+        if path.endswith('.md'):
             self.accessor = MarkdownAccessor(path)
-        elif path.suffix == '.html':
+        elif path.endswith('.html'):
             self.accessor = HTMLAccessor(path)
-        elif path.suffix == '.pdf':
+        elif path.endswith('.pdf'):
             self.accessor = PDFAccessor(path)
         else:
             self.accessor = MiscAccessor(path)

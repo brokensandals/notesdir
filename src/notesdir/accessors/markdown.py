@@ -91,7 +91,8 @@ class MarkdownAccessor(Accessor):
        This is a really #uninteresting note.
     """
     def _load(self):
-        text = self.path.read_text()
+        with open(self.path, 'r') as file:
+            text = file.read()
         self.meta, self.body = _extract_meta(text)
         self.hrefs = _extract_hrefs(self.body)
         self._hashtags = _extract_hashtags(self.body)
@@ -109,7 +110,8 @@ class MarkdownAccessor(Accessor):
             text = f'---\n{sio.getvalue()}...\n{self.body}'
         else:
             text = self.body
-        self.path.write_text(text)
+        with open(self.path, 'w') as file:
+            file.write(text)
 
     def _add_tag(self, edit: AddTagCmd):
         tag = edit.value.lower()

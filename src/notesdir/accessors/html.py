@@ -29,7 +29,7 @@ class HTMLAccessor(Accessor):
     BeautifulSoup4 is used for parsing and updating the files; formatting may be changed during updates.
     """
     def _load(self):
-        with self.path.open() as file:
+        with open(self.path, 'r') as file:
             try:
                 self._page = BeautifulSoup(file, 'lxml')
             except Exception as e:
@@ -57,7 +57,8 @@ class HTMLAccessor(Accessor):
         info.links = [LinkInfo(self.path, href) for href in sorted(self._link_els.keys())]
 
     def _save(self):
-        self.path.write_text(str(self._page))
+        with open(self.path, 'w') as file:
+            file.write(str(self._page))
 
     def _get_head_el(self, edit: FileEditCmd) -> Tag:
         if not self._head_el:
