@@ -124,34 +124,6 @@ class Notesdir:
 
         return final_moves
 
-    def normalize(self, path: str) -> None:
-        """Updates metadata to adhere to conventions.
-
-        If the file does not have a title, one is set based on the filename.
-
-        If the file does not have created set in its metadata, it is set
-        based on the birthtime or ctime of the file.
-        """
-        if not os.path.exists(path):
-            raise FileNotFoundError(f'File does not exist: {path}')
-        info = self.repo.info(path)
-        if not info:
-            raise Error(f'Cannot parse file: {path}')
-
-        edits = []
-
-        dirname, basename = os.path.split(path)
-        stem, ext = os.path.splitext(basename)
-        title = info.title or stem
-        if not title == info.title:
-            edits.append(SetTitleCmd(path, title))
-
-        if not info.created:
-            edits.append(SetCreatedCmd(path, info.guess_created()))
-
-        if edits:
-            self.repo.change(edits)
-
     def organize(self) -> Dict[str, str]:
         """Reorganizes files using the function set in :attr:`notesdir.conf.NotesdirConf.path_organizer`.
 
@@ -261,8 +233,7 @@ class Notesdir:
 
         Raises :exc:`FileNotFoundError` if the template cannot be found.
 
-        If dest is not given, a target file name will be generated. Regardless, the :meth:`Notesdir.norm` method
-        will be used to standardize the final filename.
+        If dest is not given, a target file name will be generated.
 
         The following names are defined in the template's namespace:
 
@@ -289,7 +260,6 @@ class Notesdir:
             file.write(content)
         changed = {td.dest}
         self.repo.invalidate(changed)
-        self.normalize(td.dest)
         return td.dest
 
     def close(self):

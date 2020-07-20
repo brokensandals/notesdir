@@ -76,7 +76,6 @@ Nothing to see here, move along."""
     out, err = capsys.readouterr()
     assert out == '/notes/cwd/simple.md\n'
     assert Path('/notes/cwd/simple.md').read_text() == """---
-created: 2012-05-02 03:04:05
 title: Testing in May 2012
 ...
 Nothing to see here, move along."""
@@ -92,11 +91,8 @@ Nothing to see here, move along."""
     assert cli.main(['new', '../other-template.md.mako', 'tags.md']) == 0
     out, err = capsys.readouterr()
     assert out == '/notes/cwd/tags.md\n'
-    assert Path('/notes/cwd/tags.md').read_text() == """---
-created: 2012-05-02 03:04:05
-title: tags
-...
-All current tags: best-green, bright-green, green, happy, melancholy, sad"""
+    assert (Path('/notes/cwd/tags.md').read_text()
+            == """All current tags: best-green, bright-green, green, happy, melancholy, sad""")
 
     template3 = """<%
     from pathlib import Path
@@ -285,34 +281,6 @@ def test_org_conflict(fs, capsys, mocker):
     assert Path('/notes/foo_uuid1abcdefghijklmnopq.md').exists()
     out, err = capsys.readouterr()
     assert json.loads(out) == {}
-
-
-def test_norm_nothing(fs, capsys):
-    doc = """---
-created: 2001-02-03T04:05:06Z
-title: Foo Bar
-...
-some text"""
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foo-bar.md', contents=doc)
-    assert cli.main(['norm', 'foo-bar.md']) == 0
-    assert Path('/notes/cwd/foo-bar.md').read_text() == doc
-    out, err = capsys.readouterr()
-    assert not out
-
-
-@freeze_time('2012-03-04T05:06:07-0800')
-def test_norm_missing_attrs(fs, capsys):
-    nd_setup(fs)
-    fs.create_file('/notes/cwd/foo-bar.md', contents='some text')
-    assert cli.main(['norm', 'foo-bar.md']) == 0
-    assert Path('/notes/cwd/foo-bar.md').read_text() == """---
-created: 2012-03-04 13:06:07
-title: foo-bar
-...
-some text"""
-    out, err = capsys.readouterr()
-    assert not out
 
 
 def test_change(fs, capsys):

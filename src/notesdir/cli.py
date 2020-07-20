@@ -81,11 +81,6 @@ def _org(args, nd: Notesdir) -> int:
     return 0
 
 
-def _norm(args, nd: Notesdir) -> int:
-    nd.normalize(args.path[0])
-    return 0
-
-
 def _tags(args, nd: Notesdir) -> int:
     query = args.query or ''
     counts = nd.repo.tag_counts(query)
@@ -231,14 +226,6 @@ def argparser() -> argparse.ArgumentParser:
                        help='Output as JSON. The output is an object whose keys are the paths of files that were '
                             'moved, and whose values are the new paths of those files.')
     p_org.set_defaults(func=_org)
-
-    p_norm = subs.add_parser(
-        'norm',
-        help='Normalize a file. This checks that the title and created date metadata have been stored in '
-             'the file in the manner appropriate to its file type. If not, they are updated using the filename '
-             'and the best guess at creation date available from the filesystem.')
-    p_norm.add_argument('path', help='File to standardize.', nargs=1)
-    p_norm.set_defaults(func=_norm)
 
     p_tags_count = subs.add_parser(
         'tags',
