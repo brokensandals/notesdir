@@ -10,7 +10,7 @@ from typing import Dict, Set, Optional
 from mako.template import Template
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, TemplateDirectives,\
-    DependentPathFn, FileInfo, MoveCmd
+    DependentPathFn, FileInfo, MoveCmd, CreateCmd
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement, find_available_name
 
 
@@ -256,10 +256,8 @@ class Notesdir:
             td.dest = f'{name}.{suffix}'
         td.dest = os.path.realpath(td.dest)
         td.dest = find_available_name(td.dest, set())
-        with open(td.dest, 'w') as file:
-            file.write(content)
-        changed = {td.dest}
-        self.repo.invalidate(changed)
+        edits = [CreateCmd(td.dest, contents=content)]
+        self.repo.change(edits)
         return td.dest
 
     def close(self):

@@ -245,6 +245,13 @@ class MoveCmd(FileEditCmd):
     """If True, any parent directories that are empty after performing the move should be deleted."""
 
 
+@dataclass
+class CreateCmd(FileEditCmd):
+    """Represents a request to create a new file."""
+
+    contents: str
+
+
 class FileQuerySortField(Enum):
     BACKLINKS_COUNT = 'backlinks'
     CREATED = 'created'

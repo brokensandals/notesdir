@@ -10,7 +10,7 @@ from typing import List, Dict, Iterator, Set
 from notesdir.accessors.delegating import DelegatingAccessor
 from notesdir.conf import DirectRepoConf
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, FileInfoReqIsh,\
-    FileQueryIsh
+    FileQueryIsh, CreateCmd
 from notesdir.repos.base import Repo, _group_edits
 
 
@@ -66,6 +66,10 @@ class DirectRepo(Repo):
                                 os.rmdir(parent)
                             prev = parent
                             parent = os.path.split(parent)[0]
+            elif isinstance(group[0], CreateCmd):
+                for edit in group:
+                    with open(edit.path, 'w') as file:
+                        file.write(edit.contents)
             else:
                 acc = self.accessor_factory(group[0].path)
                 for edit in group:

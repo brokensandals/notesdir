@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, List, Iterator, Set
 
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, SetTitleCmd, SetCreatedCmd, AddTagCmd,\
-    DelTagCmd, ReplaceHrefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh
+    DelTagCmd, ReplaceHrefCmd, FileInfoReq, FileInfoReqIsh, FileQueryIsh, CreateCmd
 
 
 class Repo:
@@ -92,7 +92,7 @@ def _group_edits(edits: List[FileEditCmd]) -> List[List[FileEditCmd]]:
     group = None
     result = []
     for edit in edits:
-        if group and edit.path == group[0].path and not isinstance(edit, MoveCmd):
+        if group and edit.path == group[0].path and not isinstance(edit, (CreateCmd, MoveCmd)):
             group.append(edit)
         else:
             group = [edit]
