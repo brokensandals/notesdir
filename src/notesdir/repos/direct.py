@@ -50,6 +50,11 @@ class DirectRepo(Repo):
 
     def change(self, edits: List[FileEditCmd]):
         for group in _group_edits(edits):
+            if self.conf.preview_mode:
+                for edit in group:
+                    print(edit)
+                continue
+
             if isinstance(group[0], MoveCmd):
                 for edit in group:
                     if edit.create_parents:

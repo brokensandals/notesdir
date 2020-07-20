@@ -46,7 +46,9 @@ def _info(args, nd: Notesdir) -> int:
 
 
 def _new(args, nd: Notesdir) -> int:
-    print(nd.new(args.template[0], args.dest))
+    path = nd.new(args.template[0], args.dest)
+    if not args.preview:
+        print(f'Created {path}')
     return 0
 
 
@@ -65,7 +67,7 @@ def _mv(args, nd: Notesdir) -> int:
     moves = nd.move({src: dest})
     if args.json:
         print(json.dumps(moves))
-    elif not moves == {src: dest}:
+    elif not moves == {src: dest} and not args.preview:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
     return 0
@@ -75,7 +77,7 @@ def _organize(args, nd: Notesdir) -> int:
     moves = nd.organize()
     if args.json:
         print(json.dumps({str(k): str(v) for k, v in moves.items()}))
-    elif moves:
+    elif moves and not args.preview:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
     return 0
@@ -156,7 +158,7 @@ def argparser() -> argparse.ArgumentParser:
     fields_help = f'Possible fields are: {", ".join(f.name for f in dataclasses.fields(FileInfoReq))}.'
 
     parser = argparse.ArgumentParser()
-    parser.set_defaults(func=None)
+    parser.set_defaults(func=None, preview=False)
 
     subs = parser.add_subparsers(title='Commands')
 
@@ -188,6 +190,7 @@ def argparser() -> argparse.ArgumentParser:
     p_c.add_argument('dest', nargs='?',
                      help='Suggested destination filename. This may be overridden by the template, or adjusted '
                           'if it conflicts with an existing file. A filename will be selected for you if omitted.')
+    p_c.add_argument('-p', '--preview', action='store_true', help='Print plan but do not create file')
     p_c.set_defaults(func=_new)
 
     p_change = subs.add_parser('change', help='Update metadata of the specified files.')
@@ -198,6 +201,8 @@ def argparser() -> argparse.ArgumentParser:
                           help='Comma-separated list of tags to remove (if present).')
     p_change.add_argument('-t', '--title', nargs=1, help='New title for files')
     p_change.add_argument('-c', '--created', nargs=1, help='New created datetime for files, in ISO8601 format')
+    p_change.add_argument('-p', '--preview', action='store_true',
+                          help='Print changes to be made but do not change files')
     p_change.set_defaults(func=_change)
 
     p_mv = subs.add_parser(
@@ -214,6 +219,8 @@ def argparser() -> argparse.ArgumentParser:
     p_mv.add_argument('-j', '--json', action='store_true',
                       help='Output as JSON. The output is an object whose keys are the paths of files that were '
                            'moved, and whose values are the new paths of those files.')
+    p_mv.add_argument('-p', '--preview',
+                      action='store_true', help='Print changes to be made but do not move or change files')
     p_mv.set_defaults(func=_mv)
 
     p_org = subs.add_parser(
@@ -225,6 +232,8 @@ def argparser() -> argparse.ArgumentParser:
     p_org.add_argument('-j', '--json', action='store_true',
                        help='Output as JSON. The output is an object whose keys are the paths of files that were '
                             'moved, and whose values are the new paths of those files.')
+    p_org.add_argument('-p', '--preview', action='store_true',
+                       help='Print changes to be made but do not move or change files')
     p_org.set_defaults(func=_organize)
 
     p_tags_count = subs.add_parser(
@@ -247,6 +256,8 @@ def argparser() -> argparse.ArgumentParser:
              'or new paths refer to actual files.')
     p_relink.add_argument('old', nargs=1)
     p_relink.add_argument('new', nargs=1)
+    p_relink.add_argument('-p', '--preview', action='store_true',
+                          help='Print changes to be made but do not change files')
     p_relink.set_defaults(func=_relink)
 
     return parser
@@ -264,4 +275,6 @@ def main(args=None) -> int:
         parser.print_help()
         return 1
     with Notesdir.for_user() as nd:
+        if args.preview:
+            nd.repo.conf.preview_mode = True
         return args.func(args, nd)

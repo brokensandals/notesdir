@@ -81,6 +81,8 @@ Now your directory tree and files will look like this:
         subdir/
             newname.md : "I link to [file one](../one.md)"
 
+If you want a list of what files will be changed without actually changing them, use ``notesdir mv --preview``.
+
 Replacing links
 ---------------
 
@@ -92,3 +94,5 @@ It does not move any files, or even care whether the old or new paths refer to r
 .. code-block:: bash
 
    notesdir relink old.html new.md
+
+If you want a list of what files will be changed without actually changing them, use ``notesdir relink --preview``.

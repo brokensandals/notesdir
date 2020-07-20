@@ -241,7 +241,8 @@ class SqliteRepo(DirectRepo):
             super().change(edits)
         finally:
             # TODO only invalidate necessary files
-            self.invalidate()
+            if not self.conf.preview_mode:
+                self.invalidate()
 
     def clear(self):
         self.connection.executescript(_SQL_CLEAR)

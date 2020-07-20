@@ -106,6 +106,13 @@ class RepoConf:
     ``.icloud`` files.
     """
 
+    preview_mode: bool = False
+    """If True, commands that would change notes should instead just print a list of changes to the console.
+    
+    Instead of setting this in your ``.notesdir.conf.py``, you can pass a ``--preview`` command-line argument to
+    relevant commands.
+    """
+
     def instantiate(self):
         raise NotImplementedError("Please use a subclass like SqliteRepoConf instead!")
 

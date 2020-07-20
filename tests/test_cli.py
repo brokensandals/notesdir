@@ -4,7 +4,8 @@ import itertools
 from pathlib import Path
 from freezegun import freeze_time
 from notesdir import cli
-from notesdir.models import FileInfo
+from notesdir.models import FileInfo, CreateCmd, ReplaceHrefCmd, MoveCmd, AddTagCmd, DelTagCmd, SetTitleCmd,\
+    SetCreatedCmd
 
 
 def nd_setup(fs, extra_conf=''):
@@ -24,7 +25,7 @@ conf = NotesdirConf(
 """ + extra_conf)
 
 
-def test_i(fs, capsys):
+def test_info(fs, capsys):
     nd_setup(fs)
     path1 = Path('/notes/cwd/one.md')
     path2 = Path('/notes/cwd/two.md')
@@ -63,25 +64,26 @@ backlinks:
 
 
 @freeze_time('2012-05-02T03:04:05Z')
-def test_c(fs, capsys, mocker):
+def test_new(fs, capsys, mocker):
     mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))
     template = """<% from datetime import datetime %>\
 ---
 title: Testing in ${datetime.now().strftime('%B %Y')}
 ...
 Nothing to see here, move along."""
+    simple_expected = """---
+title: Testing in May 2012
+...
+Nothing to see here, move along."""
     nd_setup(fs)
     fs.create_file('/notes/templates/simple.md.mako', contents=template)
     assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
-    assert out == '/notes/cwd/simple.md\n'
-    assert Path('/notes/cwd/simple.md').read_text() == """---
-title: Testing in May 2012
-...
-Nothing to see here, move along."""
+    assert out == 'Created /notes/cwd/simple.md\n'
+    assert Path('/notes/cwd/simple.md').read_text() == simple_expected
     assert cli.main(['new', 'simple']) == 0
     out, err = capsys.readouterr()
-    assert out == '/notes/cwd/simple_uuid1.md\n'
+    assert out == 'Created /notes/cwd/simple_uuid1.md\n'
     assert Path('/notes/cwd/simple_uuid1.md').exists()
 
     template2 = """All current tags: ${', '.join(sorted(nd.repo.tag_counts().keys()))}"""
@@ -90,7 +92,7 @@ Nothing to see here, move along."""
     fs.create_file('/notes/two.md', contents='#green #bright-green #best-green')
     assert cli.main(['new', '../other-template.md.mako', 'tags.md']) == 0
     out, err = capsys.readouterr()
-    assert out == '/notes/cwd/tags.md\n'
+    assert out == 'Created /notes/cwd/tags.md\n'
     assert (Path('/notes/cwd/tags.md').read_text()
             == """All current tags: best-green, bright-green, green, happy, melancholy, sad""")
 
@@ -101,15 +103,27 @@ Nothing to see here, move along."""
     fs.create_file('/notes/templates/self-namer.md.mako', contents=template3)
     assert cli.main(['new', 'self-namer', 'unimportant.md']) == 0
     out, err = capsys.readouterr()
-    assert out == '/notes/cool-note.md\n'
+    assert out == 'Created /notes/cool-note.md\n'
     assert Path('/notes/cool-note.md').is_file()
     assert not Path('unimportant.md').exists()
+
+    assert cli.main(['new', '-p', 'simple', 'no.md']) == 0
+    assert not Path('no.md').exists()
+    out, err = capsys.readouterr()
+    assert out == str(CreateCmd('/notes/cwd/no.md', contents=simple_expected)) + '\n'
 
 
 def test_mv_file(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/subdir/old.md')
     fs.create_file('/notes/dir/referrer.md', contents='I have a [link](../cwd/subdir/old.md).')
+    assert cli.main(['mv', '-p', 'subdir/old.md', '../dir/new.md']) == 0
+    assert Path('/notes/cwd/subdir/old.md').exists()
+    assert Path('/notes/dir/referrer.md').read_text() == 'I have a [link](../cwd/subdir/old.md).'
+    out, err = capsys.readouterr()
+    assert out == (str(ReplaceHrefCmd('/notes/dir/referrer.md', '../cwd/subdir/old.md', 'new.md')) + '\n'
+                   + str(MoveCmd('/notes/cwd/subdir/old.md', '/notes/dir/new.md')) + '\n')
+
     assert cli.main(['mv', 'subdir/old.md', '../dir/new.md']) == 0
     assert not Path('/notes/cwd/subdir/old.md').exists()
     assert Path('/notes/dir/new.md').exists()
@@ -191,6 +205,12 @@ conf.path_organizer = lambda info: info.path.replace('hi', 'hello')
     path3 = Path('/notes/cwd/hi.md')
     path4 = Path('/notes/cwd/hello.md')
     fs.create_file(path3, contents='I link to [one](one.md).')
+    assert cli.main(['organize', '-p']) == 0
+    assert path3.exists()
+    assert not path4.exists()
+    out, err = capsys.readouterr()
+    assert out == (str(ReplaceHrefCmd(str(path2), 'hi.md', 'hello.md')) + '\n'
+                   + str(MoveCmd(str(path3), str(path4), create_parents=True, delete_empty_parents=True)) + '\n')
     assert cli.main(['organize', '-j']) == 0
     assert path1.is_file()
     assert path2.read_text() == 'I link to [hi](hello.md).'
@@ -286,6 +306,17 @@ def test_org_conflict(fs, capsys, mocker):
 def test_change(fs, capsys):
     nd_setup(fs)
     fs.create_file('/notes/cwd/foo.md', contents='some text')
+    assert cli.main(['change', '-p', '-a', 'tag1,tag2', '-c', '2012-02-03', '-t', 'A Bland Note', 'foo.md']) == 0
+    assert Path('/notes/cwd/foo.md').read_text() == 'some text'
+    out, err = capsys.readouterr()
+    lines = set(out.splitlines())
+    # It's a little weird that we generate Cmds with relative paths, when most of the time the repos deal with
+    # fully resolved paths. I don't think it affects anything right now, but may need to change at some point.
+    assert lines == {str(AddTagCmd('foo.md', 'tag1')),
+                     str(AddTagCmd('foo.md', 'tag2')),
+                     str(SetTitleCmd('foo.md', 'A Bland Note')),
+                     str(SetCreatedCmd('foo.md', datetime(2012, 2, 3)))}
+
     assert cli.main(['change', '-a', 'tag1,tag2', '-c', '2012-02-03', '-t', 'A Bland Note', 'foo.md']) == 0
     assert Path('/notes/cwd/foo.md').read_text() == """---
 created: 2012-02-03 00:00:00
@@ -362,9 +393,12 @@ This is a test doc."""
     assert out
 
 
-def test_relink(fs):
+def test_relink(fs, capsys):
     nd_setup(fs)
     path1 = Path('/notes/foo.md')
     fs.create_file(path1, contents='I link to [bar](/notes/subdir1/bar.md#section)')
+    assert cli.main(['relink', '-p', '/notes/subdir1/bar.md', '/blah/baz.md']) == 0
+    out, err = capsys.readouterr()
+    assert out == str(ReplaceHrefCmd(str(path1), '/notes/subdir1/bar.md#section', '../blah/baz.md#section')) + '\n'
     assert cli.main(['relink', '/notes/subdir1/bar.md', '/blah/baz.md']) == 0
     assert path1.read_text() == 'I link to [bar](../blah/baz.md#section)'
