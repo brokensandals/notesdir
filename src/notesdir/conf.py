@@ -181,11 +181,12 @@ class NotesdirConf:
     
     .. code-block:: python
     
+       import os.path
        def path_organizer(info):
            for tag in ['secrets', 'journal', 'grievances']:
                if tag in info.tags:
-                   return f'/Users/jacob/notes/{tag}/{info.path.name}'
-           return f'/Users/jacob/notes/misc/{info.path.name}'
+                   return f'/Users/jacob/notes/{tag}/{os.path.basename(info.path)}'
+           return f'/Users/jacob/notes/misc/{os.path.basename(info.path)}'
        
        conf.path_organizer = path_organizer
     
