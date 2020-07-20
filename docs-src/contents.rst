@@ -6,5 +6,6 @@ Contents
    index
    links
    metadata
+   templating
    cli
    development

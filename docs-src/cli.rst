@@ -1,5 +1,5 @@
 CLI Reference
-========
+=============
 
 This documentation is generated from the output of ``notesdir -h``.
 
