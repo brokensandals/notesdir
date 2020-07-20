@@ -97,7 +97,7 @@ class RepoConf:
     the filename.
     
     If this function returns True for a given path, neither that path nor any of its child paths
-    will be parsed, or returned in any queries, or affected by the ``org`` command.
+    will be parsed, or returned in any queries, or affected by the ``organize`` command.
     
     The ``mv`` command may still move these files when explicitly instructed to do so or when moving a directory
     containing them, and the ``info`` command will still show backlinks from other (non-ignored) files.
@@ -152,7 +152,7 @@ class NotesdirConf:
     """
 
     path_organizer: Callable[[FileInfo], str] = lambda info: info.path
-    """Defines the rule for rewriting paths used by the ``org`` command and :meth:`notesdir.api.Notesdir.organize`.
+    """Defines the rule for rewriting paths used by the ``organize`` command and :meth:`notesdir.api.Notesdir.organize`.
 
     You can use this to standardize filenames or to organize your files via tags, date, or other criteria.
 

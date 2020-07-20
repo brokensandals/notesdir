@@ -166,7 +166,7 @@ def test_org_no_function(fs, capsys):
     path2 = Path('/notes/cwd/two.md')
     fs.create_file(path1)
     fs.create_file(path2)
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert path1.exists()
     assert path2.exists()
     out, err = capsys.readouterr()
@@ -182,7 +182,7 @@ conf.path_organizer = lambda info: info.path.replace('hi', 'hello')
     path2 = Path('/notes/cwd/two.md')
     fs.create_file(path1)
     fs.create_file(path2, contents='I link to [hi](hi.md).')
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert path1.is_file()
     assert path2.is_file()
     out, err = capsys.readouterr()
@@ -191,7 +191,7 @@ conf.path_organizer = lambda info: info.path.replace('hi', 'hello')
     path3 = Path('/notes/cwd/hi.md')
     path4 = Path('/notes/cwd/hello.md')
     fs.create_file(path3, contents='I link to [one](one.md).')
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert path1.is_file()
     assert path2.read_text() == 'I link to [hi](hello.md).'
     assert not path3.exists()
@@ -200,7 +200,7 @@ conf.path_organizer = lambda info: info.path.replace('hi', 'hello')
 
     path5 = Path('/notes/cwd/hello_uuid1.md')
     fs.create_file(path3, contents='I am a duplicate name')
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert not path3.exists()
     assert path4.read_text() == 'I link to [one](one.md).'
     assert path5.read_text() == 'I am a duplicate name'
@@ -218,7 +218,7 @@ conf.path_organizer =\
     path2 = Path('/notes/cwd/two.md')
     fs.create_file(path1, contents='I link to [two](two.md).')
     fs.create_file(path2, contents='I link to [one](one.md).')
-    assert cli.main(['org']) == 0
+    assert cli.main(['organize']) == 0
     capsys.readouterr()
     assert not Path.cwd().exists()  # at one point I had a special case to prevent this, but... meh
     assert [p for p in [path1, path2] if p.exists()] == []
@@ -229,7 +229,7 @@ conf.path_organizer =\
 
     path3.write_text('I link to [two](two.md) and am tagged #happy!')
     path4.write_text('I link to [one](one.md) and am tagged #sad:(')
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert not any(p for p in [Path('/notes/untagged'), path1, path2, path3, path4] if p.exists())
     path5 = Path('/notes/happy/one.md')
     path6 = Path('/notes/sad/two.md')
@@ -253,7 +253,7 @@ conf.path_organizer = path_organizer
     for path in paths1:
         fs.create_file(path)
     paths1[0].write_text('---\ntitle: New Name\n...\n')
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert [p for p in paths1 if p.exists()] == []
     paths2 = [Path('/notes/new-name.md'), Path('/notes/new-name.md.resources/I Will Not.png'),
               Path('/notes/new-name.md.resources/weird'), Path('/notes/new-name.md.resources/weird.resources/blah.txt')]
@@ -268,14 +268,14 @@ def test_org_conflict(fs, capsys, mocker):
     paths = [Path('/notes/one.md'), Path('/notes/two.md')]
     for path in paths:
         fs.create_file(path)
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert [p for p in paths if p.exists()] == []
     assert Path('/notes/foo.md').exists()
     assert Path('/notes/foo_uuid1abcdefghijklmnopq.md').exists()
     out, err = capsys.readouterr()
     assert json.loads(out) == {'/notes/one.md': '/notes/foo.md',
                                '/notes/two.md': '/notes/foo_uuid1abcdefghijklmnopq.md'}
-    assert cli.main(['org', '-j']) == 0
+    assert cli.main(['organize', '-j']) == 0
     assert Path('/notes/foo.md').exists()
     assert not Path('/notes/foo_uuid2abcdefghijklmnopq.md').exists()
     assert Path('/notes/foo_uuid1abcdefghijklmnopq.md').exists()

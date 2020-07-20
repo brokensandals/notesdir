@@ -71,7 +71,7 @@ def _mv(args, nd: Notesdir) -> int:
     return 0
 
 
-def _org(args, nd: Notesdir) -> int:
+def _organize(args, nd: Notesdir) -> int:
     moves = nd.organize()
     if args.json:
         print(json.dumps({str(k): str(v) for k, v in moves.items()}))
@@ -217,7 +217,7 @@ def argparser() -> argparse.ArgumentParser:
     p_mv.set_defaults(func=_mv)
 
     p_org = subs.add_parser(
-        'org',
+        'organize',
         help='Organize files. All files within the directories configured in conf.repo_conf.root_paths will be '
              'passed to the function defined in conf.path_organizer, and will be moved if it returns a new path. '
              'New folders will be created when necessary and empty folders will be deleted. As with the mv command, '
@@ -225,7 +225,7 @@ def argparser() -> argparse.ArgumentParser:
     p_org.add_argument('-j', '--json', action='store_true',
                        help='Output as JSON. The output is an object whose keys are the paths of files that were '
                             'moved, and whose values are the new paths of those files.')
-    p_org.set_defaults(func=_org)
+    p_org.set_defaults(func=_organize)
 
     p_tags_count = subs.add_parser(
         'tags',
