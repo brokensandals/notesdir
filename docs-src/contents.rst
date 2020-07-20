@@ -7,5 +7,6 @@ Contents
    links
    metadata
    templating
+   organizing
    cli
    development
