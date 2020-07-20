@@ -23,4 +23,4 @@ help:
 
 ghpages:
 	@make html
-	@cp -a $BUILDDIR/html/. ../docs
+	@cp -a "$(BUILDDIR)/html/." ../docs

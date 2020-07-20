@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metadata &amp; Querying &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Templating" href="templating.html" />
+    <link rel="prev" title="Link Management" href="links.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="templating.html" title="Templating"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="links.html" title="Link Management"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Metadata &amp; Querying</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="metadata-querying">
+<h1>Metadata &amp; Querying<a class="headerlink" href="#metadata-querying" title="Permalink to this headline">¶</a></h1>
+<p>Notesdir can read, edit, and search by certain file metadata.
+The metadata is stored in the files themselves, using a different mechanism for each file type, to increase interoperability with other software.</p>
+<div class="section" id="metadata-fields">
+<h2>Metadata fields<a class="headerlink" href="#metadata-fields" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>Title</strong></dt><dd><ul>
+<li><p>tracking this separately from the filename is useful so that you don’t have to worry about special characters in the title</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Creation date/time</strong></dt><dd><ul>
+<li><p>tracking this separately from the date recorded by the filesystem is useful so that it doesn’t accidentally get changed or lost</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Tags</strong></dt><dd><ul>
+<li><p>currently, tags are normalized to consist of only lowercase alphanumeric characters and dashes</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>(see data model in <a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileInfo</span></code></a>)</p>
+</div>
+<div class="section" id="file-type-support">
+<h2>File type support<a class="headerlink" href="#file-type-support" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Markdown</strong>: metadata is stored in a YAML header; additionally, hashtags in the text are recognized as tags.
+See <a class="reference internal" href="_gensrc/notesdir.accessors.html#notesdir.accessors.markdown.MarkdownAccessor" title="notesdir.accessors.markdown.MarkdownAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.markdown.MarkdownAccessor</span></code></a> for more details and an example document.</p></li>
+<li><p><strong>HTML</strong>: the <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;meta&gt;</span></code> elements. are used.
+See <a class="reference internal" href="_gensrc/notesdir.accessors.html#notesdir.accessors.html.HTMLAccessor" title="notesdir.accessors.html.HTMLAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.html.HTMLAccessor</span></code></a> for more details.</p></li>
+<li><p><strong>PDF</strong>: the “document info” part of the file, defined by the PDF specification, is used.
+See <a class="reference internal" href="_gensrc/notesdir.accessors.html#notesdir.accessors.pdf.PDFAccessor" title="notesdir.accessors.pdf.PDFAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.pdf.PDFAccessor</span></code></a> for more details.</p></li>
+</ul>
+</div>
+<div class="section" id="viewing-metadata">
+<h2>Viewing metadata<a class="headerlink" href="#viewing-metadata" title="Permalink to this headline">¶</a></h2>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">info</span></code> command to view the metadata for a file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir info philosophy-of-language-the-classics-explained.md
+</pre></div>
+</div>
+<p>The output looks like this (alternatively, pass <code class="docutils literal notranslate"><span class="pre">-j</span></code> to get JSON output):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>path: /Users/jacob/Zettel/personal/active/philosophy-of-language-the-classics-explained.md
+title: Philosophy of Language: The Classics Explained
+created: 2020-06-18 05:33:35.183691
+tags: book, language, nonfiction, philosophy, unit
+links:
+        ../archive/2020/06/frege-on-sense-and-reference-mcginn.md -&gt; /Users/jacob/Zettel/personal/archive/2020/06/frege-on-sense-and-reference-mcginn.md
+        ../archive/2020/07/kripke-on-names.md -&gt; /Users/jacob/Zettel/personal/archive/2020/07/kripke-on-names.md
+        ../archive/2020/07/russell-on-definite-descriptions-mcginn.md -&gt; /Users/jacob/Zettel/personal/archive/2020/07/russell-on-definite-descriptions-mcginn.md
+backlinks:
+        /Users/jacob/Zettel/personal/archive/2020/06/frege-on-sense-and-reference-mcginn.md
+        /Users/jacob/Zettel/personal/archive/2020/07/kripke-on-names.md
+        /Users/jacob/Zettel/personal/archive/2020/07/russell-on-definite-descriptions-mcginn.md
+</pre></div>
+</div>
+</div>
+<div class="section" id="changing-metadata">
+<h2>Changing metadata<a class="headerlink" href="#changing-metadata" title="Permalink to this headline">¶</a></h2>
+<p>Markdown and HTML file metadata can easily be changed in a text editor, and PDF metadata can be changed with various programs.</p>
+<p>Notesdir provides a uniform interface for changing metadata in all the file types it supports, which may be more convenient sometimes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir change --add-tags tag1,tag2 my-file.md
+notesdir change --del-tags tag1,tag2 my-file.md
+notesdir change --title <span class="s1">&#39;My Fantastic File!&#39;</span> my-file.md
+notesdir change --created <span class="s1">&#39;2012-04-05&#39;</span> my-file.md
+</pre></div>
+</div>
+</div>
+<div class="section" id="querying">
+<h2>Querying<a class="headerlink" href="#querying" title="Permalink to this headline">¶</a></h2>
+<p>While you’ll probably want to use your operating system &amp; text editor’s facilities for most searching, notesdir does provide a supplementary query mechanism.</p>
+<p>Currently, only filtering by tags is supported, and sorting by various fields is supported.</p>
+<p>See <a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.FileQuery.parse" title="notesdir.models.FileQuery.parse"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.models.FileQuery.parse()</span></code></a> for the full query syntax.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir query <span class="s1">&#39;tag:journal -tag:food,personal sort:-created&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>--------------------
+path: /Users/jacob/Zettel/personal/archive/2020/07/way-too-much-piano.pdf
+title: way too much piano
+created: 2020-07-14 08:21:39+00:00
+tags: journal
+--------------------
+path: /Users/jacob/Zettel/personal/archive/2020/07/help-i-can-t-sleep.pdf
+title: help I can’t sleep
+created: 2020-07-07 15:49:33+00:00
+tags: journal
+--------------------
+path: /Users/jacob/Zettel/personal/active/goals-2020-07.md
+title: Goals 2020-07
+created: 2020-07-01 05:59:37.518044
+tags: journal, monthly-goals
+...
+</pre></div>
+</div>
+<p>(JSON output and table-formatted output are also supported, and you can return more or fewer fields using the <code class="docutils literal notranslate"><span class="pre">-f</span></code> parameter.)</p>
+</div>
+<div class="section" id="tag-statistics">
+<h2>Tag statistics<a class="headerlink" href="#tag-statistics" title="Permalink to this headline">¶</a></h2>
+<p>There is a command to view all your tags and how many notes are tagged with them:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir tags
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>+--------------------------+-------+
+| Tag                      | Count |
++--------------------------+-------+
+| abandoned                | 12    |
+| academic                 | 11    |
+| agriculture              | 1     |
+| alcohol                  | 1     |
+| algebra                  | 2     |
+| animals                  | 2     |
+| animation                | 6     |
+...
+</pre></div>
+</div>
+<p>You can also supply a query, to see stats for just the notes matching the query:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir tags tag:sci-fi
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>+------------------------+-------+
+| Tag                    | Count |
++------------------------+-------+
+| animation              | 2     |
+| archive                | 3     |
+| biography              | 1     |
+| book                   | 58    |
+| comic                  | 15    |
+| fantasy                | 14    |
+| fiction                | 145   |
+...
+</pre></div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Link Management</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Metadata &amp; Querying</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#metadata-fields">Metadata fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-type-support">File type support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#viewing-metadata">Viewing metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changing-metadata">Changing metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#querying">Querying</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tag-statistics">Tag statistics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="links.html"
+                        title="previous chapter">Link Management</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="templating.html"
+                        title="next chapter">Templating</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/metadata.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="templating.html" title="Templating"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="links.html" title="Link Management"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Metadata &amp; Querying</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

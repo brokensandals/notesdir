@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readme &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Link Management" href="links.html" />
+    <link rel="prev" title="Contents" href="contents.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="links.html" title="Link Management"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="contents.html" title="Contents"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Readme</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="readme">
+<h1>Readme<a class="headerlink" href="#readme" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about">
+<h2>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h2>
+<p>Notesdir is a command-line tool to help you manage notes that are stored as regular files.
+It can assist with:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Link management</dt><dd><ul>
+<li><p>update references to and from a file when moving it</p></li>
+<li><p>show links and backlinks for a file</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Metadata management</dt><dd><ul>
+<li><p>store title, true creation date, and tags in each file via mechanisms appropriate to the file type</p></li>
+<li><p>display metadata in unified format</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Querying</dt><dd><ul>
+<li><p>look for files with or without specific tags</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Templating</dt><dd><ul>
+<li><p>write <a class="reference external" href="https://www.makotemplates.org/">Mako</a> templates for quickly creating new notes</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Organizing</dt><dd><ul>
+<li><p>write rules in Python for organizing directories based on file metadata or relations between files</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="philosophy">
+<h2>Philosophy<a class="headerlink" href="#philosophy" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>You can use any editors you want.</p></li>
+<li><p>Notes don’t all have to be the same file format.
+Notesdir can currently parse and update Markdown, HTML, and PDFs; new file type support is straightforward to add; unrecognized file types can coexist peacefully.</p></li>
+<li><p>You can organize your files however you want, and reorganize them at will.</p></li>
+<li><p>Your notes should remain completely usable without notesdir.
+In particular, links between notes are just regular relative file paths which can be followed by many text editors, terminals, and browsers.</p></li>
+<li><p>You should be able to use just the features of notesdir that you want.
+The goal is to be more like a library than a framework.</p></li>
+<li><p>Notesdir’s functionality is all easy to use programmatically.
+The Python API can be imported into your own scripts.
+The CLI commands also have options to print output as JSON.</p></li>
+</ul>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Install <a class="reference external" href="https://www.python.org">Python</a> 3.7 or greater</p></li>
+<li><p>Run <code class="code docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">notesdir</span></code></p></li>
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">.notesdir.conf.py</span></code> file in your home directory:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">notesdir.conf</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">conf</span> <span class="o">=</span> <span class="n">NotesdirConf</span><span class="p">(</span>
+    <span class="c1"># SqliteRepo enables caching, which is important if you have more than a few dozen notes.</span>
+    <span class="c1"># The sqlite database is just a cache: if you delete it, it&#39;ll be rebuilt the next time you</span>
+    <span class="c1"># run notesdir (but that may take a while).</span>
+    <span class="n">repo_conf</span> <span class="o">=</span> <span class="n">SqliteRepoConf</span><span class="p">(</span>
+        <span class="c1"># List the directories that contain your notes here.</span>
+        <span class="c1"># These are searched recursively, you should not also list subdirectories.</span>
+        <span class="n">root_paths</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;/Users/jacob/Zettel&#39;</span><span class="p">},</span>
+
+        <span class="c1"># Specify a path to store the cache in. The file will be created if it does not exist.</span>
+        <span class="c1"># If you only have a handful of notes, you can use DirectRepoConf instead of SqliteRepoConf,</span>
+        <span class="c1"># and omit this line.</span>
+        <span class="n">cache_path</span><span class="o">=</span><span class="s1">&#39;/Users/jacob/local-only/notesdir-cache.sqlite3&#39;</span>
+    <span class="p">),</span>
+
+    <span class="c1"># This is an optional list of path globs where note templates can be found; it&#39;s used</span>
+    <span class="c1"># by the `notesdir new` command.</span>
+    <span class="n">template_globs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/Users/jacob/Zettel/*/templates/*.mako&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># This is optional. It determines the behavior of the `notesdir org` command. This config sets</span>
+<span class="c1"># up a couple rules:</span>
+<span class="c1"># - If a file has title metadata, use that to set the filename, and use a limited set of characters</span>
+<span class="c1">#   in the filename</span>
+<span class="c1"># - If you have attachments organized into &quot;.resources&quot; dirs - for example,</span>
+<span class="c1">#   a file &quot;foo.md&quot; and &quot;foo.md.resources/bar.png&quot; - make sure the files in the resources dir move</span>
+<span class="c1">#   when the main file moves.</span>
+<span class="k">def</span> <span class="nf">path_organizer</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">rewrite_name_using_title</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resource_path_fn</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">path</span>
+
+<span class="n">conf</span><span class="o">.</span><span class="n">path_organizer</span> <span class="o">=</span> <span class="n">path_organizer</span>
+</pre></div>
+</div>
+<p>That’s it!
+You can run <code class="code docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">query</span></code> to print a list of everything Notesdir currently knows about your notes.
+It may take a while the first time, while it builds the cache.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Readme</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#about">About</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#philosophy">Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="contents.html"
+                        title="previous chapter">Contents</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="links.html"
+                        title="next chapter">Link Management</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="links.html" title="Link Management"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="contents.html" title="Contents"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Readme</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

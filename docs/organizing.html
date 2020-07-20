@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizing &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CLI Reference" href="cli.html" />
+    <link rel="prev" title="Templating" href="templating.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="CLI Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="templating.html" title="Templating"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Organizing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="organizing">
+<h1>Organizing<a class="headerlink" href="#organizing" title="Permalink to this headline">¶</a></h1>
+<p>With a large number of notes, you probably don’t want to rely solely on your folder hierarchy for organizing notes - tags are crucial.
+But still, many desktop apps and CLI tools are oriented around the filesystem, so you do want a convenient directory structure.
+And what’s convenient can change over time.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">organize</span></code> command reorganizes your files based on rules you define.
+The rules can set the file’s path based on things like its title, creation date, whether it contains certain tags, etc.
+This makes it easy to keep a consistent directory structure and also change it quickly.</p>
+<p>Whenever it moves a file, it also updates links to and from that file - see <a class="reference internal" href="links.html"><span class="doc">Link Management</span></a>.</p>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.RepoConf.root_paths" title="notesdir.conf.RepoConf.root_paths"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf.root_paths</span></code></a> and <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.RepoConf.ignore" title="notesdir.conf.RepoConf.ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf.ignore</span></code></a> config items determine which files will be processed.
+The <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.NotesdirConf.path_organizer" title="notesdir.conf.NotesdirConf.path_organizer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.NotesdirConf.path_organizer</span></code></a> determines what rules will be applied.
+You supply a function which will be called for each file, and return the path at which the file belongs.
+(You can also return a <a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.DependentPathFn" title="notesdir.models.DependentPathFn"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.DependentPathFn</span></code></a> to indicate that the final location depends on whatever the final location for another file ends up being.)</p>
+<p>The docs for <code class="docutils literal notranslate"><span class="pre">path_organizer</span></code> contain a couple examples and information about some helper functions you can use.
+Below is an example from my own config.
+This sets up the following rules:</p>
+<ul class="simple">
+<li><p>Using <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.rewrite_name_using_title" title="notesdir.conf.rewrite_name_using_title"><code class="xref py py-func docutils literal notranslate"><span class="pre">notesdir.conf.rewrite_name_using_title()</span></code></a>, if a title is defined in the file’s metadata, the filename is based on that title, with special characters removed</p></li>
+<li><p>Using <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.resource_path_fn" title="notesdir.conf.resource_path_fn"><code class="xref py py-func docutils literal notranslate"><span class="pre">notesdir.conf.resource_path_fn()</span></code></a>, if a file is inside a <code class="docutils literal notranslate"><span class="pre">.resources</span></code> directory (which I use to store attachments for notes), it gets moved whenever the note it’s attached to gets moved</p></li>
+<li><p>Files tagged <code class="docutils literal notranslate"><span class="pre">active</span></code> go in a particular directory</p></li>
+<li><p>Files tagged <code class="docutils literal notranslate"><span class="pre">archive</span></code> or <code class="docutils literal notranslate"><span class="pre">source-web</span></code> go in other specific directories, in subdirectories organized by the year and month of each file’s creation date (based on the metadata stored inside it, or else filesystem metadata)</p></li>
+<li><p>Other files are left where they are</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os.path</span>
+<span class="n">root</span> <span class="o">=</span><span class="s1">&#39;/Users/jacob/Zettel&#39;</span>
+<span class="n">personal_root</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s1">/personal&#39;</span>
+<span class="n">personal_active</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">personal_root</span><span class="si">}</span><span class="s1">/active&#39;</span>
+<span class="n">personal_archive</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">personal_root</span><span class="si">}</span><span class="s1">/archive&#39;</span>
+<span class="n">personal_sources</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">personal_root</span><span class="si">}</span><span class="s1">/sources&#39;</span>
+<span class="n">personal_sources_web</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">personal_sources</span><span class="si">}</span><span class="s1">/web&#39;</span>
+
+<span class="k">def</span> <span class="nf">created_path</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+ <span class="n">created</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">guess_created</span><span class="p">()</span>
+ <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">created</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y&#39;</span><span class="p">),</span> <span class="n">created</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m&#39;</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">path_organizer</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">rewrite_name_using_title</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+    <span class="n">resource</span> <span class="o">=</span> <span class="n">resource_path_fn</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">resource</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">resource</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">personal_root</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;active&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">personal_active</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;archive&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">created_path</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">personal_archive</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;source-web&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">created_path</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">personal_sources_web</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">path</span>
+
+<span class="n">conf</span><span class="o">.</span><span class="n">path_organizer</span> <span class="o">=</span> <span class="n">path_organizer</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running">
+<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<p>To apply the organizational rules, just run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir organize
+</pre></div>
+</div>
+<p>If you want to see what it’s going to do without actually doing it, pass the <code class="docutils literal notranslate"><span class="pre">--preview</span></code> option.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Organizing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running">Running</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="templating.html"
+                        title="previous chapter">Templating</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cli.html"
+                        title="next chapter">CLI Reference</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/organizing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="CLI Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="templating.html" title="Templating"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Organizing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

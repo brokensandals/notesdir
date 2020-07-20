@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>notesdir.repos package &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">notesdir.repos package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="notesdir-repos-package">
+<h1>notesdir.repos package<a class="headerlink" href="#notesdir-repos-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-notesdir.repos.base">
+<span id="notesdir-repos-base-module"></span><h2>notesdir.repos.base module<a class="headerlink" href="#module-notesdir.repos.base" title="Permalink to this headline">¶</a></h2>
+<p>Defines the API for accessing a user’s collection of notes.</p>
+<p>The most important class is <a class="reference internal" href="#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo"><code class="xref py py-class docutils literal notranslate"><span class="pre">Repo</span></code></a>.</p>
+<dl class="py class">
+<dt id="notesdir.repos.base.Repo">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.repos.base.</code><code class="sig-name descname">Repo</code><a class="headerlink" href="#notesdir.repos.base.Repo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for repos, which are responsible for reading, querying, and changing a user’s collection of notes.</p>
+<p>Repo instances use <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a> instances to read/write individual files,
+but add functionality that requires looking at more than one note in isolation (such as finding backlinks),
+and may also perform caching.</p>
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.add_tag">
+<code class="sig-name descname">add_tag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.add_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method equivalent to calling change with one :class`notesdir.models.AddTagCmd`</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.change">
+<code class="sig-name descname">change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edits</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the specified edits and saves the affected files. Changes are applied in order.</p>
+<p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ChangeError" title="notesdir.accessors.base.ChangeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ChangeError</span></code></a> or IO-related exception.
+Changes are generally not applied atomically.</p>
+<p>If the repo performs caching, this method will ensure the changes are reflected in the cache, so it is
+not necessary to call <a class="reference internal" href="#notesdir.repos.base.Repo.invalidate" title="notesdir.repos.base.Repo.invalidate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">invalidate()</span></code></a> afterward.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release any resources associated with the repo. Should be called when you’re done with an instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.del_tag">
+<code class="sig-name descname">del_tag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.del_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method equivalent to calling change with one :class`notesdir.models.DelTagCmd`</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.repos.base.Repo.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the specified fields for the given file or folder.</p>
+<p>Additional fields might or might not be populated.</p>
+<p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ParseError" title="notesdir.accessors.base.ParseError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ParseError</span></code></a> or IO-related exception, but otherwise will
+always return an instance. If no file or folder exists at the given path, or if the file type is unrecognized,
+it can still populate the <code class="docutils literal notranslate"><span class="pre">path</span></code> and <code class="docutils literal notranslate"><span class="pre">backlinks</span></code> attributes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.invalidate">
+<code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">only</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the repo uses a cache, this tells it to update the cache before the next read.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">only</span></code> is non-empty, the repo might invalidate only those specific files, for the sake of performance.</p>
+<p>It is not necessary to call this method when you have first created an instance, or after calling
+<a class="reference internal" href="#notesdir.repos.base.Repo.change" title="notesdir.repos.base.Repo.change"><code class="xref py py-meth docutils literal notranslate"><span class="pre">change()</span></code></a>, as the repo should invalidate automatically at those times. But if you keep a repo instance around
+while also making direct changes to files yourself, you will need to call this method with the paths of the
+files you changed (or created or deleted).</p>
+<p>This method might only look at filesystem metadata such as modification time, so there may be situations
+in which it fails to notice changes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.query">
+<code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileQuery(include_tags=set(), exclude_tags=set(), sort_by=[])</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><a class="headerlink" href="#notesdir.repos.base.Repo.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the requested fields for all files matching the given query.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.replace_href">
+<code class="sig-name descname">replace_href</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">original</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">replacement</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.replace_href" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method equivalent to calling change with one <code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.ReplaceRefCmd</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.set_created">
+<code class="sig-name descname">set_created</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">created</span><span class="p">:</span> <span class="n">datetime.datetime</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.set_created" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method equivalent to calling change with one <a class="reference internal" href="notesdir.html#notesdir.models.SetCreatedCmd" title="notesdir.models.SetCreatedCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.SetCreatedCmd</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.set_title">
+<code class="sig-name descname">set_title</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.base.Repo.set_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method equivalent to calling change with one <a class="reference internal" href="notesdir.html#notesdir.models.SetTitleCmd" title="notesdir.models.SetTitleCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.SetTitleCmd</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.base.Repo.tag_counts">
+<code class="sig-name descname">tag_counts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileQuery(include_tags=set(), exclude_tags=set(), sort_by=[])</span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>int<span class="p">]</span><a class="headerlink" href="#notesdir.repos.base.Repo.tag_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a map of tag names to the number of files matching the query which posses that tag.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.repos.direct">
+<span id="notesdir-repos-direct-module"></span><h2>notesdir.repos.direct module<a class="headerlink" href="#module-notesdir.repos.direct" title="Permalink to this headline">¶</a></h2>
+<p>Provides the <a class="reference internal" href="#notesdir.repos.direct.DirectRepo" title="notesdir.repos.direct.DirectRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">DirectRepo</span></code></a> class.</p>
+<dl class="py class">
+<dt id="notesdir.repos.direct.DirectRepo">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.repos.direct.</code><code class="sig-name descname">DirectRepo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="notesdir.html#notesdir.conf.DirectRepoConf" title="notesdir.conf.DirectRepoConf">notesdir.conf.DirectRepoConf</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.direct.DirectRepo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo</span></code></a></p>
+<p>Accesses notes directly on the filesystem without any caching.</p>
+<p>This performs fine if you only have a few dozen notes, but beyond that you want a caching implementation
+(see <a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo" title="notesdir.repos.sqlite.SqliteRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.sqlite.SqliteRepo</span></code></a>), because looking up backlinks for a file requires reading all
+the other files, which gets very slow.</p>
+<dl class="py attribute">
+<dt id="notesdir.repos.direct.DirectRepo.conf">
+<code class="sig-name descname">conf</code><em class="property">: DirectRepoConf</em><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.conf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.direct.DirectRepo.change">
+<code class="sig-name descname">change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edits</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the specified edits and saves the affected files. Changes are applied in order.</p>
+<p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ChangeError" title="notesdir.accessors.base.ChangeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ChangeError</span></code></a> or IO-related exception.
+Changes are generally not applied atomically.</p>
+<p>If the repo performs caching, this method will ensure the changes are reflected in the cache, so it is
+not necessary to call <a class="reference internal" href="#notesdir.repos.direct.DirectRepo.invalidate" title="notesdir.repos.direct.DirectRepo.invalidate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">invalidate()</span></code></a> afterward.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.direct.DirectRepo.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em>, <em class="sig-param"><span class="n">path_resolved</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the specified fields for the given file or folder.</p>
+<p>Additional fields might or might not be populated.</p>
+<p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ParseError" title="notesdir.accessors.base.ParseError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ParseError</span></code></a> or IO-related exception, but otherwise will
+always return an instance. If no file or folder exists at the given path, or if the file type is unrecognized,
+it can still populate the <code class="docutils literal notranslate"><span class="pre">path</span></code> and <code class="docutils literal notranslate"><span class="pre">backlinks</span></code> attributes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.direct.DirectRepo.invalidate">
+<code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">only</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>No-op.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.direct.DirectRepo.query">
+<code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileQuery(include_tags=set(), exclude_tags=set(), sort_by=[])</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the requested fields for all files matching the given query.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.direct.DirectRepo.tag_counts">
+<code class="sig-name descname">tag_counts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileQuery(include_tags=set(), exclude_tags=set(), sort_by=[])</span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>int<span class="p">]</span><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.tag_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a map of tag names to the number of files matching the query which posses that tag.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.repos.sqlite">
+<span id="notesdir-repos-sqlite-module"></span><h2>notesdir.repos.sqlite module<a class="headerlink" href="#module-notesdir.repos.sqlite" title="Permalink to this headline">¶</a></h2>
+<p>Provides the <a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo" title="notesdir.repos.sqlite.SqliteRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqliteRepo</span></code></a> class.</p>
+<dl class="py class">
+<dt id="notesdir.repos.sqlite.SqliteRepo">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.repos.sqlite.</code><code class="sig-name descname">SqliteRepo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="notesdir.html#notesdir.conf.SqliteRepoConf" title="notesdir.conf.SqliteRepoConf">notesdir.conf.SqliteRepoConf</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.repos.direct.DirectRepo" title="notesdir.repos.direct.DirectRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.direct.DirectRepo</span></code></a></p>
+<p>Keeps a cache of note metadata/links in a SQLite database.</p>
+<p>The database file is only a cache: you can safely delete it and it will be rebuilt the next time you create a
+<a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo" title="notesdir.repos.sqlite.SqliteRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqliteRepo</span></code></a> instance. Corrupting or deleting the file during operation may cause erratic behavior, though.</p>
+<p>The modification timestamp and other filesystem metadata for each file in your note directories
+are stored in the database. Each time a <a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo" title="notesdir.repos.sqlite.SqliteRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqliteRepo</span></code></a> instance is created or <a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo.change" title="notesdir.repos.sqlite.SqliteRepo.change"><code class="xref py py-meth docutils literal notranslate"><span class="pre">change()</span></code></a> is
+called, the files are scanned to see if this metadata has changed for any of them; if so, those files are parsed
+again and the cache is updated.</p>
+<p>Remember to call <a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo.close" title="notesdir.repos.sqlite.SqliteRepo.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> when done with the instance, or use the instance as a context manager.</p>
+<dl class="py attribute">
+<dt id="notesdir.repos.sqlite.SqliteRepo.conf">
+<code class="sig-name descname">conf</code><em class="property">: <a class="reference internal" href="notesdir.html#notesdir.conf.SqliteRepoConf" title="notesdir.conf.SqliteRepoConf">notesdir.conf.SqliteRepoConf</a></em><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.conf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.sqlite.SqliteRepo.change">
+<code class="sig-name descname">change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edits</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the specified edits and saves the affected files. Changes are applied in order.</p>
+<p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ChangeError" title="notesdir.accessors.base.ChangeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ChangeError</span></code></a> or IO-related exception.
+Changes are generally not applied atomically.</p>
+<p>If the repo performs caching, this method will ensure the changes are reflected in the cache, so it is
+not necessary to call <a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo.invalidate" title="notesdir.repos.sqlite.SqliteRepo.invalidate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">invalidate()</span></code></a> afterward.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.sqlite.SqliteRepo.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.sqlite.SqliteRepo.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Release any resources associated with the repo. Should be called when you’re done with an instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.sqlite.SqliteRepo.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em>, <em class="sig-param"><span class="n">path_resolved</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks up the specified fields for the given file or folder.</p>
+<p>Additional fields might or might not be populated.</p>
+<p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ParseError" title="notesdir.accessors.base.ParseError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ParseError</span></code></a> or IO-related exception, but otherwise will
+always return an instance. If no file or folder exists at the given path, or if the file type is unrecognized,
+it can still populate the <code class="docutils literal notranslate"><span class="pre">path</span></code> and <code class="docutils literal notranslate"><span class="pre">backlinks</span></code> attributes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.sqlite.SqliteRepo.invalidate">
+<code class="sig-name descname">invalidate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">only</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.invalidate" title="Permalink to this definition">¶</a></dt>
+<dd><p>No-op.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.sqlite.SqliteRepo.query">
+<code class="sig-name descname">query</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileQuery(include_tags=set(), exclude_tags=set(), sort_by=[])</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><a class="headerlink" href="#notesdir.repos.sqlite.SqliteRepo.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the requested fields for all files matching the given query.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.repos">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-notesdir.repos" title="Permalink to this headline">¶</a></h2>
+<p>Handles interaction with a collection of notes.</p>
+<p><a class="reference internal" href="#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo</span></code></a> defines an API.
+<a class="reference internal" href="#notesdir.repos.direct.DirectRepo" title="notesdir.repos.direct.DirectRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.direct.DirectRepo</span></code></a> is the most basic implementation, while
+<a class="reference internal" href="#notesdir.repos.sqlite.SqliteRepo" title="notesdir.repos.sqlite.SqliteRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.sqlite.SqliteRepo</span></code></a> is the caching implementation you usually want to use.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../contents.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/_gensrc/notesdir.repos.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">notesdir.repos package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

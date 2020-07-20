@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>notesdir.accessors package &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">notesdir.accessors package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="notesdir-accessors-package">
+<h1>notesdir.accessors package<a class="headerlink" href="#notesdir-accessors-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-notesdir.accessors.base">
+<span id="notesdir-accessors-base-module"></span><h2>notesdir.accessors.base module<a class="headerlink" href="#module-notesdir.accessors.base" title="Permalink to this headline">¶</a></h2>
+<p>Defines the API for parsing/changing information like metadata and links in individual files.</p>
+<p>The most important class is <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accessor</span></code></a>.</p>
+<dl class="py class">
+<dt id="notesdir.accessors.base.Accessor">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.accessors.base.</code><code class="sig-name descname">Accessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.base.Accessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for accessors, which are responsible for reading and writing supported file types.</p>
+<p>Each instance is for working with a single file, specified to the constructor.</p>
+<dl class="py attribute">
+<dt id="notesdir.accessors.base.Accessor.path">
+<code class="sig-name descname">path</code><em class="property">: str</em><a class="headerlink" href="#notesdir.accessors.base.Accessor.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.accessors.base.Accessor.edited">
+<code class="sig-name descname">edited</code><em class="property">: bool</em><a class="headerlink" href="#notesdir.accessors.base.Accessor.edited" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, indicates the instance has unsaved edits for the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.base.Accessor.edit">
+<code class="sig-name descname">edit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edit</span><span class="p">:</span> <span class="n"><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.accessors.base.Accessor.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the given change to this instance (but does not save it to the file yet).</p>
+<p>May raise <a class="reference internal" href="#notesdir.accessors.base.ChangeError" title="notesdir.accessors.base.ChangeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ChangeError</span></code></a>.
+Should raise <a class="reference internal" href="#notesdir.accessors.base.UnsupportedChangeError" title="notesdir.accessors.base.UnsupportedChangeError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">UnsupportedChangeError</span></code></a> if the edit is unsupported for this file type
+or invalid for the file.</p>
+<p>Raises <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> if the <code class="docutils literal notranslate"><span class="pre">path</span></code> of the edit does not match the <code class="docutils literal notranslate"><span class="pre">path</span></code> of this accessor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.base.Accessor.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.accessors.base.Accessor.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns details about the file.</p>
+<p>This will not necessarily reload the file from disk if the instance has previously loaded it.</p>
+<p>This will only populate the attributes of FileInfo that are supported by the particular subclass, and
+also will not populate any attributes (such as backlinks) that cannot be derived from the file in isolation.</p>
+<p>May raise <a class="reference internal" href="#notesdir.accessors.base.ParseError" title="notesdir.accessors.base.ParseError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ParseError</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.base.Accessor.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.accessors.base.Accessor.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to parse the file. This does not normally need to be called explicitly.</p>
+<p>It will be called by <a class="reference internal" href="#notesdir.accessors.base.Accessor.info" title="notesdir.accessors.base.Accessor.info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">info()</span></code></a> when necessary.</p>
+<p>May raise <a class="reference internal" href="#notesdir.accessors.base.ParseError" title="notesdir.accessors.base.ParseError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ParseError</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.base.Accessor.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.accessors.base.Accessor.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes any changes from prior calls to <a class="reference internal" href="#notesdir.accessors.base.Accessor.edit" title="notesdir.accessors.base.Accessor.edit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code></a> to the file.</p>
+<p>Returns True if there were changes to save, and False if there were none.
+Raises <a class="reference internal" href="#notesdir.accessors.base.ChangeError" title="notesdir.accessors.base.ChangeError"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ChangeError()</span></code></a> or an IO-related exception if the changes cannot be saved.</p>
+<p>This method may do nothing if <code class="xref py py-attr docutils literal notranslate"><span class="pre">self.edited</span></code> is False.</p>
+<p>This method may overwrite changes on disk that were made since the data was loaded.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="notesdir.accessors.base.ChangeError">
+<em class="property">exception </em><code class="sig-prename descclassname">notesdir.accessors.base.</code><code class="sig-name descname">ChangeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">edits</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">cause</span><span class="p">:</span> <span class="n">BaseException</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.base.ChangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when an <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accessor</span></code></a> is unable to perform a requested change.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.accessors.base.MiscAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.accessors.base.</code><code class="sig-name descname">MiscAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.base.MiscAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a></p>
+<p>This accessor can be given the path to any file or folder, or even a nonexistent path.</p>
+<p>Its <code class="xref py py-meth docutils literal notranslate"><span class="pre">info()</span></code> method only populates the <code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code> field, and no editing or saving is supported.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="notesdir.accessors.base.ParseError">
+<em class="property">exception </em><code class="sig-prename descclassname">notesdir.accessors.base.</code><code class="sig-name descname">ParseError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">cause</span><span class="p">:</span> <span class="n">BaseException</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.base.ParseError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when an <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accessor</span></code></a> is unable to parse a file.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="notesdir.accessors.base.UnsupportedChangeError">
+<em class="property">exception </em><code class="sig-prename descclassname">notesdir.accessors.base.</code><code class="sig-name descname">UnsupportedChangeError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edit</span><span class="p">:</span> <span class="n"><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.base.UnsupportedChangeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.accessors.base.ChangeError" title="notesdir.accessors.base.ChangeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.ChangeError</span></code></a></p>
+<p>Raised when an <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Accessor</span></code></a> does not support the type of change requested at all.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.accessors.delegating">
+<span id="notesdir-accessors-delegating-module"></span><h2>notesdir.accessors.delegating module<a class="headerlink" href="#module-notesdir.accessors.delegating" title="Permalink to this headline">¶</a></h2>
+<p>Provides the <a class="reference internal" href="#notesdir.accessors.delegating.DelegatingAccessor" title="notesdir.accessors.delegating.DelegatingAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">DelegatingAccessor</span></code></a> class.</p>
+<dl class="py class">
+<dt id="notesdir.accessors.delegating.DelegatingAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.accessors.delegating.</code><code class="sig-name descname">DelegatingAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.delegating.DelegatingAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a></p>
+<p>Responsible for choosing what <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a> subclass to use for a given file.</p>
+<p>This selects an accessor based on the path’s file extension, and delegates method calls to that accessor.</p>
+<p>Currently, the mapping is hardcoded:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.md</span></code> -&gt; <code class="xref py py-class docutils literal notranslate"><span class="pre">MarkdownAccessor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.html</span></code> -&gt; <code class="xref py py-class docutils literal notranslate"><span class="pre">HTMLAccessor</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.pdf</span></code> -&gt; <code class="xref py py-class docutils literal notranslate"><span class="pre">PDFAccessor</span></code></p></li>
+<li><p>anything else -&gt; <code class="xref py py-class docutils literal notranslate"><span class="pre">MiscAccessor</span></code></p></li>
+</ul>
+<dl class="py method">
+<dt id="notesdir.accessors.delegating.DelegatingAccessor.edit">
+<code class="sig-name descname">edit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">edit</span><span class="p">:</span> <span class="n"><a class="reference internal" href="notesdir.html#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.delegating.DelegatingAccessor.edit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the given change to this instance (but does not save it to the file yet).</p>
+<p>May raise <code class="xref py py-exc docutils literal notranslate"><span class="pre">ChangeError</span></code>.
+Should raise <code class="xref py py-exc docutils literal notranslate"><span class="pre">UnsupportedChangeError</span></code> if the edit is unsupported for this file type
+or invalid for the file.</p>
+<p>Raises <code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> if the <code class="docutils literal notranslate"><span class="pre">path</span></code> of the edit does not match the <code class="docutils literal notranslate"><span class="pre">path</span></code> of this accessor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.delegating.DelegatingAccessor.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.accessors.delegating.DelegatingAccessor.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns details about the file.</p>
+<p>This will not necessarily reload the file from disk if the instance has previously loaded it.</p>
+<p>This will only populate the attributes of FileInfo that are supported by the particular subclass, and
+also will not populate any attributes (such as backlinks) that cannot be derived from the file in isolation.</p>
+<p>May raise <code class="xref py py-exc docutils literal notranslate"><span class="pre">ParseError</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.delegating.DelegatingAccessor.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.delegating.DelegatingAccessor.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to parse the file. This does not normally need to be called explicitly.</p>
+<p>It will be called by <a class="reference internal" href="#notesdir.accessors.delegating.DelegatingAccessor.info" title="notesdir.accessors.delegating.DelegatingAccessor.info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">info()</span></code></a> when necessary.</p>
+<p>May raise <code class="xref py py-exc docutils literal notranslate"><span class="pre">ParseError</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.accessors.delegating.DelegatingAccessor.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.accessors.delegating.DelegatingAccessor.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes any changes from prior calls to <a class="reference internal" href="#notesdir.accessors.delegating.DelegatingAccessor.edit" title="notesdir.accessors.delegating.DelegatingAccessor.edit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edit()</span></code></a> to the file.</p>
+<p>Returns True if there were changes to save, and False if there were none.
+Raises <code class="xref py py-meth docutils literal notranslate"><span class="pre">ChangeError()</span></code> or an IO-related exception if the changes cannot be saved.</p>
+<p>This method may do nothing if <code class="xref py py-attr docutils literal notranslate"><span class="pre">self.edited</span></code> is False.</p>
+<p>This method may overwrite changes on disk that were made since the data was loaded.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.accessors.html">
+<span id="notesdir-accessors-html-module"></span><h2>notesdir.accessors.html module<a class="headerlink" href="#module-notesdir.accessors.html" title="Permalink to this headline">¶</a></h2>
+<p>Provides the <code class="xref py py-class docutils literal notranslate"><span class="pre">HTMLAccessor</span> <span class="pre">class</span></code>.</p>
+<dl class="py class">
+<dt id="notesdir.accessors.html.HTMLAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.accessors.html.</code><code class="sig-name descname">HTMLAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.html.HTMLAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a></p>
+<p>Responsible for parsing and updating HTML files.</p>
+<p>Current support:</p>
+<ul class="simple">
+<li><p>Title is stored in the <code class="docutils literal notranslate"><span class="pre">&lt;title&gt;</span></code> element.</p></li>
+<li><p>Creation date is stored in the <code class="docutils literal notranslate"><span class="pre">&lt;meta</span> <span class="pre">name=&quot;created&quot;&gt;</span></code> element’s <code class="docutils literal notranslate"><span class="pre">content</span></code> attribute.</p></li>
+<li><p>Tags are stored in the <code class="docutils literal notranslate"><span class="pre">&lt;meta</span> <span class="pre">name=&quot;keywords&quot;&gt;</span></code> element’s <code class="docutils literal notranslate"><span class="pre">content</span></code> attribute, comma-separated.</p></li>
+<li><p>Links can be recognized and updated when they are in the <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">img</span></code>, <code class="docutils literal notranslate"><span class="pre">video</span></code>, <code class="docutils literal notranslate"><span class="pre">audio</span></code>, or <code class="docutils literal notranslate"><span class="pre">source</span></code>
+elements. Note that the <code class="docutils literal notranslate"><span class="pre">srcset</span></code> attribute is not currently supported.</p></li>
+</ul>
+<p>If the file does not at least contain an <code class="docutils literal notranslate"><span class="pre">&lt;html&gt;</span></code> element, attempting to add metadata will fail.</p>
+<p>BeautifulSoup4 is used for parsing and updating the files; formatting may be changed during updates.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.accessors.markdown">
+<span id="notesdir-accessors-markdown-module"></span><h2>notesdir.accessors.markdown module<a class="headerlink" href="#module-notesdir.accessors.markdown" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="notesdir.accessors.markdown.MarkdownAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.accessors.markdown.</code><code class="sig-name descname">MarkdownAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.markdown.MarkdownAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a></p>
+<p>Responsible for parsing and updating Markdown files.</p>
+<p>Current support:</p>
+<ul class="simple">
+<li><p>Metadata is stored in a YAML metadata header.</p></li>
+<li><dl class="simple">
+<dt>Tags can be stored in both the <code class="docutils literal notranslate"><span class="pre">keywords</span></code> YAML key and as hashtags in the body.</dt><dd><ul>
+<li><p>When this class needs to add a new tag, it will always do so in the YAML metadata.</p></li>
+<li><p>When removing a tag, this class will delete any occurrences of the hashtag from the body, in addition
+to deleting from the YAML metadata.</p></li>
+<li><p>Hashtags are only recognized when they are preceded by whitespace or begin the line. Hashtags must
+begin with a letter a-z and can only contain letters a-z and digits.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Links can be recognized and updated when they are in one of the following three formats:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">[any</span> <span class="pre">link</span> <span class="pre">text](HREF)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">![any</span> <span class="pre">image</span> <span class="pre">title](HREF)</span></code></p></li>
+<li><p>(at beginning of a line) <code class="docutils literal notranslate"><span class="pre">[any</span> <span class="pre">id]:</span> <span class="pre">HREF</span> <span class="pre">optional</span> <span class="pre">text</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Currently, parsing and updating is done via regex, so formatting changes should be minimal but false positives
+for links and hashtags are a risk.</p>
+<p>Here’s an example Markdown file with metadata and hashtags:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span>---
+title: My Boring Note
+created: 2001-02-03 04:05:06
+keywords:
+- boring
+- unnecessary
+...
+The three dots indicate the end of the metadata. Now we&#39;re in **Markdown**!
+This is a really #uninteresting note.
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.accessors.pdf">
+<span id="notesdir-accessors-pdf-module"></span><h2>notesdir.accessors.pdf module<a class="headerlink" href="#module-notesdir.accessors.pdf" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="notesdir.accessors.pdf.PDFAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.accessors.pdf.</code><code class="sig-name descname">PDFAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.accessors.pdf.PDFAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a></p>
+<p>Responsible for parsing and updating PDF files.</p>
+<p>Current support:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Metadata is stored in the PDF’s “document info”:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">/Title</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/CreationDate</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/Keywords</span></code> (comma-separated)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Links are <em>not</em> currently supported, so although notesdir can update links to PDF files from other files,
+it will not currently update links from PDF files to other files.</p></li>
+</ul>
+<p>PyPDF4 is used for parsing and updating.</p>
+<p>Note: when updating a PDF containing the metadata key <code class="docutils literal notranslate"><span class="pre">/AAPL:Keywords</span></code> (which is often included on PDFs
+generated on Mac), that field will be removed. It appears to violate version 1.7 of the PDF spec, and PyPDF4
+cannot serialize it.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.accessors">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-notesdir.accessors" title="Permalink to this headline">¶</a></h2>
+<p>Support for various file types.</p>
+<p><a class="reference internal" href="#notesdir.accessors.base.Accessor" title="notesdir.accessors.base.Accessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.base.Accessor</span></code></a> is the API that must be implemented to add support for a file type.
+The other modules in this package provide implementations for specific file types.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../contents.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/_gensrc/notesdir.accessors.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">notesdir.accessors package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

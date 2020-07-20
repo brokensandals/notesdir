@@ -1,0 +1,1035 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>notesdir package &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">notesdir package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="notesdir-package">
+<h1>notesdir package<a class="headerlink" href="#notesdir-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notesdir.accessors.html">notesdir.accessors package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#module-notesdir.accessors.base">notesdir.accessors.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#module-notesdir.accessors.delegating">notesdir.accessors.delegating module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#module-notesdir.accessors.html">notesdir.accessors.html module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#module-notesdir.accessors.markdown">notesdir.accessors.markdown module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#module-notesdir.accessors.pdf">notesdir.accessors.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.accessors.html#module-notesdir.accessors">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="notesdir.repos.html">notesdir.repos package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.repos.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.repos.html#module-notesdir.repos.base">notesdir.repos.base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.repos.html#module-notesdir.repos.direct">notesdir.repos.direct module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.repos.html#module-notesdir.repos.sqlite">notesdir.repos.sqlite module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notesdir.repos.html#module-notesdir.repos">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-notesdir.api">
+<span id="notesdir-api-module"></span><h2>notesdir.api module<a class="headerlink" href="#module-notesdir.api" title="Permalink to this headline">¶</a></h2>
+<p>Provides the main entry point for using the library, <a class="reference internal" href="#notesdir.api.Notesdir" title="notesdir.api.Notesdir"><code class="xref py py-class docutils literal notranslate"><span class="pre">Notesdir</span></code></a></p>
+<dl class="py exception">
+<dt id="notesdir.api.Error">
+<em class="property">exception </em><code class="sig-prename descclassname">notesdir.api.</code><code class="sig-name descname">Error</code><a class="headerlink" href="#notesdir.api.Error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.api.Notesdir">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.api.</code><code class="sig-name descname">Notesdir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#notesdir.conf.NotesdirConf" title="notesdir.conf.NotesdirConf">notesdir.conf.NotesdirConf</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.api.Notesdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Main entry point for working programmatically with your collection of notes.</p>
+<p>Generally, you should get an instance using the <a class="reference internal" href="#notesdir.api.Notesdir.for_user" title="notesdir.api.Notesdir.for_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Notesdir.for_user()</span></code></a> method. Call <a class="reference internal" href="#notesdir.api.Notesdir.close" title="notesdir.api.Notesdir.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">close()</span></code></a> when you’re
+done with it, or else use it as a context manager.</p>
+<p>This class contains various methods such as <a class="reference internal" href="#notesdir.api.Notesdir.move" title="notesdir.api.Notesdir.move"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Notesdir.move()</span></code></a> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Notesdir.standardize()</span></code>
+for performing high-level operations. The <a class="reference internal" href="#notesdir.api.Notesdir.repo" title="notesdir.api.Notesdir.repo"><code class="xref py py-attr docutils literal notranslate"><span class="pre">repo</span></code></a> attribute, which is an instance of
+<a class="reference internal" href="notesdir.repos.html#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo</span></code></a>, provides additional operations, some lower-level.</p>
+<dl class="py attribute">
+<dt id="notesdir.api.Notesdir.conf">
+<code class="sig-name descname">conf</code><em class="property">: <a class="reference internal" href="#notesdir.conf.NotesdirConf" title="notesdir.conf.NotesdirConf">notesdir.conf.NotesdirConf</a></em><a class="headerlink" href="#notesdir.api.Notesdir.conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Typically loaded from the variable <code class="docutils literal notranslate"><span class="pre">conf</span></code> in the file <code class="docutils literal notranslate"><span class="pre">~/.notesdir.conf.py</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.api.Notesdir.repo">
+<code class="sig-name descname">repo</code><em class="property">: <a class="reference internal" href="notesdir.repos.html#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo">notesdir.repos.base.Repo</a></em><a class="headerlink" href="#notesdir.api.Notesdir.repo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Here’s an example of how to use this class. This would add the tag “personal” to every note tagged with “journal”.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">notesdir.api</span> <span class="kn">import</span> <span class="n">Notesdir</span>
+<span class="k">with</span> <span class="n">Notesdir</span><span class="o">.</span><span class="n">for_user</span><span class="p">()</span> <span class="k">as</span> <span class="n">nd</span><span class="p">:</span>
+    <span class="n">infos</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">repo</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&#39;tag:journal&#39;</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span><span class="p">)</span>
+    <span class="n">nd</span><span class="o">.</span><span class="n">change</span><span class="p">({</span><span class="n">info</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">infos</span><span class="p">},</span> <span class="n">add_tags</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;personal&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.change">
+<code class="sig-name descname">change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">paths</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">add_tags</span><span class="o">=</span><span class="default_value">typing.Set[str]</span></em>, <em class="sig-param"><span class="n">del_tags</span><span class="o">=</span><span class="default_value">typing.Set[str]</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">typing.Union[str, NoneType]</span></em>, <em class="sig-param"><span class="n">created</span><span class="o">=</span><span class="default_value">typing.Union[datetime.datetime, NoneType]</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.api.Notesdir.change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies all the specified changes to the specified paths.</p>
+<p>This is a convenience method that wraps <a class="reference internal" href="notesdir.repos.html#notesdir.repos.base.Repo.change" title="notesdir.repos.base.Repo.change"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo.change()</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.api.Notesdir.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the associated repo and releases any other resources.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.for_user">
+<em class="property">static </em><code class="sig-name descname">for_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.api.Notesdir" title="notesdir.api.Notesdir">notesdir.api.Notesdir</a><a class="headerlink" href="#notesdir.api.Notesdir.for_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance using the user’s <code class="docutils literal notranslate"><span class="pre">~/.notesdir.conf.py</span></code> file.</p>
+<p>Raises <code class="xref py py-exc docutils literal notranslate"><span class="pre">Exception</span></code> if it does not exist or does not define configuration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.move">
+<code class="sig-name descname">move</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">moves</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">into_dirs</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">check_exists</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">create_parents</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">delete_empty_parents</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span><a class="headerlink" href="#notesdir.api.Notesdir.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves files/directories and updates references to/from them appropriately.</p>
+<p>moves is a dict where the keys are source paths that should be moved, and the values are the destinations.
+If a destination is a directory and into_dirs is True, the source will be moved into it,
+using the source’s filename; otherwise, the source is renamed to the destination.</p>
+<p>This method tries not to overwrite files; if a destination path already exists, a shortened UUID
+will be appended to the path. You can disable that behavior by setting check_exists=False.</p>
+<p>It’s OK for a path to occur as a key and also another key’s value. For example,
+<code class="docutils literal notranslate"><span class="pre">{'foo':</span> <span class="pre">'bar',</span> <span class="pre">'bar':</span> <span class="pre">'foo'}</span></code> will swap the two files.</p>
+<p>If create_parents is True, any directories in a destination path that do not yet exist will be
+created.</p>
+<p>If delete_empty_parents is True, after moving files out of a directory, if the directory or any of its parent
+directories are empty, they will be deleted. (The root folder or current working directory will not be
+deleted regardless.)</p>
+<p>Returns a dict mapping paths of files that were moved, to their final paths.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.new">
+<code class="sig-name descname">new</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">template_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.api.Notesdir.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new file using the specified template.</p>
+<p>The template name will be looked up using <code class="xref py py-meth docutils literal notranslate"><span class="pre">template_for-name()</span></code>.</p>
+<p>Raises <code class="xref py py-exc docutils literal notranslate"><span class="pre">FileNotFoundError</span></code> if the template cannot be found.</p>
+<p>If dest is not given, a target file name will be generated.</p>
+<p>The following names are defined in the template’s namespace:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nd</span></code>: this instance of <a class="reference internal" href="#notesdir.api.Notesdir" title="notesdir.api.Notesdir"><code class="xref py py-class docutils literal notranslate"><span class="pre">Notesdir</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">directives</span></code>: an instance of <a class="reference internal" href="#notesdir.models.TemplateDirectives" title="notesdir.models.TemplateDirectives"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.TemplateDirectives</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template_path</span></code>: the <code class="xref py py-class docutils literal notranslate"><span class="pre">pathlib.Path</span></code> of the template being rendered</p></li>
+</ul>
+<p>Returns the path of the created file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.organize">
+<code class="sig-name descname">organize</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span><a class="headerlink" href="#notesdir.api.Notesdir.organize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorganizes files using the function set in <a class="reference internal" href="#notesdir.conf.NotesdirConf.path_organizer" title="notesdir.conf.NotesdirConf.path_organizer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.NotesdirConf.path_organizer</span></code></a>.</p>
+<p>For every file in your note directories (defined by <a class="reference internal" href="#notesdir.conf.RepoConf.root_paths" title="notesdir.conf.RepoConf.root_paths"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf.root_paths</span></code></a>), this
+method will call that function with the file’s FileInfo, and move the file to the path the function returns.</p>
+<p>Note that the function will only be called for files, not directories. You cannot directly move a directory
+by this method, but you can effectively move one by moving all the files from it to the same new directory.</p>
+<p>This method deletes any empty directories that result from the moves it makes, and creates any directories
+it needs to.</p>
+<p>The FileInfo is retrieved using <a class="reference internal" href="#notesdir.models.FileInfoReq.full" title="notesdir.models.FileInfoReq.full"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.models.FileInfoReq.full()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.replace_path_hrefs">
+<code class="sig-name descname">replace_path_hrefs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">replacement</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.api.Notesdir.replace_path_hrefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds and replaces links to the original path with links to the new path.</p>
+<p>Note that this does not currently replace links to children of the original path - e.g.,
+if original is “/foo/bar”, a link to “/foo/bar/baz” will not be updated.</p>
+<p>No files are moved, and this method does not care whether or not the original or replacement paths
+refer to actual files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.template_for_name">
+<code class="sig-name descname">template_for_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>str<span class="p">]</span><a class="headerlink" href="#notesdir.api.Notesdir.template_for_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to the template for the given name, if one is found.</p>
+<p>If treating the name as a relative or absolute path leads to a file, that file is used.
+Otherwise, the name is looked up from <a class="reference internal" href="#notesdir.api.Notesdir.templates_by_name" title="notesdir.api.Notesdir.templates_by_name"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Notesdir.templates_by_name()</span></code></a>, case-insensitively.
+Returns None if a matching template cannot be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.api.Notesdir.templates_by_name">
+<code class="sig-name descname">templates_by_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span><a class="headerlink" href="#notesdir.api.Notesdir.templates_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns paths of note templates that are known based on the config.</p>
+<p>The name is the part of the filename before any <cite>.</cite> character. If multiple templates
+have the same name, the one whose path is lexicographically first will appear in the dict.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.cli">
+<span id="notesdir-cli-module"></span><h2>notesdir.cli module<a class="headerlink" href="#module-notesdir.cli" title="Permalink to this headline">¶</a></h2>
+<p>Command-line interface for notesdir.</p>
+<dl class="py function">
+<dt id="notesdir.cli.argparser">
+<code class="sig-prename descclassname">notesdir.cli.</code><code class="sig-name descname">argparser</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; argparse.ArgumentParser<a class="headerlink" href="#notesdir.cli.argparser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.cli.main">
+<code class="sig-prename descclassname">notesdir.cli.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#notesdir.cli.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the tool and returns its exit code.</p>
+<p>args may be an array of string command-line arguments; if absent,
+the process’s arguments are used.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.conf">
+<span id="notesdir-conf-module"></span><h2>notesdir.conf module<a class="headerlink" href="#module-notesdir.conf" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="notesdir.conf.DirectRepoConf">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">DirectRepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, preview_mode: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.DirectRepoConf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.conf.RepoConf" title="notesdir.conf.RepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf</span></code></a></p>
+<p>Configures notesdir to access notes without caching, via <code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.DirectRepo</span></code>.</p>
+<dl class="py method">
+<dt id="notesdir.conf.DirectRepoConf.instantiate">
+<code class="sig-name descname">instantiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.DirectRepoConf.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.conf.DirectRepoConf.root_paths">
+<code class="sig-name descname">root_paths</code><a class="headerlink" href="#notesdir.conf.DirectRepoConf.root_paths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.conf.NotesdirConf">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1043afef0&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="notesdir.conf.NotesdirConf.for_user">
+<em class="property">classmethod </em><code class="sig-name descname">for_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.conf.NotesdirConf" title="notesdir.conf.NotesdirConf">notesdir.conf.NotesdirConf</a><a class="headerlink" href="#notesdir.conf.NotesdirConf.for_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.conf.NotesdirConf.instantiate">
+<code class="sig-name descname">instantiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.conf.NotesdirConf.path_organizer">
+<code class="sig-name descname">path_organizer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf.path_organizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the rule for rewriting paths used by the <code class="docutils literal notranslate"><span class="pre">organize</span></code> command and <a class="reference internal" href="#notesdir.api.Notesdir.organize" title="notesdir.api.Notesdir.organize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.organize()</span></code></a>.</p>
+<p>You can use this to standardize filenames or to organize your files via tags, date, or other criteria.</p>
+<p>For example, the following converts all filenames to lowercase versions of the note title (if any):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os.path</span>
+<span class="k">def</span> <span class="nf">path_organizer</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="n">dirname</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">title</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">into</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+<span class="n">conf</span><span class="o">.</span><span class="n">path_organizer</span> <span class="o">=</span> <span class="n">path_organizer</span>
+</pre></div>
+</div>
+<p>Here’s an example of organizing by important tags:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os.path</span>
+<span class="k">def</span> <span class="nf">path_organizer</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;secrets&#39;</span><span class="p">,</span> <span class="s1">&#39;journal&#39;</span><span class="p">,</span> <span class="s1">&#39;grievances&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;/Users/jacob/notes/</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;/Users/jacob/notes/misc/</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+
+<span class="n">conf</span><span class="o">.</span><span class="n">path_organizer</span> <span class="o">=</span> <span class="n">path_organizer</span>
+</pre></div>
+</div>
+<p>Some helper functions are provided for use in path organizers:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#notesdir.conf.resource_path_fn" title="notesdir.conf.resource_path_fn"><code class="xref py py-func docutils literal notranslate"><span class="pre">resource_path_fn()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#notesdir.conf.rewrite_name_using_title" title="notesdir.conf.rewrite_name_using_title"><code class="xref py py-func docutils literal notranslate"><span class="pre">rewrite_name_using_title()</span></code></a></p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.conf.NotesdirConf.repo_conf">
+<code class="sig-name descname">repo_conf</code><em class="property">: RepoConf</em><a class="headerlink" href="#notesdir.conf.NotesdirConf.repo_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures how to access your collection of notes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.conf.NotesdirConf.standardize">
+<code class="sig-name descname">standardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf.standardize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.conf.NotesdirConf.template_globs">
+<code class="sig-name descname">template_globs</code><em class="property">: Set<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.conf.NotesdirConf.template_globs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of path globs such as <code class="docutils literal notranslate"><span class="pre">{&quot;/notes/templates/*.mako&quot;}</span></code> to search for templates.</p>
+<p>This is used for the CLI command <code class="docutils literal notranslate"><span class="pre">new</span></code>, and template-related methods of <a class="reference internal" href="#notesdir.api.Notesdir" title="notesdir.api.Notesdir"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.api.Notesdir</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.conf.RepoConf">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">RepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, preview_mode: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.RepoConf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for repo config. Use a subclass such as <a class="reference internal" href="#notesdir.conf.SqliteRepoConf" title="notesdir.conf.SqliteRepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqliteRepoConf</span></code></a>.</p>
+<dl class="py method">
+<dt id="notesdir.conf.RepoConf.ignore">
+<code class="sig-name descname">ignore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.conf.RepoConf.ignore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use this to indicate files or folders that should not be processed by notesdir at all.</p>
+<p>The first argument is the path to the directory containing the file/folder, and the second argument is
+the filename.</p>
+<p>If this function returns True for a given path, neither that path nor any of its child paths
+will be parsed, or returned in any queries, or affected by the <code class="docutils literal notranslate"><span class="pre">organize</span></code> command.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">mv</span></code> command may still move these files when explicitly instructed to do so or when moving a directory
+containing them, and the <code class="docutils literal notranslate"><span class="pre">info</span></code> command will still show backlinks from other (non-ignored) files.</p>
+<p>The current default behavior is to ignore all files or folders whose name begins with a period (<code class="docutils literal notranslate"><span class="pre">.</span></code>), and also
+<code class="docutils literal notranslate"><span class="pre">.icloud</span></code> files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.conf.RepoConf.instantiate">
+<code class="sig-name descname">instantiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.RepoConf.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.conf.RepoConf.preview_mode">
+<code class="sig-name descname">preview_mode</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.conf.RepoConf.preview_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, commands that would change notes should instead just print a list of changes to the console.</p>
+<p>Instead of setting this in your <code class="docutils literal notranslate"><span class="pre">.notesdir.conf.py</span></code>, you can pass a <code class="docutils literal notranslate"><span class="pre">--preview</span></code> command-line argument to
+relevant commands.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.conf.RepoConf.root_paths">
+<code class="sig-name descname">root_paths</code><em class="property">: Set<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.conf.RepoConf.root_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>The folders that should be searched (recursively) when querying for notes, finding backlinks, etc.</p>
+<p>Must not be empty.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.conf.RepoConf.standardize">
+<code class="sig-name descname">standardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.RepoConf.standardize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.conf.SqliteRepoConf">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">SqliteRepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, preview_mode: bool = False, cache_path: Optional[str] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.SqliteRepoConf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.conf.DirectRepoConf" title="notesdir.conf.DirectRepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.DirectRepoConf</span></code></a></p>
+<p>Configures notesdir to access notes with caching, via <code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.SqliteRepo</span></code>.</p>
+<dl class="py attribute">
+<dt id="notesdir.conf.SqliteRepoConf.cache_path">
+<code class="sig-name descname">cache_path</code><em class="property">: str</em><em class="property"> = None</em><a class="headerlink" href="#notesdir.conf.SqliteRepoConf.cache_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required. Path where the SQLite database file should be stored.</p>
+<p>The file will be created if it does not exist.
+The file is only a cache; you can safely delete it when the tool is not running, though you will then have to
+wait for the cache to be rebuilt the next time you run the tool.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.conf.SqliteRepoConf.instantiate">
+<code class="sig-name descname">instantiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.SqliteRepoConf.instantiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.conf.default_ignore">
+<code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">default_ignore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parentpath</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.conf.default_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.conf.resource_path_fn">
+<code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">resource_path_fn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span><a class="reference internal" href="#notesdir.models.DependentPathFn" title="notesdir.models.DependentPathFn">notesdir.models.DependentPathFn</a><span class="p">]</span><a class="headerlink" href="#notesdir.conf.resource_path_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables moving files in <code class="docutils literal notranslate"><span class="pre">.resources</span></code> directories when the owner moves.</p>
+<p>This is meant for use in a <a class="reference internal" href="#notesdir.conf.NotesdirConf.path_organizer" title="notesdir.conf.NotesdirConf.path_organizer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NotesdirConf.path_organizer</span></code></a> if you’d like to follow the convention of
+putting attachments for a file in a directory next to the file, with a suffix of <code class="docutils literal notranslate"><span class="pre">.resources</span></code>. For example,
+an attachment <code class="docutils literal notranslate"><span class="pre">cat.png</span></code> for the file <code class="docutils literal notranslate"><span class="pre">/notes/foo.md</span></code> would be at <code class="docutils literal notranslate"><span class="pre">/notes/foo.md.resources/cat.png</span></code>.</p>
+<p>This function lets you ensure that if <code class="docutils literal notranslate"><span class="pre">foo.md</span></code> is renamed by your organizer, <code class="docutils literal notranslate"><span class="pre">foo.md.resources</span></code> will be too.</p>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">my_path_organizer</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="n">rewrite</span> <span class="o">=</span> <span class="n">resource_path_fn</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rewrite</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rewrite</span>
+    <span class="c1"># put the rest of your organizer rules here</span>
+<span class="n">conf</span><span class="o">.</span><span class="n">path_organizer</span> <span class="o">=</span> <span class="n">my_path_organizer</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.conf.rewrite_name_using_title">
+<code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">rewrite_name_using_title</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a></span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.conf.rewrite_name_using_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the given info has a title, returns an updated path using that title.</p>
+<p>The following adjustments are made:</p>
+<ul class="simple">
+<li><p>Title is truncated to 60 characters</p></li>
+<li><p>Characters are converted to lowercase</p></li>
+<li><p>Only the letters a-z and digits 0-9 are kept; all other characters are replaced with dashes</p></li>
+<li><p>Consecutive dashes are collapsed to a single dash</p></li>
+<li><p>Leading and trailing dashes are removed</p></li>
+</ul>
+<p>For example, for a file at <code class="docutils literal notranslate"><span class="pre">/foo/bar.md</span></code> with title “Everything is awful”, the path returned would be
+<code class="docutils literal notranslate"><span class="pre">/foo/everything-is-awful.md</span></code>.</p>
+<p>The file extension from the original path is kept, but note that currently this will not work properly for
+files with multiple extensions (eg <code class="docutils literal notranslate"><span class="pre">tar.gz</span></code>). That shouldn’t be an issue right now since none of the file types
+for which title metadata is supported typically use multiple extensions.</p>
+<p>If there is no title, the path is returned unchanged.</p>
+<p>This is meant to be used as, or as part of, a <a class="reference internal" href="#notesdir.conf.NotesdirConf.path_organizer" title="notesdir.conf.NotesdirConf.path_organizer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">NotesdirConf.path_organizer</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.models">
+<span id="notesdir-models-module"></span><h2>notesdir.models module<a class="headerlink" href="#module-notesdir.models" title="Permalink to this headline">¶</a></h2>
+<p>Defines classes for representing note details, queries, and update requests.</p>
+<p>The most important classes are <a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileInfo</span></code></a> , <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileEditCmd</span></code></a> , and <a class="reference internal" href="#notesdir.models.FileQuery" title="notesdir.models.FileQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileQuery</span></code></a></p>
+<dl class="py class">
+<dt id="notesdir.models.AddTagCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">AddTagCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.AddTagCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to add a tag to a document.</p>
+<p>If the document already contains the tag, this request should be treated as a no-op.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.AddTagCmd.value">
+<code class="sig-name descname">value</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.AddTagCmd.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The tag to add.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.CreateCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">CreateCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">contents</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.CreateCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to create a new file.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.CreateCmd.contents">
+<code class="sig-name descname">contents</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.CreateCmd.contents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.DelTagCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">DelTagCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.DelTagCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to remove a tag from a document.</p>
+<p>If the document does not contain the tag, this request should be treated as a no-op.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.DelTagCmd.value">
+<code class="sig-name descname">value</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.DelTagCmd.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The tag to remove.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.DependentPathFn">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">DependentPathFn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">determinant</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fn</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.DependentPathFn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Indicates that a path can be calculated based on the FileInfo for another path.</p>
+<p>You can return this from a <a class="reference internal" href="#notesdir.conf.NotesdirConf.path_organizer" title="notesdir.conf.NotesdirConf.path_organizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.NotesdirConf.path_organizer</span></code></a> when one file’s path depends on
+another’s. <a class="reference internal" href="#notesdir.api.Notesdir.organize" title="notesdir.api.Notesdir.organize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.organize()</span></code></a> will call the given <a class="reference internal" href="#notesdir.models.DependentPathFn.fn" title="notesdir.models.DependentPathFn.fn"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fn</span></code></a> with the info for the path
+specified by <a class="reference internal" href="#notesdir.models.DependentPathFn.determinant" title="notesdir.models.DependentPathFn.determinant"><code class="xref py py-attr docutils literal notranslate"><span class="pre">determinant</span></code></a>, but the path in the info will reflect any pending move for that file (even
+if they have not been executed in the filesystem yet).</p>
+<dl class="py attribute">
+<dt id="notesdir.models.DependentPathFn.determinant">
+<code class="sig-name descname">determinant</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.DependentPathFn.determinant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.DependentPathFn.fn">
+<code class="sig-name descname">fn</code><em class="property">: Callable<span class="p">[</span><span class="p">[</span>FileInfo<span class="p">]</span><span class="p">, </span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.DependentPathFn.fn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.FileEditCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileEditCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileEditCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for requests to make changes to a file.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.FileEditCmd.path">
+<code class="sig-name descname">path</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.FileEditCmd.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the file or folder that should be changed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.FileInfo">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileInfo</code><span class="sig-paren">(</span><em class="sig-param">path: str</em>, <em class="sig-param">links: List[notesdir.models.LinkInfo] = &lt;factory&gt;</em>, <em class="sig-param">tags: Set[str] = &lt;factory&gt;</em>, <em class="sig-param">title: Optional[str] = None</em>, <em class="sig-param">created: Optional[datetime.datetime] = None</em>, <em class="sig-param">backlinks: List[notesdir.models.LinkInfo] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Container for the details Notesdir can parse or calculate about a file or folder.</p>
+<p>A FileInfo instance does not imply that its path actually exists - instances may be created for
+nonexistent paths that have just the <a class="reference internal" href="#notesdir.models.FileInfo.path" title="notesdir.models.FileInfo.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> and <a class="reference internal" href="#notesdir.models.FileInfo.backlinks" title="notesdir.models.FileInfo.backlinks"><code class="xref py py-attr docutils literal notranslate"><span class="pre">backlinks</span></code></a> attributes filled in.</p>
+<p>When you retrieve instances of this from methods like <a class="reference internal" href="notesdir.repos.html#notesdir.repos.base.Repo.info" title="notesdir.repos.base.Repo.info"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo.info()</span></code></a>, which fields
+are populated depends on which fields you request via the <a class="reference internal" href="#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileInfoReq</span></code></a>, as well as what fields
+are supported for the file type and what data is populated in the particular file.</p>
+<dl class="py method">
+<dt id="notesdir.models.FileInfo.as_json">
+<code class="sig-name descname">as_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#notesdir.models.FileInfo.as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict representing the instance, suitable for serializing as json.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfo.backlinks">
+<code class="sig-name descname">backlinks</code><em class="property">: List<span class="p">[</span>LinkInfo<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.backlinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Links from other files to this file.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfo.created">
+<code class="sig-name descname">created</code><em class="property">: Optional<span class="p">[</span>datetime<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#notesdir.models.FileInfo.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>The creation date of the document, according to metadata within the document, if any.</p>
+<p>This will <em>not</em> automatically be populated with timestamps from the filesystem, but
+see <a class="reference internal" href="#notesdir.models.FileInfo.guess_created" title="notesdir.models.FileInfo.guess_created"><code class="xref py py-meth docutils literal notranslate"><span class="pre">guess_created()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileInfo.guess_created">
+<code class="sig-name descname">guess_created</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>datetime.datetime<span class="p">]</span><a class="headerlink" href="#notesdir.models.FileInfo.guess_created" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first available of: <a class="reference internal" href="#notesdir.models.FileInfo.created" title="notesdir.models.FileInfo.created"><code class="xref py py-attr docutils literal notranslate"><span class="pre">created</span></code></a>, or the file’s birthtime, or the file’s ctime.</p>
+<p>Returns None for paths that don’t exist.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfo.links">
+<code class="sig-name descname">links</code><em class="property">: List<span class="p">[</span>LinkInfo<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Links from this file to other files or resources.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfo.path">
+<code class="sig-name descname">path</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.FileInfo.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The resolved, absolute path for which this information applies.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfo.tags">
+<code class="sig-name descname">tags</code><em class="property">: Set<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tags for the file (e.g. “journal” or “project-idea”).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfo.title">
+<code class="sig-name descname">title</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#notesdir.models.FileInfo.title" title="Permalink to this definition">¶</a></dt>
+<dd><p>The title of the document, if any.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.FileInfoReq">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileInfoReq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">links</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">tags</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">created</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">backlinks</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileInfoReq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Allows you to specify which attributes you want when loading or querying for files.</p>
+<p>For each attribute of <a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileInfo</span></code></a>, there is a corresponding boolean attribute here, which you
+should set to True to indicate that you want that attribute.</p>
+<p>Some methods that take a FileInfoReq parameter also accept strings or lists of strings as a convenience,
+which they will pass to <a class="reference internal" href="#notesdir.models.FileInfoReq.parse" title="notesdir.models.FileInfoReq.parse"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse()</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfoReq.backlinks">
+<code class="sig-name descname">backlinks</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileInfoReq.backlinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfoReq.created">
+<code class="sig-name descname">created</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileInfoReq.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileInfoReq.full">
+<em class="property">classmethod </em><code class="sig-name descname">full</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><a class="headerlink" href="#notesdir.models.FileInfoReq.full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance that requests everything.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileInfoReq.internal">
+<em class="property">classmethod </em><code class="sig-name descname">internal</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><a class="headerlink" href="#notesdir.models.FileInfoReq.internal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance that requests everything which can be determined by looking at a file in isolation.</p>
+<p>Currently this means everything except backlinks.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfoReq.links">
+<code class="sig-name descname">links</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileInfoReq.links" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileInfoReq.parse">
+<em class="property">classmethod </em><code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><a class="headerlink" href="#notesdir.models.FileInfoReq.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the parameter to a FileInfoReq, if it isn’t one already.</p>
+<p>You can pass a comma-separated string like <code class="docutils literal notranslate"><span class="pre">&quot;path,backlinks&quot;</span></code> or a list of strings like
+<code class="docutils literal notranslate"><span class="pre">['path',</span> <span class="pre">'backlinks']</span></code>. Each listed field will be set to True in the resulting FileInfoReq.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfoReq.path">
+<code class="sig-name descname">path</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileInfoReq.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfoReq.tags">
+<code class="sig-name descname">tags</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileInfoReq.tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileInfoReq.title">
+<code class="sig-name descname">title</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileInfoReq.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.FileQuery">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileQuery</code><span class="sig-paren">(</span><em class="sig-param">include_tags: Set[str] = &lt;factory&gt;</em>, <em class="sig-param">exclude_tags: Set[str] = &lt;factory&gt;</em>, <em class="sig-param">sort_by: List[notesdir.models.FileQuerySort] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileQuery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents criteria for searching for notes.</p>
+<p>Some methods that take a FileQuery parameter also accept strings as a convenience, which they
+pass to <a class="reference internal" href="#notesdir.models.FileQuery.parse" title="notesdir.models.FileQuery.parse"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parse()</span></code></a></p>
+<p>If multiple criteria are specified, the query should only return notes that satisfy <em>all</em> the criteria.</p>
+<dl class="py method">
+<dt id="notesdir.models.FileQuery.apply_filtering">
+<code class="sig-name descname">apply_filtering</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">infos</span><span class="p">:</span> <span class="n">Iterable<span class="p">[</span><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><a class="headerlink" href="#notesdir.models.FileQuery.apply_filtering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields the entries from the given iterable which match the criteria of this query.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileQuery.apply_sorting">
+<code class="sig-name descname">apply_sorting</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">infos</span><span class="p">:</span> <span class="n">Iterable<span class="p">[</span><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><a class="headerlink" href="#notesdir.models.FileQuery.apply_sorting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of the given file info collection sorted using this query’s sort_by.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuery.exclude_tags">
+<code class="sig-name descname">exclude_tags</code><em class="property">: Set<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileQuery.exclude_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>If non-empty, the query should only return files that have <em>none</em> of the specified tags.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuery.include_tags">
+<code class="sig-name descname">include_tags</code><em class="property">: Set<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileQuery.include_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>If non-empty, the query should only return files that have <em>all</em> of the specified tags.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileQuery.parse">
+<em class="property">classmethod </em><code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">strquery</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><a class="headerlink" href="#notesdir.models.FileQuery.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the parameter to a FileQuery, if it isn’t one already.</p>
+<p>Query strings are split on spaces. Each part can be one of the following:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tag:TAG1,TAG2</span></code> - notes must include all the specified tags</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-tag:TAG1,TAG2</span></code> - notes must not include any of the specified tags</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">sort:FIELD1,FIELD2</span></code> - sort by the given fields</dt><dd><ul>
+<li><p>fields on the left take higher priority, e.g. <code class="docutils literal notranslate"><span class="pre">sort:created,title</span></code> sorts by created date first</p></li>
+<li><p>a minus sign in front of a field name indicates to sort descending, e.g. <code class="docutils literal notranslate"><span class="pre">sort:-backlinks</span></code> or
+<code class="docutils literal notranslate"><span class="pre">sort:filename,-created</span></code></p></li>
+<li><p>supported fields: <code class="docutils literal notranslate"><span class="pre">backlinks</span></code> (count), <code class="docutils literal notranslate"><span class="pre">created</span></code>, <code class="docutils literal notranslate"><span class="pre">filename</span></code>, <code class="docutils literal notranslate"><span class="pre">tags</span></code> (count) <code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">path</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;tag:journal,food</span> <span class="pre">-tag:personal&quot;</span></code> - notes that are tagged both “journal” and “food” but not “personal”</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuery.sort_by">
+<code class="sig-name descname">sort_by</code><em class="property">: List<span class="p">[</span>FileQuerySort<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileQuery.sort_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates how to sort the results.</p>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">[(FileQuerySort.BACKLINKS_COUNT,</span> <span class="pre">Order.DESC),</span> <span class="pre">(FileQuerySort.FILENAME,</span> <span class="pre">Order.ASC)]</span></code>
+would sort the results so that the most-linked-to files appear first; files with equal numbers of backlinks
+would be sorted lexicographically.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.FileQuerySort">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileQuerySort</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">field</span><span class="p">:</span> <span class="n">‘FileQuerySortField’</span></em>, <em class="sig-param"><span class="n">reverse</span><span class="p">:</span> <span class="n">‘bool’</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ignore_case</span><span class="p">:</span> <span class="n">‘bool’</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">missing_first</span><span class="p">:</span> <span class="n">‘bool’</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileQuerySort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySort.field">
+<code class="sig-name descname">field</code><em class="property">: FileQuerySortField</em><a class="headerlink" href="#notesdir.models.FileQuerySort.field" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySort.ignore_case">
+<code class="sig-name descname">ignore_case</code><em class="property">: bool</em><em class="property"> = True</em><a class="headerlink" href="#notesdir.models.FileQuerySort.ignore_case" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, strings are sorted as if they were lower case.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.FileQuerySort.key">
+<code class="sig-name descname">key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a></span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>str<span class="p">, </span>int<span class="p">, </span>datetime.datetime<span class="p">]</span><a class="headerlink" href="#notesdir.models.FileQuerySort.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns sort key for the given file info for the <a class="reference internal" href="#notesdir.models.FileQuerySort.field" title="notesdir.models.FileQuerySort.field"><code class="xref py py-attr docutils literal notranslate"><span class="pre">field</span></code></a> specified in this instance.</p>
+<p>This is affected by the values of <a class="reference internal" href="#notesdir.models.FileQuerySort.ignore_case" title="notesdir.models.FileQuerySort.ignore_case"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ignore_case</span></code></a> and <a class="reference internal" href="#notesdir.models.FileQuerySort.missing_first" title="notesdir.models.FileQuerySort.missing_first"><code class="xref py py-attr docutils literal notranslate"><span class="pre">missing_first</span></code></a>, but not the
+value of <a class="reference internal" href="#notesdir.models.FileQuerySort.reverse" title="notesdir.models.FileQuerySort.reverse"><code class="xref py py-attr docutils literal notranslate"><span class="pre">reverse</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySort.missing_first">
+<code class="sig-name descname">missing_first</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileQuerySort.missing_first" title="Permalink to this definition">¶</a></dt>
+<dd><p>Affects the behavior for None values and empty strings.</p>
+<p>If True, they should come before other values; if False, they should come after.
+This definition is based on the assumption that reverse=False; when reverse=True, the ultimate result
+will be the opposite.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySort.reverse">
+<code class="sig-name descname">reverse</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.FileQuerySort.reverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, sort descending.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.FileQuerySortField">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileQuerySortField</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileQuerySortField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySortField.BACKLINKS_COUNT">
+<code class="sig-name descname">BACKLINKS_COUNT</code><em class="property"> = 'backlinks'</em><a class="headerlink" href="#notesdir.models.FileQuerySortField.BACKLINKS_COUNT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySortField.CREATED">
+<code class="sig-name descname">CREATED</code><em class="property"> = 'created'</em><a class="headerlink" href="#notesdir.models.FileQuerySortField.CREATED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySortField.FILENAME">
+<code class="sig-name descname">FILENAME</code><em class="property"> = 'filename'</em><a class="headerlink" href="#notesdir.models.FileQuerySortField.FILENAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySortField.PATH">
+<code class="sig-name descname">PATH</code><em class="property"> = 'path'</em><a class="headerlink" href="#notesdir.models.FileQuerySortField.PATH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySortField.TAGS_COUNT">
+<code class="sig-name descname">TAGS_COUNT</code><em class="property"> = 'tags'</em><a class="headerlink" href="#notesdir.models.FileQuerySortField.TAGS_COUNT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.FileQuerySortField.TITLE">
+<code class="sig-name descname">TITLE</code><em class="property"> = 'title'</em><a class="headerlink" href="#notesdir.models.FileQuerySortField.TITLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.LinkInfo">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">LinkInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">referrer</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">href</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.LinkInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a link from a file to some resource.</p>
+<p>Not all links target local files, but those are the ones most important to notesdir. The <a class="reference internal" href="#notesdir.models.LinkInfo.referent" title="notesdir.models.LinkInfo.referent"><code class="xref py py-meth docutils literal notranslate"><span class="pre">referent()</span></code></a> method
+can be used to determine what local file, if any, the href targets.</p>
+<dl class="py method">
+<dt id="notesdir.models.LinkInfo.as_json">
+<code class="sig-name descname">as_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#notesdir.models.LinkInfo.as_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict representing the instance, suitable for serializing as json.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.LinkInfo.href">
+<code class="sig-name descname">href</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.LinkInfo.href" title="Permalink to this definition">¶</a></dt>
+<dd><p>The linked address.</p>
+<p>Normally this is some sort of URI - it’s the address portion of a Markdown link,
+or the <code class="docutils literal notranslate"><span class="pre">href</span></code> or <code class="docutils literal notranslate"><span class="pre">src</span></code> attribute of an HTML tag, etc.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.models.LinkInfo.referent">
+<code class="sig-name descname">referent</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>str<span class="p">]</span><a class="headerlink" href="#notesdir.models.LinkInfo.referent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the resolved, absolute local path that this link refers to.</p>
+<p>The path will be returned even if no file or folder actually exists at that location.</p>
+<p>None will be returned if the href cannot be parsed or appears to be a non-file URI.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.LinkInfo.referrer">
+<code class="sig-name descname">referrer</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.LinkInfo.referrer" title="Permalink to this definition">¶</a></dt>
+<dd><p>The file that contains the link. This should be a resolved, absolute path.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.MoveCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">MoveCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">create_parents</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">delete_empty_parents</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.MoveCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to move a file or folder from one location to another.</p>
+<p>This does <em>not</em> imply that any links should be rewritten; that is a higher-level operation, which is
+provided by <a class="reference internal" href="#notesdir.api.Notesdir.move" title="notesdir.api.Notesdir.move"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.move()</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.MoveCmd.create_parents">
+<code class="sig-name descname">create_parents</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.MoveCmd.create_parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, any nonexistent parent directories should be created.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.MoveCmd.delete_empty_parents">
+<code class="sig-name descname">delete_empty_parents</code><em class="property">: bool</em><em class="property"> = False</em><a class="headerlink" href="#notesdir.models.MoveCmd.delete_empty_parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>If True, any parent directories that are empty after performing the move should be deleted.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.MoveCmd.dest">
+<code class="sig-name descname">dest</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.MoveCmd.dest" title="Permalink to this definition">¶</a></dt>
+<dd><p>The new path and filename.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.ReplaceHrefCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">ReplaceHrefCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">original</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">replacement</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.ReplaceHrefCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to replace link addresses in a document.</p>
+<p>All occurrences will be replaced, but only if they are exact matches.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.ReplaceHrefCmd.original">
+<code class="sig-name descname">original</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.ReplaceHrefCmd.original" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value to be replaced, generally copied from a <a class="reference internal" href="#notesdir.models.LinkInfo" title="notesdir.models.LinkInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkInfo</span></code></a> <code class="xref py py-attr docutils literal notranslate"><span class="pre">href</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="notesdir.models.ReplaceHrefCmd.replacement">
+<code class="sig-name descname">replacement</code><em class="property">: str</em><a class="headerlink" href="#notesdir.models.ReplaceHrefCmd.replacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>The new link address.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.SetCreatedCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">SetCreatedCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>datetime.datetime<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.SetCreatedCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to change the creation date stored in a document’s metadata (not filesystem metadata).</p>
+<dl class="py attribute">
+<dt id="notesdir.models.SetCreatedCmd.value">
+<code class="sig-name descname">value</code><em class="property">: Optional<span class="p">[</span>datetime<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.SetCreatedCmd.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The new creation date, or None to delete it from the metadata.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.SetTitleCmd">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">SetTitleCmd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.SetTitleCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileEditCmd</span></code></a></p>
+<p>Represents a request to change a document’s title.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.SetTitleCmd.value">
+<code class="sig-name descname">value</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.SetTitleCmd.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The new title, or None to delete the title.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.models.TemplateDirectives">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">TemplateDirectives</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.TemplateDirectives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Passed by <a class="reference internal" href="#notesdir.api.Notesdir.new" title="notesdir.api.Notesdir.new"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.new()</span></code></a> when it is rendering one of a user’s templates.</p>
+<p>It is used for passing data in and out of the template.</p>
+<dl class="py attribute">
+<dt id="notesdir.models.TemplateDirectives.dest">
+<code class="sig-name descname">dest</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#notesdir.models.TemplateDirectives.dest" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path at which the new file should be created.</p>
+<p>If this is set before rendering the template, it is the path the user suggested. But the template can change it,
+and the template’s suggestion will take precedence.
+If the path already exists, notesdir will adjust it further to get a unique path before creating the file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir.rearrange">
+<span id="notesdir-rearrange-module"></span><h2>notesdir.rearrange module<a class="headerlink" href="#module-notesdir.rearrange" title="Permalink to this headline">¶</a></h2>
+<p>Helper functions for moving files and updating links between them.</p>
+<p>Generally, you should use <a class="reference internal" href="#notesdir.api.Notesdir.move" title="notesdir.api.Notesdir.move"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.move()</span></code></a> or <a class="reference internal" href="#notesdir.api.Notesdir.replace_path_hrefs" title="notesdir.api.Notesdir.replace_path_hrefs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.replace_path_hrefs()</span></code></a>
+instead of using anything in this module directly.</p>
+<dl class="py function">
+<dt id="notesdir.rearrange.edits_for_path_replacement">
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">edits_for_path_replacement</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">referrer</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">hrefs</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">replacement</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="#notesdir.models.ReplaceHrefCmd" title="notesdir.models.ReplaceHrefCmd">notesdir.models.ReplaceHrefCmd</a><span class="p">]</span><a class="headerlink" href="#notesdir.rearrange.edits_for_path_replacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields commands to replace a file’s links to a path with links to another path.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.rearrange.edits_for_raw_moves">
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">edits_for_raw_moves</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">renames</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="#notesdir.models.MoveCmd" title="notesdir.models.MoveCmd">notesdir.models.MoveCmd</a><span class="p">]</span><a class="headerlink" href="#notesdir.rearrange.edits_for_raw_moves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields commands that will rename a set of files/folders.</p>
+<p>The keys of the dictionary are the paths to be renamed, and the values
+are what they should be renamed to. If a path appears as both a key and
+as a value, it will be moved to a temporary file as an intermediate
+step.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.rearrange.edits_for_rearrange">
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">edits_for_rearrange</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">store</span><span class="p">:</span> <span class="n"><a class="reference internal" href="notesdir.repos.html#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo">notesdir.repos.base.Repo</a></span></em>, <em class="sig-param"><span class="n">renames</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="#notesdir.models.FileEditCmd" title="notesdir.models.FileEditCmd">notesdir.models.FileEditCmd</a><span class="p">]</span><a class="headerlink" href="#notesdir.rearrange.edits_for_rearrange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields commands that will rename files and update links accordingly.</p>
+<p>The keys of the dictionary are the paths to be renamed, and the values
+are what they should be renamed to. (If a path appears as both a key and
+as a value, it will be moved to a temporary file as an intermediate step.)</p>
+<p>The given store is used to search for files that link to any of the paths that
+are keys in the dictionary, so that ReplaceHrefEditCmd instances can be generated for them.
+The files that are being renamed will also be checked for outbound links,
+and ReplaceRef edits will be generated for those too.</p>
+<p>Source paths may be directories; the directory as a whole will be moved, and links
+to/from all files/folders within it will be updated too.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.rearrange.find_available_name">
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">find_available_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">also_unavailable</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.find_available_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a desired destination path, adjusts it so that it will not overwrite any existing files.</p>
+<p>dest should be the full desired path.</p>
+<p>also_unavailable should be any paths that may be created between the time this method executes
+and the time the destination file is actually created.</p>
+<p>If dest already exists or is in also_unavailable, a new path will be generated in the same directory, with
+a short UUID appended.</p>
+<p>If you are moving an existing file, it is recommended to include the src parameter. Then, if the filename of dest
+and the filename of src are the same except that src includes a short UUID in the format generated by this function,
+this function will prefer keeping that UUID rather than generating a new one (but it will still prefer no UUID at
+all when possible).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.rearrange.href_path">
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">href_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.href_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the path to use for a reference from file src to file dest.</p>
+<p>This is a relative path to dest from the directory containing src.</p>
+<p>For example, for src <cite>/foo/bar/baz.md</cite> and dest <cite>/foo/meh/blah.png</cite>,
+returns <cite>../meh/blah.png</cite>.</p>
+<p>src and dest are resolved before calculating the relative path.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.rearrange.path_as_href">
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">path_as_href</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">into_url</span><span class="p">:</span> <span class="n">urllib.parse.ParseResult</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.path_as_href" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the string to use for referring to the given path in a file.</p>
+<p>This percent-encodes characters as necessary to make the path a valid URL.
+If into_url is provided, it copies every part of that URL except the path
+into the resulting URL.</p>
+<p>Note that if into_url contains a scheme or netloc, the given path must be absolute.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-notesdir">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-notesdir" title="Permalink to this headline">¶</a></h2>
+<p>Helps manage notes stored as plain files in the filesystem.</p>
+<p>If you installed via <code class="docutils literal notranslate"><span class="pre">pip</span></code>, run <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">-h`</span> <span class="pre">to</span> <span class="pre">get</span> <span class="pre">help.</span>
+<span class="pre">Or,</span> <span class="pre">run</span> <span class="pre">``python3</span> <span class="pre">-m</span> <span class="pre">notesdir</span> <span class="pre">-h</span></code>.</p>
+<p>To use the Python API, look at <a class="reference internal" href="#notesdir.api.Notesdir" title="notesdir.api.Notesdir"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.api.Notesdir</span></code></a></p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../contents.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/_gensrc/notesdir.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">notesdir package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

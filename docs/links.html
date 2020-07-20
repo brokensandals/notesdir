@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Management &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Metadata &amp; Querying" href="metadata.html" />
+    <link rel="prev" title="Readme" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="metadata.html" title="Metadata &amp; Querying"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Readme"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Link Management</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="link-management">
+<h1>Link Management<a class="headerlink" href="#link-management" title="Permalink to this headline">¶</a></h1>
+<p>Notesdir facilitates the use of regular hyperlinks, with relative file paths, for linking between notes or referencing attachments.
+The advantage of this over a more specialized syntax is that it allows a wide variety of viewing/editing software to understand the links out-of-the-box.</p>
+<p>One challenge to that approach is that if you rename or move a file, links to and from it are broken.
+To address this, when the <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">mv</span></code> command moves a file, it also updates all links to it in other files so that they point to the new location.</p>
+<p>The list of links to a file (backlinks) can also be accessed from the CLI or API if you want to conduct analysis of the relationships between your notes.</p>
+<div class="section" id="file-type-support">
+<h2>File type support<a class="headerlink" href="#file-type-support" title="Permalink to this headline">¶</a></h2>
+<p>Links <strong>to</strong> any type of file or folder can be detected, as long as the link is <strong>from</strong> a supported file type:</p>
+<ul class="simple">
+<li><p><strong>Markdown</strong>: links like <code class="docutils literal notranslate"><span class="pre">[link</span> <span class="pre">text](path/to/file.xyz)</span></code> are recognized, along with some but not all other syntaxes.
+See <a class="reference internal" href="_gensrc/notesdir.accessors.html#notesdir.accessors.markdown.MarkdownAccessor" title="notesdir.accessors.markdown.MarkdownAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.markdown.MarkdownAccessor</span></code></a> for more details of what is supported.</p></li>
+<li><p><strong>HTML</strong>: links like <code class="docutils literal notranslate"><span class="pre">&lt;a</span> <span class="pre">href=&quot;path/to/file.xyz&quot;&gt;link</span> <span class="pre">text&lt;/a&gt;</span></code> are recognized, along with references to resources in various elements like <code class="docutils literal notranslate"><span class="pre">img</span></code>.
+See <a class="reference internal" href="_gensrc/notesdir.accessors.html#notesdir.accessors.html.HTMLAccessor" title="notesdir.accessors.html.HTMLAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.accessors.html.HTMLAccessor</span></code></a> for more details of what is supported.</p></li>
+</ul>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>When searching for backlinks, notesdir scans all the files it knows about from your configuration - see <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.RepoConf" title="notesdir.conf.RepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf</span></code></a>.
+All files (of supported file types) in <code class="docutils literal notranslate"><span class="pre">roots</span></code> will be checked, unless they are filtered out by <code class="docutils literal notranslate"><span class="pre">skip_parse</span></code> or <code class="docutils literal notranslate"><span class="pre">ignore</span></code>.</p>
+</div>
+<div class="section" id="viewing-links-and-backlinks">
+<h2>Viewing links and backlinks<a class="headerlink" href="#viewing-links-and-backlinks" title="Permalink to this headline">¶</a></h2>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">info</span></code> command to view links to and from a particular file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir info philosophy-of-language-the-classics-explained.md
+</pre></div>
+</div>
+<p>The output looks like this (alternatively, pass <code class="docutils literal notranslate"><span class="pre">-j</span></code> to get JSON output):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>path: /Users/jacob/Zettel/personal/active/philosophy-of-language-the-classics-explained.md
+title: Philosophy of Language: The Classics Explained
+created: 2020-06-18 05:33:35.183691
+tags: book, language, nonfiction, philosophy, unit
+links:
+        ../archive/2020/06/frege-on-sense-and-reference-mcginn.md -&gt; /Users/jacob/Zettel/personal/archive/2020/06/frege-on-sense-and-reference-mcginn.md
+        ../archive/2020/07/kripke-on-names.md -&gt; /Users/jacob/Zettel/personal/archive/2020/07/kripke-on-names.md
+        ../archive/2020/07/russell-on-definite-descriptions-mcginn.md -&gt; /Users/jacob/Zettel/personal/archive/2020/07/russell-on-definite-descriptions-mcginn.md
+backlinks:
+        /Users/jacob/Zettel/personal/archive/2020/06/frege-on-sense-and-reference-mcginn.md
+        /Users/jacob/Zettel/personal/archive/2020/07/kripke-on-names.md
+        /Users/jacob/Zettel/personal/archive/2020/07/russell-on-definite-descriptions-mcginn.md
+</pre></div>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">links</span></code> section, the text to the left of the arrow is the actual link as it appears in the file, while the text to the right of the arrow is the absolute path of the target file.
+The <code class="docutils literal notranslate"><span class="pre">backlinks</span></code> section lists the absolute paths of files that contain links to this file.</p>
+</div>
+<div class="section" id="moving-files-without-breaking-links">
+<h2>Moving files without breaking links<a class="headerlink" href="#moving-files-without-breaking-links" title="Permalink to this headline">¶</a></h2>
+<p>Suppose you have this directory tree:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>notes/
+    one.md : &quot;I link to [file two](two.md)&quot;
+    two.md : &quot;I link to [file one](one.md)&quot;
+    subdir/
+</pre></div>
+</div>
+<p>You can run the following command to move two.md:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir mv notes/two.md notes/two.md/subdir/newname.md
+</pre></div>
+</div>
+<p>Now your directory tree and files will look like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>notes/
+    one.md : &quot;I link to [file two](subdir/newname.md)&quot;
+    subdir/
+        newname.md : &quot;I link to [file one](../one.md)&quot;
+</pre></div>
+</div>
+<p>If you want a list of what files will be changed without actually changing them, use <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">mv</span> <span class="pre">--preview</span></code>.</p>
+</div>
+<div class="section" id="replacing-links">
+<h2>Replacing links<a class="headerlink" href="#replacing-links" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes you may want to replace links without moving any files.
+For example, if you convert an HTML file to Markdown, you would want to find all links to the old <code class="docutils literal notranslate"><span class="pre">.html</span></code> file and replace them with links to the new <code class="docutils literal notranslate"><span class="pre">.md</span></code> file.
+Use the <code class="docutils literal notranslate"><span class="pre">relink</span></code> command to do this.
+It does not move any files, or even care whether the old or new paths refer to real files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir relink old.html new.md
+</pre></div>
+</div>
+<p>If you want a list of what files will be changed without actually changing them, use <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">relink</span> <span class="pre">--preview</span></code>.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Link Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#file-type-support">File type support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#viewing-links-and-backlinks">Viewing links and backlinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#moving-files-without-breaking-links">Moving files without breaking links</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#replacing-links">Replacing links</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Readme</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="metadata.html"
+                        title="next chapter">Metadata &amp; Querying</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/links.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="metadata.html" title="Metadata &amp; Querying"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Readme"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Link Management</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

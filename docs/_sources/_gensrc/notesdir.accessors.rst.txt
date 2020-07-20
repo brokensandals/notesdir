@@ -1,0 +1,54 @@
+notesdir.accessors package
+==========================
+
+Submodules
+----------
+
+notesdir.accessors.base module
+------------------------------
+
+.. automodule:: notesdir.accessors.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.accessors.delegating module
+------------------------------------
+
+.. automodule:: notesdir.accessors.delegating
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.accessors.html module
+------------------------------
+
+.. automodule:: notesdir.accessors.html
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.accessors.markdown module
+----------------------------------
+
+.. automodule:: notesdir.accessors.markdown
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.accessors.pdf module
+-----------------------------
+
+.. automodule:: notesdir.accessors.pdf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: notesdir.accessors
+   :members:
+   :undoc-members:
+   :show-inheritance:

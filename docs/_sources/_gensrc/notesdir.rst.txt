@@ -1,0 +1,63 @@
+notesdir package
+================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   notesdir.accessors
+   notesdir.repos
+
+Submodules
+----------
+
+notesdir.api module
+-------------------
+
+.. automodule:: notesdir.api
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.cli module
+-------------------
+
+.. automodule:: notesdir.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.conf module
+--------------------
+
+.. automodule:: notesdir.conf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.models module
+----------------------
+
+.. automodule:: notesdir.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.rearrange module
+-------------------------
+
+.. automodule:: notesdir.rearrange
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: notesdir
+   :members:
+   :undoc-members:
+   :show-inheritance:

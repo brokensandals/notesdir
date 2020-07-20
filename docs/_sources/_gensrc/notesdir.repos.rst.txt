@@ -1,0 +1,38 @@
+notesdir.repos package
+======================
+
+Submodules
+----------
+
+notesdir.repos.base module
+--------------------------
+
+.. automodule:: notesdir.repos.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.repos.direct module
+----------------------------
+
+.. automodule:: notesdir.repos.direct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+notesdir.repos.sqlite module
+----------------------------
+
+.. automodule:: notesdir.repos.sqlite
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: notesdir.repos
+   :members:
+   :undoc-members:
+   :show-inheritance:

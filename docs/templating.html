@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Templating &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Organizing" href="organizing.html" />
+    <link rel="prev" title="Metadata &amp; Querying" href="metadata.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="organizing.html" title="Organizing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="metadata.html" title="Metadata &amp; Querying"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Templating</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="templating">
+<h1>Templating<a class="headerlink" href="#templating" title="Permalink to this headline">¶</a></h1>
+<p>If you routinely create notes that follow a certain pattern, you might want to make a template for them.
+Notesdir lets you do this using <a class="reference external" href="https://www.makotemplates.org/">Mako</a>, a templating language that supports embedded Python code.</p>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>No configuration is necessary, but for convenience, you’ll probably want to specify the folder(s) you keep your templates in.
+That way you can refer to them by name instead of by their full path.</p>
+<p>Set <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.NotesdirConf.template_globs" title="notesdir.conf.NotesdirConf.template_globs"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.NotesdirConf.template_globs</span></code></a> in your <code class="docutils literal notranslate"><span class="pre">~/notesdir.conf.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">conf</span><span class="o">.</span><span class="n">template_globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;/notes/templates/*.mako&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="writing-templates">
+<h2>Writing templates<a class="headerlink" href="#writing-templates" title="Permalink to this headline">¶</a></h2>
+<p>Every month I create a new Markdown file for tracking that month’s goals.
+I want the template to fill in the creation date, give the note a title and filename that show it’s for next month, put it in the right directory, and include some standard tags and todo items.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;%
+  from datetime import datetime, timezone
+  from pathlib import Path
+  # Get the current time in the system timezone
+  created = datetime.now(timezone.utc).astimezone()
+  # Build a string like &quot;2020-04&quot; for whatever next month is
+  yearmonth = created.replace(day=1)
+  yearmonth = yearmonth.replace(year=yearmonth.year+1, month=1) if yearmonth.month == 12 else yearmonth.replace(month=yearmonth.month+1)
+  yearmonth = yearmonth.strftime(&#39;%Y-%m&#39;)
+  # Set where the new file should be written.
+  # This is optional. You can also set the destination on the command line.
+  # In this case, I&#39;m setting a path that&#39;s relative to where the template itself is stored,
+  # using the template_path variable notesdir provides.
+  directives.dest = str(Path(template_path).parent.parent.joinpath(&#39;active&#39;, f&#39;goals-{yearmonth}.md&#39;))
+%&gt;\
+---
+created: ${created.isoformat()}
+title: Goals ${yearmonth}
+keywords:
+- monthly-goals
+- journal
+...
+
+&lt;%text&gt;
+# Must do
+
+## Stay alive
+
+- eat food
+- sleep
+&lt;/%text&gt;\
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">directives</span></code> variable is an instance of <a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.TemplateDirectives" title="notesdir.models.TemplateDirectives"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.TemplateDirectives</span></code></a> which notesdir uses for passing data in and out of the template.</p>
+<p>In the example above, notice the <code class="docutils literal notranslate"><span class="pre">&lt;%text&gt;</span></code> element: this tells Mako not to process the text inside it.
+This prevents the Markdown <code class="docutils literal notranslate"><span class="pre">##</span></code> header syntax from being misinterpreted as a comment.</p>
+</div>
+<div class="section" id="using-templates">
+<h2>Using templates<a class="headerlink" href="#using-templates" title="Permalink to this headline">¶</a></h2>
+<p>Given the configuration above, if I store the example template in <code class="docutils literal notranslate"><span class="pre">/notes/templates/goals.md.mako</span></code>, I can run this to create a new file from the template:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir new goals
+</pre></div>
+</div>
+<p>In the example above, the template sets its own destination; in this case, the result would be something like <code class="docutils literal notranslate"><span class="pre">/notes/active/goals-2020-08.md</span></code>.</p>
+<p>But in other cases you may wish to specify the destination on the command-line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir new template_name_or_path destination_file_path
+</pre></div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Templating</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-templates">Writing templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-templates">Using templates</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="metadata.html"
+                        title="previous chapter">Metadata &amp; Querying</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="organizing.html"
+                        title="next chapter">Organizing</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/templating.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="organizing.html" title="Organizing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="metadata.html" title="Metadata &amp; Querying"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Templating</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

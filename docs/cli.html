@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Reference &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Organizing" href="organizing.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="Development"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="organizing.html" title="Organizing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CLI Reference</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cli-reference">
+<h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Permalink to this headline">¶</a></h1>
+<p>This documentation is generated from the output of <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">-h</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">notesdir</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">info</span><span class="p">,</span><span class="n">query</span><span class="p">,</span><span class="n">new</span><span class="p">,</span><span class="n">change</span><span class="p">,</span><span class="n">mv</span><span class="p">,</span><span class="n">organize</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">relink</span><span class="p">}</span> <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="Sub-commands:">
+<h2>Sub-commands:<a class="headerlink" href="#Sub-commands:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="info">
+<h3>info<a class="headerlink" href="#info" title="Permalink to this headline">¶</a></h3>
+<p>Show info about a file, such as metadata and links/backlinks.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">info</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FIELDS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span><span class="p">]</span> <span class="n">path</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>path</kbd></dt>
+<dd></dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-f, --fields</kbd></dt>
+<dd><p>Comma-separated list of fields to show. Possible fields are: path, links, tags, title, created, backlinks. By default, all fields are shown.</p>
+</dd>
+<dt><kbd>-j, --json</kbd></dt>
+<dd><p>Output as JSON.</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="query">
+<h3>query<a class="headerlink" href="#query" title="Permalink to this headline">¶</a></h3>
+<p>Query for files. For full query syntax, see the documentation of notesdir.models.FileQuery.parse - an example query is “<a class="reference external" href="tag:foo">tag:foo</a> sort:title,-created”.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">query</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FIELDS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="o">|</span> <span class="o">-</span><span class="n">t</span><span class="p">]</span> <span class="p">[</span><span class="n">query</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat1">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>query</kbd></dt>
+<dd><p>Query string. If omitted, the query matches all files.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat1">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat1" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-f, --fields</kbd></dt>
+<dd><p>Comma-separated list of fields to show. Possible fields are: path, links, tags, title, created, backlinks. Not all fields are shown by default.</p>
+</dd>
+<dt><kbd>-j, --json</kbd></dt>
+<dd><p>Output as JSON.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-t, --table</kbd></dt>
+<dd><p>Format output as a table.</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="new">
+<h3>new<a class="headerlink" href="#new" title="Permalink to this headline">¶</a></h3>
+<p>Create new file from a Mako template. You can either specify the path to the template, or just give its name without file extensions if it is listed in “templates” in your ~/notesdir.conf.py file. This command will print the path of the newly created file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="n">template</span> <span class="p">[</span><span class="n">dest</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat2">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>template</kbd></dt>
+<dd><p>Name or path of template.</p>
+</dd>
+<dt><kbd>dest</kbd></dt>
+<dd><p>Suggested destination filename. This may be overridden by the template, or adjusted if it conflicts with an existing file. A filename will be selected for you if omitted.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat2">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat2" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-p, --preview</kbd></dt>
+<dd><p>Print plan but do not create file</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="change">
+<h3>change<a class="headerlink" href="#change" title="Permalink to this headline">¶</a></h3>
+<p>Update metadata of the specified files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">change</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">ADD_TAGS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DEL_TAGS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">TITLE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CREATED</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+                <span class="n">paths</span> <span class="p">[</span><span class="n">paths</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat3">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>paths</kbd></dt>
+<dd><p>Files to update.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat3">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat3" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-a, --add-tags</kbd></dt>
+<dd><p>Comma-separated list of tags to add (if not already present).</p>
+</dd>
+<dt><kbd>-d, --del-tags</kbd></dt>
+<dd><p>Comma-separated list of tags to remove (if present).</p>
+</dd>
+<dt><kbd>-t, --title</kbd></dt>
+<dd><p>New title for files</p>
+</dd>
+<dt><kbd>-c, --created</kbd></dt>
+<dd><p>New created datetime for files, in ISO8601 format</p>
+</dd>
+<dt><kbd>-p, --preview</kbd></dt>
+<dd><p>Print changes to be made but do not change files</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="mv">
+<h3>mv<a class="headerlink" href="#mv" title="Permalink to this headline">¶</a></h3>
+<p>Move a file. Any links to the file from other files in your configured notes directories will be updated to point to the new location, provided the referrers are of supported file types. Relative links from this file to other files will also be updated, if this file is of a supported file type.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">mv</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="n">src</span> <span class="n">dest</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat4">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>src</kbd></dt>
+<dd><p>File or folder to move.</p>
+</dd>
+<dt><kbd>dest</kbd></dt>
+<dd><p>New file path or new parent folder. If the argument is a folder, notesdir will try to keep the original filename. In either case, this command will not overwrite an existing file; it will adjust the new filename if needed to be unique within the target directory.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat4">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat4" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-j, --json</kbd></dt>
+<dd><p>Output as JSON. The output is an object whose keys are the paths of files that were moved, and whose values are the new paths of those files.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-p, --preview</kbd></dt>
+<dd><p>Print changes to be made but do not move or change files</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="organize">
+<h3>organize<a class="headerlink" href="#organize" title="Permalink to this headline">¶</a></h3>
+<p>Organize files. All files within the directories configured in conf.repo_conf.root_paths will be passed to the function defined in conf.path_organizer, and will be moved if it returns a new path. New folders will be created when necessary and empty folders will be deleted. As with the mv command, relative links between files will be updated, if the file type of the referrer is supported.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">organize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments_repeat5">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-j, --json</kbd></dt>
+<dd><p>Output as JSON. The output is an object whose keys are the paths of files that were moved, and whose values are the new paths of those files.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-p, --preview</kbd></dt>
+<dd><p>Print changes to be made but do not move or change files</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="tags">
+<h3>tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h3>
+<p>Show a list of tags and the number of files that have each tag.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">tags</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span><span class="p">]</span> <span class="p">[</span><span class="n">query</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat5">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat5" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>query</kbd></dt>
+<dd><p>Query to filter files by. If omitted, data for all files is shown. The query format is the same as for the <cite>query</cite> command.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat6">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-j, --json</kbd></dt>
+<dd><p>Output as JSON. The output is an object whose keys are tags and whose values are the number of notes that matched the query and also possess that tag.</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="relink">
+<h3>relink<a class="headerlink" href="#relink" title="Permalink to this headline">¶</a></h3>
+<p>Replace all links to one file with links to another. Note that this does not currently replace links to children of the original path - e.g., if the old path is “/foo/bar”, a link to “/foo/bar/baz” will not be updated. No files are moved, and this command does not care whether or not the old or new paths refer to actual files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">relink</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span> <span class="n">old</span> <span class="n">new</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments_repeat6">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>old</kbd></dt>
+<dd></dd>
+<dt><kbd>new</kbd></dt>
+<dd></dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments_repeat7">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-p, --preview</kbd></dt>
+<dd><p>Print changes to be made but do not change files</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Sub-commands:">Sub-commands:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#info">info</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#query">query</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat1">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat1">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#new">new</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat2">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat2">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#change">change</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat3">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat3">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mv">mv</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat4">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat4">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#organize">organize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#tags">tags</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#relink">relink</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="organizing.html"
+                        title="previous chapter">Organizing</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="development.html"
+                        title="next chapter">Development</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cli.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="Development"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="organizing.html" title="Organizing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">CLI Reference</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>

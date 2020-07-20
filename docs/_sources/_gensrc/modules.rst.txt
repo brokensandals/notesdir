@@ -1,0 +1,7 @@
+notesdir
+========
+
+.. toctree::
+   :maxdepth: 4
+
+   notesdir
