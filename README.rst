@@ -81,4 +81,4 @@ You can run :code:`notesdir query` to print a list of everything Notesdir curren
 (Which may or may not be very much, until you fill in some metadata.)
 It may take a while the first time, while it builds the cache.
 
-See the `full documentation <https://brokensandals.github.io/notesdir/>`__ for a walkthrough of all the functionality.
+See the `full documentation <https://brokensandals.github.io/notesdir/contents.html>`__ for a walkthrough of all the functionality.
