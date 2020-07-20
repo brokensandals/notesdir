@@ -30,6 +30,8 @@ def find_available_name(dest: str, also_unavailable: Set[str], src: str = None) 
     this function will prefer keeping that UUID rather than generating a new one (but it will still prefer no UUID at
     all when possible).
     """
+    if src == dest:
+        return src
     dirname, basename = os.path.split(dest)
     parts = basename.split('.', 1)
     if len(parts) > 1:

@@ -179,10 +179,9 @@ class Notesdir:
             if isinstance(dest, DependentPathFn):
                 move_fns[info.path] = dest
             else:
-                dest = self.conf.path_organizer(info)
+                dest = find_available_name(dest, unavailable, info.path)
                 if info.path == dest:
                     continue
-                dest = find_available_name(dest, unavailable, info.path)
                 moves[info.path] = dest
                 unavailable.add(dest)
 
@@ -196,18 +195,26 @@ class Notesdir:
                 dinfo = replace(dinfo, path=moves[determinant])
             srcdest = dpfn.fn(dinfo)
             del move_fns[src]
+            srcdest = find_available_name(srcdest, unavailable, src)
             if src == srcdest:
                 return
-            srcdest = find_available_name(srcdest, unavailable, src)
             moves[src] = srcdest
             unavailable.add(srcdest)
 
         while move_fns:
             process_fn(next(iter(move_fns)))
 
-        final_moves = self.move(moves, into_dirs=False, check_exists=False,
-                                create_parents=True, delete_empty_parents=True)
-        return final_moves
+        if not moves:
+            return {}
+
+        edits = list(edits_for_rearrange(self.repo, moves))
+        for edit in edits:
+            if isinstance(edit, MoveCmd):
+                edit.create_parents = True
+                edit.delete_empty_parents = True
+        self.repo.change(edits)
+
+        return moves
 
     def change(self, paths: Set[str], add_tags=Set[str], del_tags=Set[str], title=Optional[str],
                created=Optional[datetime]) -> None:
