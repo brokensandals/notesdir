@@ -11,7 +11,7 @@ from mako.template import Template
 import shortuuid
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, TemplateDirectives,\
-    DependentPathFn, FileInfo
+    DependentPathFn, FileInfo, MoveCmd
 from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
 
 
@@ -99,7 +99,7 @@ class Notesdir:
             self.repo.change(edits)
 
     def move(self, moves: Dict[str, str], *, into_dirs=True, check_exists=True,
-             create_missing_dirs=False, delete_empty_dirs=False) -> Dict[str, str]:
+             create_parents=False, delete_empty_parents=False) -> Dict[str, str]:
         """Moves files/directories and updates references to/from them appropriately.
 
         moves is a dict where the keys are source paths that should be moved, and the values are the destinations.
@@ -112,10 +112,10 @@ class Notesdir:
         It's OK for a path to occur as a key and also another key's value. For example,
         ``{'foo': 'bar', 'bar': 'foo'}`` will swap the two files.
 
-        If create_missing_dirs is True, any directories in a destination path that do not yet exist will be
+        If create_parents is True, any directories in a destination path that do not yet exist will be
         created.
 
-        If delete_empty_dirs is True, after moving files out of a directory, if the directory or any of its parent
+        If delete_empty_parents is True, after moving files out of a directory, if the directory or any of its parent
         directories are empty, they will be deleted. (The root folder or current working directory will not be
         deleted regardless.)
 
@@ -130,32 +130,20 @@ class Notesdir:
         for src, dest in moves.items():
             if not os.path.exists(src):
                 raise FileNotFoundError(f'File does not exist: {src}')
-            if os.path.isdir(dest):
+            if os.path.isdir(dest) and into_dirs:
                 srcname = os.path.split(src)[1]
                 dest = os.path.join(dest, srcname)
 
             dest = _find_available_name(dest, unavailable, src) if check_exists else dest
             final_moves[src] = dest
             unavailable.add(dest)
-            if create_missing_dirs:
-                parent = os.path.split(dest)[0]
-                os.makedirs(parent, exist_ok=True)
 
-        edits = edits_for_rearrange(self.repo, final_moves)
+        edits = list(edits_for_rearrange(self.repo, final_moves))
+        for edit in edits:
+            if isinstance(edit, MoveCmd):
+                edit.create_parents = create_parents
+                edit.delete_empty_parents = delete_empty_parents
         self.repo.change(edits)
-
-        if delete_empty_dirs:
-            for src in final_moves.keys():
-                cwd = os.getcwd()
-                prev = src
-                path = os.path.split(src)[0]
-                while path not in [cwd, prev]:
-                    if os.path.exists(path):
-                        if sum(1 for _ in os.listdir(path)):
-                            break
-                        os.rmdir(path)
-                    prev = path
-                    path = os.path.split(src)[0]
 
         return final_moves
 
@@ -241,7 +229,7 @@ class Notesdir:
             process_fn(next(iter(move_fns)))
 
         final_moves = self.move(moves, into_dirs=False, check_exists=False,
-                                create_missing_dirs=True, delete_empty_dirs=True)
+                                create_parents=True, delete_empty_parents=True)
         return final_moves
 
     def change(self, paths: Set[str], add_tags=Set[str], del_tags=Set[str], title=Optional[str],

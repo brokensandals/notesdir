@@ -238,6 +238,12 @@ class MoveCmd(FileEditCmd):
     dest: str
     """The new path and filename."""
 
+    create_parents: bool = False
+    """If True, any nonexistent parent directories should be created."""
+
+    delete_empty_parents: bool = False
+    """If True, any parent directories that are empty after performing the move should be deleted."""
+
 
 class FileQuerySortField(Enum):
     BACKLINKS_COUNT = 'backlinks'

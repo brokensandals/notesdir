@@ -55,6 +55,24 @@ def test_change(fs):
     assert Path('/notes/two.md').read_text() == '[2](bar)'
 
 
+def test_change_directories(fs):
+    paths1 = ['/notes/dir1/subdir1/one.md', '/notes/dir2/subdir2/two.md',
+             '/notes/dir2/subdir3/three.md']
+    nonmovingpath = '/notes/dir2/subdir3/four.md'
+    for path in paths1:
+        fs.create_file(path)
+    fs.create_file(nonmovingpath)
+    paths2 = [p.replace('/notes/', '/notes/newdir/') for p in paths1]
+    repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
+    edits = [MoveCmd(paths1[i], paths2[i], create_parents=True, delete_empty_parents=True) for i in range(3)]
+    repo.change(edits)
+    assert [p for p in paths1 if os.path.exists(p)] == []
+    assert [p for p in paths2 if os.path.exists(p)] == paths2
+    assert not os.path.exists('/notes/dir1')
+    assert not os.path.exists('/notes/dir2/subdir2')
+    assert os.path.exists(nonmovingpath)
+
+
 def test_query(fs):
     fs.create_file('/notes/one.md', contents='#tag1 #tag1 #tag2 #tag4')
     fs.create_file('/notes/two.md', contents='#tag1 #tag3')

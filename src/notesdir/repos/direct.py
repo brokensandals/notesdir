@@ -52,7 +52,20 @@ class DirectRepo(Repo):
         for group in _group_edits(edits):
             if isinstance(group[0], MoveCmd):
                 for edit in group:
+                    if edit.create_parents:
+                        parent = os.path.split(edit.dest)[0]
+                        os.makedirs(parent, exist_ok=True)
                     os.rename(edit.path, edit.dest)
+                    if edit.delete_empty_parents:
+                        prev = edit.path
+                        parent = os.path.split(prev)[0]
+                        while parent and not parent == prev:
+                            if os.path.exists(parent):
+                                if sum(1 for _ in os.listdir(parent)):
+                                    break
+                                os.rmdir(parent)
+                            prev = parent
+                            parent = os.path.split(parent)[0]
             else:
                 acc = self.accessor_factory(group[0].path)
                 for edit in group:

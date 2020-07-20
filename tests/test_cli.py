@@ -224,7 +224,7 @@ conf.path_organizer =\
     fs.create_file(path2, contents='I link to [one](one.md).')
     assert cli.main(['org']) == 0
     capsys.readouterr()
-    assert Path.cwd().exists()
+    assert not Path.cwd().exists()  # at one point I had a special case to prevent this, but... meh
     assert [p for p in [path1, path2] if p.exists()] == []
     path3 = Path('/notes/untagged/one.md')
     path4 = Path('/notes/untagged/two.md')
