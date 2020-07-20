@@ -8,33 +8,10 @@ import os.path
 import re
 from typing import Dict, Set, Optional
 from mako.template import Template
-import shortuuid
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, TemplateDirectives,\
     DependentPathFn, FileInfo, MoveCmd
-from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement
-
-
-def _find_available_name(dest: str, also_unavailable: Set[str], src: str = None) -> str:
-    dirname, basename = os.path.split(dest)
-    parts = basename.split('.', 1)
-    if len(parts) > 1:
-        suffix = f'.{parts[1]}'
-    else:
-        suffix = ''
-    while dest in also_unavailable or os.path.exists(dest):
-        if src:
-            # HACK: This is so that if `organize` has to attach a UUID to the end of a
-            # filename because of a conflict, it will try to assign the same UUID next time around.
-            srcname = os.path.split(src)[1]
-            if srcname == f'{parts[0]}{srcname[len(parts[0]):len(parts[0])+23]}{suffix}':
-                dest = os.path.join(dirname, srcname)
-                if src == dest:
-                    break
-                src = None
-                continue
-        dest = os.path.join(dirname, f'{parts[0]}_{shortuuid.uuid()}{suffix}')
-    return dest
+from notesdir.rearrange import edits_for_rearrange, edits_for_path_replacement, find_available_name
 
 
 class Error(Exception):
@@ -134,7 +111,7 @@ class Notesdir:
                 srcname = os.path.split(src)[1]
                 dest = os.path.join(dest, srcname)
 
-            dest = _find_available_name(dest, unavailable, src) if check_exists else dest
+            dest = find_available_name(dest, unavailable, src) if check_exists else dest
             final_moves[src] = dest
             unavailable.add(dest)
 
@@ -205,7 +182,7 @@ class Notesdir:
                 dest = self.conf.path_organizer(info)
                 if info.path == dest:
                     continue
-                dest = _find_available_name(dest, unavailable, info.path)
+                dest = find_available_name(dest, unavailable, info.path)
                 moves[info.path] = dest
                 unavailable.add(dest)
 
@@ -221,7 +198,7 @@ class Notesdir:
             del move_fns[src]
             if src == srcdest:
                 return
-            srcdest = _find_available_name(srcdest, unavailable, src)
+            srcdest = find_available_name(srcdest, unavailable, src)
             moves[src] = srcdest
             unavailable.add(srcdest)
 
@@ -300,7 +277,7 @@ class Notesdir:
             suffix = re.sub(r'[\.^]mako', '', suffix)
             td.dest = f'{name}.{suffix}'
         td.dest = os.path.realpath(td.dest)
-        td.dest = _find_available_name(td.dest, set())
+        td.dest = find_available_name(td.dest, set())
         with open(td.dest, 'w') as file:
             file.write(content)
         changed = {td.dest}
