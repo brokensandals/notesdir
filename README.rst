@@ -63,7 +63,7 @@ Setup
         template_globs=["/Users/jacob/Zettel/*/templates/*.mako"]
     )
 
-    # This is optional. It determines the behavior of the `notesdir org` command. This config sets
+    # This is optional. It determines the behavior of the `notesdir organize` command. This config sets
     # up a couple rules:
     # - If a file has title metadata, use that to set the filename, and use a limited set of characters
     #   in the filename
