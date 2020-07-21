@@ -1,5 +1,6 @@
 from datetime import datetime
 import os.path
+from freezegun import freeze_time
 
 from notesdir.models import FileQuery, FileInfoReq, LinkInfo, FileQuerySort, FileQuerySortField, FileInfo
 
@@ -45,6 +46,16 @@ def test_referent_resolves_relative_to_referrer(fs):
 def test_referent_handles_special_characters():
     assert LinkInfo('/foo', 'hi%20there%21').referent() == '/hi there!'
     assert LinkInfo('/foo', 'hi+there%21').referent() == '/hi there!'
+
+
+@freeze_time('2012-02-03T04:05:06Z')
+def test_guess_created(fs):
+    info = FileInfo('foo')
+    assert info.guess_created() is None
+    fs.create_file('foo')
+    assert info.guess_created().isoformat() == '2012-02-03T04:05:06+00:00'
+    info.created = datetime(1, 2, 3, 4, 5, 6)
+    assert info.guess_created() == datetime(1, 2, 3, 4, 5, 6)
 
 
 def test_parse_query():

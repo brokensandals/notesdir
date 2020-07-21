@@ -115,9 +115,9 @@ class FileInfo:
             return None
         stat = os.stat(self.path)
         try:
-            return datetime.utcfromtimestamp(stat.st_birthtime)
+            return datetime.fromtimestamp(stat.st_birthtime, tz=timezone.utc)
         except AttributeError:
-            return datetime.utcfromtimestamp(stat.st_ctime)
+            return datetime.fromtimestamp(stat.st_ctime, tz=timezone.utc)
 
 
 @dataclass
