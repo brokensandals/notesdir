@@ -103,6 +103,15 @@ for performing high-level operations. The <a class="reference internal" href="#n
 </pre></div>
 </div>
 <dl class="py method">
+<dt id="notesdir.api.Notesdir.backfill">
+<code class="sig-name descname">backfill</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.api.Notesdir.backfill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all files missing title or created metadata, and attempts to set that metadata.</p>
+<p>Missing titles are set to the filename, minus the file extension.
+Missing created dates are set based on the birthtime or ctime of the file.</p>
+<p>Returns a list of all successfully changed files, and a list of exceptions encountered for other files.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="notesdir.api.Notesdir.change">
 <code class="sig-name descname">change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">paths</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">add_tags</span><span class="o">=</span><span class="default_value">typing.Set[str]</span></em>, <em class="sig-param"><span class="n">del_tags</span><span class="o">=</span><span class="default_value">typing.Set[str]</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">typing.Union[str, NoneType]</span></em>, <em class="sig-param"><span class="n">created</span><span class="o">=</span><span class="default_value">typing.Union[datetime.datetime, NoneType]</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#notesdir.api.Notesdir.change" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies all the specified changes to the specified paths.</p>
@@ -238,7 +247,7 @@ the process’s arguments are used.</p>
 
 <dl class="py class">
 <dt id="notesdir.conf.NotesdirConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1117c34d0&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1091e8dd0&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt id="notesdir.conf.NotesdirConf.for_user">
@@ -991,6 +1000,7 @@ into the resulting URL.</p>
 <li class="toctree-l1"><a class="reference internal" href="../organizing.html">Organizing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 </ul>
 
   <div role="note" aria-label="source link">

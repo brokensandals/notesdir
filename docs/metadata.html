@@ -183,6 +183,15 @@ tags: journal, monthly-goals
 </pre></div>
 </div>
 </div>
+<div class="section" id="backfilling-title-creation-date">
+<h2>Backfilling title &amp; creation date<a class="headerlink" href="#backfilling-title-creation-date" title="Permalink to this headline">¶</a></h2>
+<p>This command will add title and/or creation date to all files (of supported file types) that are missing them:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>notesdir backfill
+</pre></div>
+</div>
+<p>Missing titles are set to the filename, without the extension.
+Missing creation dates are set based on the filesystem’s metadata about the file.</p>
+</div>
 </div>
 
 
@@ -203,12 +212,14 @@ tags: journal, monthly-goals
 <li class="toctree-l2"><a class="reference internal" href="#changing-metadata">Changing metadata</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#querying">Querying</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tag-statistics">Tag statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#backfilling-title-creation-date">Backfilling title &amp; creation date</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
 <li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
   <h4>Previous topic</h4>

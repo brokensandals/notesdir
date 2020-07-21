@@ -46,7 +46,8 @@
   <div class="section" id="cli-reference">
 <h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Permalink to this headline">¶</a></h1>
 <p>This documentation is generated from the output of <code class="docutils literal notranslate"><span class="pre">notesdir</span> <span class="pre">-h</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">notesdir</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">{</span><span class="n">info</span><span class="p">,</span><span class="n">query</span><span class="p">,</span><span class="n">new</span><span class="p">,</span><span class="n">change</span><span class="p">,</span><span class="n">mv</span><span class="p">,</span><span class="n">organize</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">relink</span><span class="p">}</span> <span class="o">...</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">notesdir</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                <span class="p">{</span><span class="n">info</span><span class="p">,</span><span class="n">query</span><span class="p">,</span><span class="n">new</span><span class="p">,</span><span class="n">change</span><span class="p">,</span><span class="n">mv</span><span class="p">,</span><span class="n">organize</span><span class="p">,</span><span class="n">backfill</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">relink</span><span class="p">}</span> <span class="o">...</span>
 </pre></div>
 </div>
 <div class="section" id="Sub-commands:">
@@ -223,6 +224,22 @@
 </dl>
 </div>
 </div>
+<div class="section" id="backfill">
+<h3>backfill<a class="headerlink" href="#backfill" title="Permalink to this headline">¶</a></h3>
+<p>Backfill missing metadata. All files within the directories configured in conf.repo_conf.root_paths will be checked for title and created date metadata. If the title is missing, a title is set based on the filename; if created is missing, it is set based on the file’s birthtime or ctime. Errors will be printed but will not result in a nonzero return status, since it is expected that some files in your notes directories will not be supported by notesdir.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">notesdir</span> <span class="n">backfill</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments_repeat6">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<dl class="option-list">
+<dt><kbd>-p, --preview</kbd></dt>
+<dd><p>Print changes to be made but do not change files</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
 <div class="section" id="tags">
 <h3>tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h3>
 <p>Show a list of tags and the number of files that have each tag.</p>
@@ -237,8 +254,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat6">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat6" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat7">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-j, --json</kbd></dt>
 <dd><p>Output as JSON. The output is an object whose keys are tags and whose values are the number of notes that matched the query and also possess that tag.</p>
@@ -262,8 +279,8 @@
 <dd></dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments_repeat7">
-<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat7" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="Named Arguments_repeat8">
+<h4>Named Arguments<a class="headerlink" href="#Named Arguments_repeat8" title="Permalink to this headline">¶</a></h4>
 <dl class="option-list">
 <dt><kbd>-p, --preview</kbd></dt>
 <dd><p>Print changes to be made but do not change files</p>
@@ -320,14 +337,18 @@
 <li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat5">Named Arguments</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#backfill">backfill</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#tags">tags</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat5">Positional Arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat6">Named Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#relink">relink</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#Positional Arguments_repeat6">Positional Arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat7">Named Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments_repeat8">Named Arguments</a></li>
 </ul>
 </li>
 </ul>
@@ -335,6 +356,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
   <h4>Previous topic</h4>

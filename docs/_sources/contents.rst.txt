@@ -10,3 +10,4 @@ Contents
    organizing
    cli
    development
+   changelog

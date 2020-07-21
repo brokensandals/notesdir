@@ -142,3 +142,15 @@ You can also supply a query, to see stats for just the notes matching the query:
    | fantasy                | 14    |
    | fiction                | 145   |
    ...
+
+Backfilling title & creation date
+---------------------------------
+
+This command will add title and/or creation date to all files (of supported file types) that are missing them:
+
+.. code-block:: bash
+
+   notesdir backfill
+
+Missing titles are set to the filename, without the extension.
+Missing creation dates are set based on the filesystem's metadata about the file.
