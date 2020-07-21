@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python API &#8212; notesdir  documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CLI Reference" href="cli.html" />
+    <link rel="prev" title="Organizing" href="organizing.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="CLI Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="organizing.html" title="Organizing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Python API</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="python-api">
+<h1>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
+<p>You can use notesdir from your own Python scripts by getting an instance of <a class="reference internal" href="_gensrc/notesdir.html#notesdir.api.Notesdir" title="notesdir.api.Notesdir"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.api.Notesdir</span></code></a>.</p>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>As an example, here’s a script that loops through all your notes to find ones whose titles are palindromes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">notesdir.api</span> <span class="kn">import</span> <span class="n">Notesdir</span>
+<span class="k">with</span> <span class="n">Notesdir</span><span class="o">.</span><span class="n">for_user</span><span class="p">()</span> <span class="k">as</span> <span class="n">nd</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">nd</span><span class="o">.</span><span class="n">repo</span><span class="o">.</span><span class="n">query</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">title</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">title</span> <span class="o">==</span> <span class="n">title</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s1"> [</span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default the <a class="reference internal" href="_gensrc/notesdir.repos.html#notesdir.repos.base.Repo.query" title="notesdir.repos.base.Repo.query"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo.query()</span></code></a> method returns all notes and a specific subset of available fields, but see the documentation for how to specify a query or request more/fewer fields.</p>
+<p>The <a class="reference internal" href="_gensrc/notesdir.html#notesdir.api.Notesdir.for_user" title="notesdir.api.Notesdir.for_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.for_user()</span></code></a> method loads the configuration from your <code class="docutils literal notranslate"><span class="pre">~/.notesdir.conf.py</span></code> file.
+You can also create a <a class="reference internal" href="_gensrc/notesdir.html#notesdir.conf.NotesdirConf" title="notesdir.conf.NotesdirConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.NotesdirConf</span></code></a> programmatically instead and create an instance from that.</p>
+</div>
+<div class="section" id="important-classes">
+<h2>Important classes<a class="headerlink" href="#important-classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="_gensrc/notesdir.html#notesdir.api.Notesdir" title="notesdir.api.Notesdir"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.api.Notesdir</span></code></a> - implements the higher-level functionality that’s also available in the CLI</p></li>
+<li><p><a class="reference internal" href="_gensrc/notesdir.repos.html#notesdir.repos.base.Repo" title="notesdir.repos.base.Repo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo</span></code></a> - used for querying for files, retrieving metadata, and changing files; accessible via <a class="reference internal" href="_gensrc/notesdir.html#notesdir.api.Notesdir.repo" title="notesdir.api.Notesdir.repo"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.repo</span></code></a></p></li>
+<li><p><a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileInfo</span></code></a> - holds file metadata</p></li>
+<li><p><a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileInfoReq</span></code></a> - specifies which fields of a FileInfo should be populated</p></li>
+<li><p><a class="reference internal" href="_gensrc/notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileQuery</span></code></a> - specifies filter and sort criteria for a query</p></li>
+</ul>
+</div>
+<div class="section" id="changing-files">
+<h2>Changing files<a class="headerlink" href="#changing-files" title="Permalink to this headline">¶</a></h2>
+<p>To move one or more files and also update all the links to/from those files, use <a class="reference internal" href="_gensrc/notesdir.html#notesdir.api.Notesdir.move" title="notesdir.api.Notesdir.move"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.move()</span></code></a>.</p>
+<p>To change file metadata, use <a class="reference internal" href="_gensrc/notesdir.html#notesdir.api.Notesdir.change" title="notesdir.api.Notesdir.change"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.api.Notesdir.change()</span></code></a> or <a class="reference internal" href="_gensrc/notesdir.repos.html#notesdir.repos.base.Repo.change" title="notesdir.repos.base.Repo.change"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo.change()</span></code></a>.</p>
+<p>If you’re using a SQLite cache, the cache is refreshed when <a class="reference internal" href="_gensrc/notesdir.repos.html#notesdir.repos.sqlite.SqliteRepo" title="notesdir.repos.sqlite.SqliteRepo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.sqlite.SqliteRepo</span></code></a> is instantiated (which happens when Notesdir is instantiated).
+If your code makes direct changes to files (rather than using one of the change() methods) and also makes use of the Notesdir or Repo classes, you should make sure to call <a class="reference internal" href="_gensrc/notesdir.repos.html#notesdir.repos.base.Repo.invalidate" title="notesdir.repos.base.Repo.invalidate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">notesdir.repos.base.Repo.invalidate()</span></code></a> after each change.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="contents.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="links.html">Link Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metadata.html">Metadata &amp; Querying</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templating.html">Templating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organizing.html">Organizing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#important-classes">Important classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changing-files">Changing files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="organizing.html"
+                        title="previous chapter">Organizing</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cli.html"
+                        title="next chapter">CLI Reference</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/python.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cli.html" title="CLI Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="organizing.html" title="Organizing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="contents.html">notesdir  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Python API</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Jacob Williams.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+  </body>
+</html>
