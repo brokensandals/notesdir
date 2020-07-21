@@ -219,3 +219,22 @@ def test_rearrange_folder(fs):
     assert Path('/notes/wrapper/newdir/two.md').read_text() == 'I link to [three](subdir/three.md).'
     assert (Path('/notes/wrapper/newdir/subdir/three.md').read_text()
             == 'I link to [one](../../../one.md) and [the web](https://example.com).')
+
+
+def test_rearrange_absolute_paths(fs):
+    docs = ['I am being moved but link to something that is [not](/notes/two.md)',
+            'I am not being moved',
+            'I am not being moved but link to something that [is](/notes/one.md)',
+            'I am being moved and so is what I link [to](/notes/one.md)']
+    paths = ['/notes/one.md', '/notes/two.md', '/notes/three.md', '/notes/four.md']
+    for i in range(4):
+        fs.create_file(paths[i], contents=docs[i])
+    Path('/notes/newdir').mkdir()
+    repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
+    repo.change(edits_for_rearrange(repo, {paths[0]: '/notes/newdir/new1.md', paths[3]: '/notes/newdir/new4.md'}))
+    assert not Path(paths[0]).exists()
+    assert not Path(paths[3]).exists()
+    assert Path(paths[1]).read_text() == docs[1]
+    assert Path(paths[2]).read_text() == 'I am not being moved but link to something that [is](newdir/new1.md)'
+    assert Path('/notes/newdir/new4.md').read_text() == 'I am being moved and so is what I link [to](new1.md)'
+    assert Path('/notes/newdir/new1.md').read_text() == docs[0]

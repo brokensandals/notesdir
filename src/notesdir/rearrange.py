@@ -147,9 +147,12 @@ def edits_for_rearrange(store: Repo, renames: Dict[str, str]) -> Iterator[FileEd
                 referent = link.referent()
                 if not referent:
                     continue
+                url = urlparse(link.href)
                 if referent in all_moves:
                     referent = all_moves[referent]
-                url = urlparse(link.href)
+                elif os.path.isabs(url.path):
+                    # Don't try to rewrite absolute paths, unless they refer to a file we're moving.
+                    continue
                 newhref = path_as_href(href_path(dest, referent), url)
                 if not link.href == newhref:
                     yield ReplaceHrefCmd(src, link.href, newhref)
