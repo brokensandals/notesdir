@@ -8,7 +8,6 @@ import os.path
 import re
 from typing import Dict, Set, Optional, List
 from mako.template import Template
-from notesdir.accessors.base import UnsupportedChangeError
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, TemplateDirectives,\
     DependentPathFn, FileInfo, MoveCmd, CreateCmd
