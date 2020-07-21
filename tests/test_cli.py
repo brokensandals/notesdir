@@ -402,3 +402,66 @@ def test_relink(fs, capsys):
     assert out == str(ReplaceHrefCmd(str(path1), '/notes/subdir1/bar.md#section', '../blah/baz.md#section')) + '\n'
     assert cli.main(['relink', '/notes/subdir1/bar.md', '/blah/baz.md']) == 0
     assert path1.read_text() == 'I link to [bar](../blah/baz.md#section)'
+
+
+@freeze_time('2010-09-08T07:06:05Z')
+def test_backfill(fs, capsys):
+    nd_setup(fs)
+    good_path = '/notes/all-good.md'
+    good_doc = """---
+title: Good Note
+created: 2001-02-03T04:05:06-07:00
+...
+Hi!"""
+    no_title_doc = """---
+created: 2002-03-04T05:06:07-08:00
+...
+Hello!"""
+    no_created_doc = """---
+title: Mediocre Note
+...
+Whatever"""
+    nothing_doc = 'Boo.'
+    unsupported_doc = 'Go away.'
+    no_title_path = '/notes/no-title.md'
+    no_created_path = '/notes/no-created.md'
+    nothing_path = '/notes/nothing.md'
+    unsupported_path = '/notes/unsupported'
+    fs.create_file(good_path, contents=good_doc)
+    fs.create_file(no_title_path, contents=no_title_doc)
+    fs.create_file(no_created_path, contents=no_created_doc)
+    fs.create_file(nothing_path, contents=nothing_doc)
+    fs.create_file(unsupported_path, contents=unsupported_doc)
+    assert cli.main(['backfill', '-p']) == 0
+    out, err = capsys.readouterr()
+    assert Path(good_path).read_text() == good_doc
+    assert Path(no_title_path).read_text() == no_title_doc
+    assert Path(no_created_path).read_text() == no_created_doc
+    assert Path(nothing_path).read_text() == nothing_doc
+    assert Path(unsupported_path).read_text() == unsupported_doc
+
+    assert cli.main(['backfill']) == 0
+    out, err = capsys.readouterr()
+    assert good_path not in out
+    assert good_path not in err
+    assert no_title_path in out
+    assert no_created_path in out
+    assert nothing_path in out
+    assert unsupported_path in err
+    assert Path(good_path).read_text() == good_doc
+    assert Path(no_title_path).read_text() == """---
+created: 2002-03-04 05:06:07-08:00
+title: no-title
+...
+Hello!"""
+    assert Path(no_created_path).read_text() == """---
+created: 2010-09-08 07:06:05+00:00
+title: Mediocre Note
+...
+Whatever"""
+    assert Path(nothing_path).read_text() == """---
+created: 2010-09-08 07:06:05+00:00
+title: nothing
+...
+Boo."""
+    assert Path(unsupported_path).read_text() == unsupported_doc

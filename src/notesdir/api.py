@@ -6,8 +6,9 @@ from datetime import datetime
 from glob import glob
 import os.path
 import re
-from typing import Dict, Set, Optional
+from typing import Dict, Set, Optional, List
 from mako.template import Template
+from notesdir.accessors.base import UnsupportedChangeError
 from notesdir.conf import NotesdirConf
 from notesdir.models import AddTagCmd, DelTagCmd, SetTitleCmd, SetCreatedCmd, FileInfoReq, TemplateDirectives,\
     DependentPathFn, FileInfo, MoveCmd, CreateCmd
@@ -187,6 +188,32 @@ class Notesdir:
         self.repo.change(edits)
 
         return moves
+
+    def backfill(self) -> (List[str], List[Exception]):
+        """Finds all files missing title or created metadata, and attempts to set that metadata.
+
+        Missing titles are set to the filename, minus the file extension.
+        Missing created dates are set based on the birthtime or ctime of the file.
+
+        Returns a list of all successfully changed files, and a list of exceptions encountered for other files.
+        """
+        modified = []
+        exceptions = []
+        for info in self.repo.query(fields=FileInfoReq(path=True, title=True, created=True)):
+            edits = []
+            if not info.title:
+                _, filename = os.path.split(info.path)
+                title, _ = os.path.splitext(filename)
+                edits.append(SetTitleCmd(info.path, title))
+            if not info.created:
+                edits.append(SetCreatedCmd(info.path, info.guess_created()))
+            if edits:
+                try:
+                    self.repo.change(edits)
+                    modified.append(info.path)
+                except Exception as ex:
+                    exceptions.append(ex)
+        return modified, exceptions
 
     def change(self, paths: Set[str], add_tags=Set[str], del_tags=Set[str], title=Optional[str],
                created=Optional[datetime]) -> None:

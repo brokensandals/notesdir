@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 from operator import itemgetter, attrgetter
 import os.path
+import sys
 from terminaltables import AsciiTable
 from notesdir.api import Notesdir
 from notesdir.models import FileInfoReq, FileInfo
@@ -80,6 +81,16 @@ def _organize(args, nd: Notesdir) -> int:
     elif moves and not args.preview:
         for k, v in moves.items():
             print(f'Moved {k} to {v}')
+    return 0
+
+
+def _backfill(args, nd: Notesdir) -> int:
+    changed, errors = nd.backfill()
+    if not args.preview:
+        for path in changed:
+            print(f'Updated {changed}')
+        for error in errors:
+            print(repr(error), file=sys.stderr)
     return 0
 
 
@@ -235,6 +246,17 @@ def argparser() -> argparse.ArgumentParser:
     p_org.add_argument('-p', '--preview', action='store_true',
                        help='Print changes to be made but do not move or change files')
     p_org.set_defaults(func=_organize)
+
+    p_backfill = subs.add_parser(
+        'backfill',
+        help='Backfill missing metadata. All files within the directories configured in conf.repo_conf.root_paths '
+             'will be checked for title and created date metadata. If the title is missing, a title is set based '
+             'on the filename; if created is missing, it is set based on the file\'s birthtime or ctime. '
+             'Errors will be printed but will not result in a nonzero return status, since it is expected that '
+             'some files in your notes directories will not be supported by notesdir.')
+    p_backfill.add_argument('-p', '--preview', action='store_true',
+                            help='Print changes to be made but do not change files')
+    p_backfill.set_defaults(func=_backfill)
 
     p_tags_count = subs.add_parser(
         'tags',
