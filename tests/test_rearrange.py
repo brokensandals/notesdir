@@ -132,6 +132,11 @@ def test_rearrange_selfreference(fs):
     assert Path('/notes/two.md').exists()
     assert Path('/notes/two.md').read_text() == 'I link to [myself](two.md).'
 
+    doc3 = 'I link to [a section of myself](#foo)'
+    fs.create_file('/notes/three.md', contents=doc3)
+    repo.change(edits_for_rearrange(repo, {'/notes/three.md': '/notes/four.md'}))
+    assert Path('/notes/four.md').read_text() == 'I link to [a section of myself](#foo)'
+
 
 def test_rearrange_mutual(fs):
     doc1 = 'I link to [two](two.md).'

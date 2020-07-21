@@ -48,6 +48,11 @@ def test_referent_handles_special_characters():
     assert LinkInfo('/foo', 'hi+there%21').referent() == '/hi there!'
 
 
+def test_referent_self():
+    assert LinkInfo('/foo/bar', 'bar#baz').referent() == '/foo/bar'
+    assert LinkInfo('/foo/bar', '#baz').referent() == '/foo/bar'
+
+
 @freeze_time('2012-02-03T04:05:06Z')
 def test_guess_created(fs):
     info = FileInfo('foo')

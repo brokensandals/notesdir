@@ -41,6 +41,9 @@ class LinkInfo:
         try:
             url = urlparse(self.href)
             if (not url.scheme) or (url.scheme == 'file' and url.netloc in ['', 'localhost']):
+                if not url.path:
+                    # links like "#foo" are just references to other parts of the same file
+                    return self.referrer
                 referent = unquote_plus(url.path)
                 if not os.path.isabs(referent):
                     referent = os.path.join(self.referrer, '..', referent)

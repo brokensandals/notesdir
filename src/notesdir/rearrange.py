@@ -148,6 +148,8 @@ def edits_for_rearrange(store: Repo, renames: Dict[str, str]) -> Iterator[FileEd
                 if not referent:
                     continue
                 url = urlparse(link.href)
+                if referent == src and url.path == '':
+                    continue
                 if referent in all_moves:
                     referent = all_moves[referent]
                 elif os.path.isabs(url.path):
