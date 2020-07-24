@@ -1,6 +1,8 @@
 Unreleased
 ----------
 
+- Additions
+    - Add ``skip_parse`` configuration option for indicating files that should not be parsed or edited, but should be affected by ``organize``.
 - Changes
     - Ignore links and hashtags in fenced code blocks in Markdown.
 
