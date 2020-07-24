@@ -11,6 +11,7 @@ YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*)\n(---|\.\.\.)\s*\r?\n)?(.*)')
 TAG_RE = re.compile(r'(\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
 INLINE_HREF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
 REFSTYLE_HREF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
+FENCED_CODE_RE = re.compile(r'(?ms)^\s*```.*?^\s*```')
 
 
 def _extract_meta(doc) -> Tuple[dict, str]:
@@ -56,6 +57,18 @@ def _replace_href(doc: str, src: str, dest: str) -> str:
     return doc
 
 
+def _split(doc: str) -> List[Tuple[bool, str]]:
+    result = []
+    prev = 0
+    for match in re.finditer(FENCED_CODE_RE, doc):
+        start, end = match.span()
+        result.append((True, doc[prev:start]))
+        result.append((False, match.group()))
+        prev = end
+    result.append((True, doc[prev:]))
+    return result
+
+
 class MarkdownAccessor(Accessor):
     """Responsible for parsing and updating Markdown files.
 
@@ -93,9 +106,14 @@ class MarkdownAccessor(Accessor):
     def _load(self):
         with open(self.path, 'r') as file:
             text = file.read()
-        self.meta, self.body = _extract_meta(text)
-        self.hrefs = _extract_hrefs(self.body)
-        self._hashtags = _extract_hashtags(self.body)
+        self.meta, body = _extract_meta(text)
+        self.parts = _split(body)
+        self.hrefs = []
+        self._hashtags = set()
+        for parsable, part in self.parts:
+            if parsable:
+                self.hrefs.extend(_extract_hrefs(part))
+                self._hashtags.update(_extract_hashtags(part))
 
     def _info(self, info: FileInfo):
         info.title = self.meta.get('title')
@@ -104,12 +122,13 @@ class MarkdownAccessor(Accessor):
         info.links = [LinkInfo(self.path, r) for r in sorted(self.hrefs)]
 
     def _save(self):
+        body = ''.join(part for _, part in self.parts)
         if self.meta:
             sio = StringIO()
             yaml.safe_dump(self.meta, sio)
-            text = f'---\n{sio.getvalue()}...\n{self.body}'
+            text = f'---\n{sio.getvalue()}...\n{body}'
         else:
-            text = self.body
+            text = body
         with open(self.path, 'w') as file:
             file.write(text)
 
@@ -133,7 +152,10 @@ class MarkdownAccessor(Accessor):
                 self.meta['keywords'].remove(tag)
             self.edited = True
         if tag in self._hashtags:
-            self.body = _remove_hashtag(self.body, tag)
+            for i in range(len(self.parts)):
+                parsable, part = self.parts[i]
+                if parsable:
+                    self.parts[i] = (True, _remove_hashtag(part, tag))
             self._hashtags.remove(tag)
             self.edited = True
 
@@ -149,4 +171,7 @@ class MarkdownAccessor(Accessor):
         if edit.original not in self.hrefs:
             return
         self.edited = True
-        self.body = _replace_href(self.body, edit.original, edit.replacement)
+        for i in range(len(self.parts)):
+            parsable, part = self.parts[i]
+            if parsable:
+                self.parts[i] = (True, _replace_href(part, edit.original, edit.replacement))

@@ -170,3 +170,39 @@ def test_remove_hashtag(fs):
     acc.edit(DelTagCmd(path, 'tag1'))
     assert acc.save()
     assert Path(path).read_text() == expected
+
+
+def test_ignore_fenced_code_blocks(fs):
+    doc = """#tag1 [link](link1.md)
+```foo
+#tag2 #tag3
+text [link](link1.md)
+```
+  #tag3 [link](link2.md)
+
+   ```
+   [link](link3.md)
+   ```"""
+    path = '/fakenotes/text.md'
+    fs.create_file(path, contents=doc)
+    acc = MarkdownAccessor(path)
+    info = acc.info()
+    assert info.tags == {'tag1', 'tag3'}
+    assert info.links == [LinkInfo(path, 'link1.md'), LinkInfo(path, 'link2.md')]
+    acc.edit(ReplaceHrefCmd(path, 'link1.md', 'CHANGED1'))
+    acc.edit(ReplaceHrefCmd(path, 'link2.md', 'CHANGED2'))
+    acc.edit(ReplaceHrefCmd(path, 'link3.md', 'CHANGED3'))
+    acc.edit(DelTagCmd(path, 'tag3'))
+    acc.edit(DelTagCmd(path, 'tag2'))
+    acc.save()
+    assert Path(path).read_text() == """#tag1 [link](CHANGED1)
+```foo
+#tag2 #tag3
+text [link](link1.md)
+```
+   [link](CHANGED2)
+
+   ```
+   [link](link3.md)
+   ```"""
+
