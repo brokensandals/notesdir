@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.0.3 (2020-07-24)
+------------------
 
 - Additions
     - Add ``skip_parse`` configuration option for indicating files that should not be parsed or edited, but should be affected by ``organize``.
