@@ -124,9 +124,11 @@ def test_skip_parse(fs):
     path1 = '/notes/one.md'
     path2 = '/notes/one.md.resources/two.md'
     path3 = '/notes/skip.md'
+    path4 = '/notes/unskip.md'
     fs.create_file(path1, contents='---\ntitle: Note One\n...\n')
     fs.create_file(path2, contents='---\ntitle: Note Two\n...\n')
     fs.create_file(path3, contents='---\ntitle: Note Skip\n...\n')
+    fs.create_file(path4, contents='---\ntitle: Note No Skip\n...\n')
 
     def fn(parentpath, filename):
         return filename.endswith('.resources') or filename == 'skip.md'
@@ -135,8 +137,10 @@ def test_skip_parse(fs):
     assert list(repo.query('sort:path')) == [
         FileInfo(path1, title='Note One'),
         FileInfo(path2),
-        FileInfo(path3)
+        FileInfo(path3),
+        FileInfo(path4, title='Note No Skip')
     ]
     assert repo.info(path1) == FileInfo(path1, title='Note One')
     assert repo.info(path2) == FileInfo(path2)
     assert repo.info(path3) == FileInfo(path3)
+    assert repo.info(path4) == FileInfo(path4, title='Note No Skip')

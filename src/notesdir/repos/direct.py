@@ -113,11 +113,11 @@ class DirectRepo(Repo):
                 continue
             if self.conf.ignore(dirpath, entry.name):
                 continue
-            skip_parse = skip_parse or self.conf.skip_parse(dirpath, entry.name)
+            entry_skip_parse = skip_parse or self.conf.skip_parse(dirpath, entry.name)
             if entry.is_dir():
-                yield from self._paths_in(entry.path, skip_parse=skip_parse)
+                yield from self._paths_in(entry.path, skip_parse=entry_skip_parse)
             else:
-                yield PathEntry(entry, skip_parse=skip_parse)
+                yield PathEntry(entry, skip_parse=entry_skip_parse)
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
