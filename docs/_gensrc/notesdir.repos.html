@@ -164,7 +164,7 @@ not necessary to call <a class="reference internal" href="#notesdir.repos.direct
 
 <dl class="py method">
 <dt id="notesdir.repos.direct.DirectRepo.info">
-<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em>, <em class="sig-param"><span class="n">path_resolved</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.info" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fields</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>Iterable<span class="p">[</span>str<span class="p">]</span><span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileInfoReq" title="notesdir.models.FileInfoReq">notesdir.models.FileInfoReq</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileInfoReq(path=True, links=True, tags=True, title=True, created=True, backlinks=False)</span></em>, <em class="sig-param"><span class="n">path_resolved</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">skip_parse</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="notesdir.html#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Looks up the specified fields for the given file or folder.</p>
 <p>Additional fields might or might not be populated.</p>
 <p>May raise a <a class="reference internal" href="notesdir.accessors.html#notesdir.accessors.base.ParseError" title="notesdir.accessors.base.ParseError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">notesdir.accessors.base.ParseError</span></code></a> or IO-related exception, but otherwise will
@@ -188,6 +188,24 @@ it can still populate the <code class="docutils literal notranslate"><span class
 <dt id="notesdir.repos.direct.DirectRepo.tag_counts">
 <code class="sig-name descname">tag_counts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span><a class="reference internal" href="notesdir.html#notesdir.models.FileQuery" title="notesdir.models.FileQuery">notesdir.models.FileQuery</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">FileQuery(include_tags=set(), exclude_tags=set(), sort_by=[])</span></em><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>int<span class="p">]</span><a class="headerlink" href="#notesdir.repos.direct.DirectRepo.tag_counts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a map of tag names to the number of files matching the query which posses that tag.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="notesdir.repos.direct.PathEntry">
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.repos.direct.</code><code class="sig-name descname">PathEntry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_entry</span></em>, <em class="sig-param"><span class="n">skip_parse</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.repos.direct.PathEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py method">
+<dt id="notesdir.repos.direct.PathEntry.dir_entry">
+<em class="property">property </em><code class="sig-name descname">dir_entry</code><a class="headerlink" href="#notesdir.repos.direct.PathEntry.dir_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="notesdir.repos.direct.PathEntry.skip_parse">
+<em class="property">property </em><code class="sig-name descname">skip_parse</code><a class="headerlink" href="#notesdir.repos.direct.PathEntry.skip_parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
 </dd></dl>
 
 </dd></dl>

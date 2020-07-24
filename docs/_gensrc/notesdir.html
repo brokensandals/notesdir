@@ -230,7 +230,7 @@ the process’s arguments are used.</p>
 <span id="notesdir-conf-module"></span><h2>notesdir.conf module<a class="headerlink" href="#module-notesdir.conf" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="notesdir.conf.DirectRepoConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">DirectRepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, preview_mode: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.DirectRepoConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">DirectRepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, skip_parse: Callable[[str, str], bool] = &lt;function default_skip_parse&gt;, preview_mode: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.DirectRepoConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#notesdir.conf.RepoConf" title="notesdir.conf.RepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf</span></code></a></p>
 <p>Configures notesdir to access notes without caching, via <code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.DirectRepo</span></code>.</p>
 <dl class="py method">
@@ -247,7 +247,7 @@ the process’s arguments are used.</p>
 
 <dl class="py class">
 <dt id="notesdir.conf.NotesdirConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x10eb61560&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x10314f4d0&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt id="notesdir.conf.NotesdirConf.for_user">
@@ -316,7 +316,7 @@ the process’s arguments are used.</p>
 
 <dl class="py class">
 <dt id="notesdir.conf.RepoConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">RepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, preview_mode: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.RepoConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">RepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, skip_parse: Callable[[str, str], bool] = &lt;function default_skip_parse&gt;, preview_mode: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.RepoConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Base class for repo config. Use a subclass such as <a class="reference internal" href="#notesdir.conf.SqliteRepoConf" title="notesdir.conf.SqliteRepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">SqliteRepoConf</span></code></a>.</p>
 <dl class="py method">
@@ -354,6 +354,19 @@ relevant commands.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="notesdir.conf.RepoConf.skip_parse">
+<code class="sig-name descname">skip_parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.conf.RepoConf.skip_parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use this to indicate files or folders that should not be parsed (or edited) by notesdir.</p>
+<p>The first argument is the path to the directory containing the file/folder, and the second argument is
+the filename.</p>
+<p>If this function returns True for a given path, parsing will be skipped for both it and its child paths.
+For such files, only the path and backlinks attributes will be populated on <a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.models.FileInfo</span></code></a>.</p>
+<p>Unlike <a class="reference internal" href="#notesdir.conf.RepoConf.ignore" title="notesdir.conf.RepoConf.ignore"><code class="xref py py-attr docutils literal notranslate"><span class="pre">notesdir.conf.RepoConf.ignore</span></code></a>, unparsed files are still potentially returned in queries and
+affected by the <code class="docutils literal notranslate"><span class="pre">organize</span></code> command. Note that parsing is automatically skipped for ignored files.</p>
+<p>The current default behavior does not skip anything.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="notesdir.conf.RepoConf.standardize">
 <code class="sig-name descname">standardize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.RepoConf.standardize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -362,7 +375,7 @@ relevant commands.</p>
 
 <dl class="py class">
 <dt id="notesdir.conf.SqliteRepoConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">SqliteRepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, preview_mode: bool = False, cache_path: Optional[str] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.SqliteRepoConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">SqliteRepoConf</code><span class="sig-paren">(</span><em class="sig-param">root_paths: Set[str], ignore: Callable[[str, str], bool] = &lt;function default_ignore&gt;, skip_parse: Callable[[str, str], bool] = &lt;function default_skip_parse&gt;, preview_mode: bool = False, cache_path: Optional[str] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.SqliteRepoConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#notesdir.conf.DirectRepoConf" title="notesdir.conf.DirectRepoConf"><code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.conf.DirectRepoConf</span></code></a></p>
 <p>Configures notesdir to access notes with caching, via <code class="xref py py-class docutils literal notranslate"><span class="pre">notesdir.repos.SqliteRepo</span></code>.</p>
 <dl class="py attribute">
@@ -384,6 +397,11 @@ wait for the cache to be rebuilt the next time you run the tool.</p>
 <dl class="py function">
 <dt id="notesdir.conf.default_ignore">
 <code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">default_ignore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parentpath</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.conf.default_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="notesdir.conf.default_skip_parse">
+<code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">default_skip_parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parentpath</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#notesdir.conf.default_skip_parse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">

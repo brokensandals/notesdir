@@ -146,6 +146,15 @@ The CLI commands also have options to print output as JSON.</p></li>
     <span class="k">return</span> <span class="n">resource_path_fn</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">path</span>
 
 <span class="n">conf</span><span class="o">.</span><span class="n">path_organizer</span> <span class="o">=</span> <span class="n">path_organizer</span>
+
+<span class="c1"># This is optional. It tells notesdir not to parse or edit certain files. I store attachments</span>
+<span class="c1"># to notes in directories named like `filename.resources`, and those attachments would never</span>
+<span class="c1"># contain metadata or links that I want to query or update, so I skip parsing those.</span>
+<span class="c1"># These files can still be moved by `organize`, and backlinks are still tracked for them.</span>
+<span class="k">def</span> <span class="nf">skip_parse</span><span class="p">(</span><span class="n">parentpath</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.resources&#39;</span><span class="p">)</span>
+
+<span class="n">conf</span><span class="o">.</span><span class="n">repo_conf</span><span class="o">.</span><span class="n">skip_parse</span> <span class="o">=</span> <span class="n">skip_parse</span>
 </pre></div>
 </div>
 <p>That’s it!
