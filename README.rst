@@ -76,6 +76,15 @@ Setup
 
     conf.path_organizer = path_organizer
 
+    # This is optional. It tells notesdir not to parse or edit certain files. I store attachments
+    # to notes in directories named like `filename.resources`, and those attachments would never
+    # contain metadata or links that I want to query or update, so I skip parsing those.
+    # These files can still be moved by `organize`, and backlinks are still tracked for them.
+    def skip_parse(parentpath, filename):
+        return filename.endswith('.resources')
+
+    conf.repo_conf.skip_parse = skip_parse
+
 That's it!
 You can run :code:`notesdir query` to print a list of everything Notesdir currently knows about your notes.
 (Which may or may not be very much, until you fill in some metadata.)
