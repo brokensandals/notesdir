@@ -2,7 +2,7 @@
 
 import dataclasses
 from operator import attrgetter
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import os
 import os.path
 from typing import List, Dict, Iterator, Set
@@ -12,6 +12,9 @@ from notesdir.conf import DirectRepoConf
 from notesdir.models import FileInfo, FileEditCmd, MoveCmd, FileQuery, FileInfoReq, FileInfoReqIsh,\
     FileQueryIsh, CreateCmd
 from notesdir.repos.base import Repo, _group_edits
+
+
+PathEntry = namedtuple('PathEntry', ['dir_entry', 'skip_parse'])
 
 
 class DirectRepo(Repo):
@@ -30,13 +33,25 @@ class DirectRepo(Repo):
             raise ValueError('`root_paths` must be non-empty in RepoConf.')
         self.accessor_factory = DelegatingAccessor
 
+    def _should_skip_parse(self, path: str) -> bool:
+        parent, basename = os.path.split(path)
+        prev = path
+        while not parent == prev:
+            if self.conf.ignore(parent, basename) or self.conf.skip_parse(parent, basename):
+                return True
+            prev = parent
+            parent, basename = os.path.split(parent)
+        return False
+
     def info(self, path: str, fields: FileInfoReqIsh = FileInfoReq.internal(),
-             path_resolved=False) -> FileInfo:
+             path_resolved=False, skip_parse=None) -> FileInfo:
         if not path_resolved:
             path = os.path.abspath(path)
+        if skip_parse is None:
+            skip_parse = self._should_skip_parse(path)
         fields = FileInfoReq.parse(fields)
 
-        if not os.path.exists(path):
+        if skip_parse or not os.path.exists(path):
             info = FileInfo(path)
         else:
             info = self.accessor_factory(path).info()
@@ -85,28 +100,33 @@ class DirectRepo(Repo):
         """No-op."""
         pass
 
-    def _paths(self) -> Iterator[os.DirEntry]:
+    def _paths(self) -> Iterator[PathEntry]:
         for root in self.conf.root_paths:
             if os.path.isdir(root):
-                yield from self._paths_in(root)
+                parent, basename = os.path.split(root)
+                skip_parse = self.conf.skip_parse(parent, basename)
+                yield from self._paths_in(root, skip_parse=skip_parse)
 
-    def _paths_in(self, dirpath: str) -> Iterator[os.DirEntry]:
+    def _paths_in(self, dirpath: str, skip_parse: bool) -> Iterator[PathEntry]:
         for entry in os.scandir(dirpath):
             if entry.is_symlink():
                 continue
             if self.conf.ignore(dirpath, entry.name):
                 continue
+            skip_parse = skip_parse or self.conf.skip_parse(dirpath, entry.name)
             if entry.is_dir():
-                yield from self._paths_in(entry.path)
+                yield from self._paths_in(entry.path, skip_parse=skip_parse)
             else:
-                yield entry
+                yield PathEntry(entry, skip_parse=skip_parse)
 
     def query(self, query: FileQueryIsh = FileQuery(), fields: FileInfoReqIsh = FileInfoReq.internal())\
             -> Iterator[FileInfo]:
         fields = dataclasses.replace(FileInfoReq.parse(fields),
                                      tags=(fields.tags or query.include_tags or query.exclude_tags))
         query = FileQuery.parse(query)
-        filtered = query.apply_filtering(self.info(e.path, fields, path_resolved=True) for e in self._paths())
+        filtered = query.apply_filtering(
+            self.info(e.dir_entry.path, fields, path_resolved=True, skip_parse=e.skip_parse)
+            for e in self._paths())
         yield from query.apply_sorting(filtered)
 
     def tag_counts(self, query: FileQueryIsh = FileQuery()) -> Dict[str, int]:

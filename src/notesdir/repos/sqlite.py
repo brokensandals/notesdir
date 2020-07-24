@@ -110,16 +110,21 @@ class SqliteRepo(DirectRepo):
         ids_by_path = {}
         links_to_add = []
 
-        for entry in self._paths():
-            pathstr = entry.path
+        for path_entry in self._paths():
+            dir_entry = path_entry.dir_entry
+            pathstr = dir_entry.path
             found_paths.add(pathstr)
-            stat = entry.stat()
             row = prior_rows_by_path.get(pathstr)
+            if row and path_entry.skip_parse:
+                # TODO currently we do not clear out old data for files that were previously parsable but are now
+                #      marked skip_parse
+                continue
+            stat = dir_entry.stat()
             if (row and row.stat_ctime == stat.st_ctime
                     and row.stat_mtime == stat.st_mtime
                     and row.stat_size == stat.st_size):
                 continue
-            info = super().info(pathstr, path_resolved=True)
+            info = super().info(pathstr, path_resolved=True, skip_parse=path_entry.skip_parse)
             if row:
                 file_id = row.id
                 cursor.execute('DELETE FROM file_tags WHERE file_id = ?', (file_id,))

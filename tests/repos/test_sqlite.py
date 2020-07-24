@@ -145,3 +145,27 @@ def test_ignore(fs):
         assert list(repo.query()) == [repo.info(path1), repo.info(path2)]
         assert repo.info(path1, FileInfoReq.full()).backlinks == [LinkInfo(path2, 'one.md')]
         assert repo.info(path2, FileInfoReq.full()).backlinks == [LinkInfo(path1, '.two.md')]
+
+
+def test_skip_parse(fs):
+    path1 = '/notes/one.md'
+    path2 = '/notes/one.md.resources/two.md'
+    path3 = '/notes/skip.md'
+    fs.create_file(path1, contents='---\ntitle: Note One\n...\n')
+    fs.create_file(path2, contents='---\ntitle: Note Two\n...\n')
+    fs.create_file(path3, contents='---\ntitle: Note Skip\n...\n')
+
+    def fn(parentpath, filename):
+        return filename.endswith('.resources') or filename == 'skip.md'
+
+    conf = config()
+    conf.skip_parse = fn
+    with conf.instantiate() as repo:
+        assert list(repo.query('sort:path')) == [
+            FileInfo(path1, title='Note One'),
+            FileInfo(path2),
+            FileInfo(path3)
+        ]
+        assert repo.info(path1) == FileInfo(path1, title='Note One')
+        assert repo.info(path2) == FileInfo(path2)
+        assert repo.info(path3) == FileInfo(path3)

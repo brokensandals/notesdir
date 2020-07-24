@@ -10,6 +10,10 @@ def default_ignore(parentpath: str, filename: str) -> bool:
     return filename.startswith('.') or filename.endswith('.icloud')
 
 
+def default_skip_parse(parentpath: str, filename: str) -> bool:
+    return False
+
+
 def resource_path_fn(path: str) -> Optional[DependentPathFn]:
     """Enables moving files in ``.resources`` directories when the owner moves.
 
@@ -104,6 +108,21 @@ class RepoConf:
     
     The current default behavior is to ignore all files or folders whose name begins with a period (``.``), and also
     ``.icloud`` files.
+    """
+
+    skip_parse: Callable[[str, str], bool] = default_skip_parse
+    """Use this to indicate files or folders that should not be parsed (or edited) by notesdir.
+    
+    The first argument is the path to the directory containing the file/folder, and the second argument is
+    the filename.
+    
+    If this function returns True for a given path, parsing will be skipped for both it and its child paths.
+    For such files, only the path and backlinks attributes will be populated on :class:`notesdir.models.FileInfo`.
+    
+    Unlike :attr:`notesdir.conf.RepoConf.ignore`, unparsed files are still potentially returned in queries and
+    affected by the ``organize`` command. Note that parsing is automatically skipped for ignored files. 
+    
+    The current default behavior does not skip anything.
     """
 
     preview_mode: bool = False
