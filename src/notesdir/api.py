@@ -214,8 +214,8 @@ class Notesdir:
                     exceptions.append(ex)
         return modified, exceptions
 
-    def change(self, paths: Set[str], add_tags: Set[str] = set(), del_tags: Set[str] = set(), title=Optional[str],
-               created=Optional[datetime]) -> None:
+    def change(self, paths: Set[str], add_tags: Set[str] = set(), del_tags: Set[str] = set(),
+               title: Optional[str] = None, created: Optional[datetime] = None) -> None:
         """Applies all the specified changes to the specified paths.
 
         This is a convenience method that wraps :meth:`notesdir.repos.base.Repo.change`
