@@ -206,3 +206,37 @@ text [link](link1.md)
    [link](link3.md)
    ```"""
 
+def test_meta_boundaries_in_body(fs):
+    doc1 = """---
+title: Hi
+...
+
+keywords:
+- foo
+...
+whatever
+"""
+    doc2 = """---
+title: Hi
+---
+
+keywords:
+- foo
+---
+whatever
+"""
+    Path('/fakenotes').mkdir()
+    for doc in [doc1, doc2]:
+        path = '/fakenotes/doc.md'
+        Path(path).write_text(doc)
+        acc = MarkdownAccessor(path)
+        info = acc.info()
+        assert info.title == 'Hi'
+        assert info.tags == set()
+        acc.edit(AddTagCmd(path, 'testing'))
+        acc.save()
+        if doc == doc2:
+            doc = doc.replace('\n---', '\n...', 1)
+        doc = doc.replace('title', 'keywords:\n- testing\ntitle', 1)
+        doc = doc.replace('...\n', '...', 1)  # FIXME it's a bug that the accessor removes this newline
+        assert Path(path).read_text() == doc

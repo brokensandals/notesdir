@@ -2,6 +2,7 @@ Unreleased
 ----------
 
 - Bugfixes
+    - For Markdown files, if the document contained additional ``...`` or ``---`` lines after the YAML metadata, the whole document up to that point was incorrectly being treated as part of the metadata.
     - Do not require ``add_tags`` and ``del_tags`` arguments in ``Notesdir.change``.
 
 0.0.3 (2020-07-24)

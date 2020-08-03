@@ -7,7 +7,7 @@ import yaml
 from notesdir.accessors.base import Accessor
 from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd, ReplaceHrefCmd, LinkInfo
 
-YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*)\n(---|\.\.\.)\s*\r?\n)?(.*)')
+YAML_META_RE = re.compile(r'(?ms)(\A---\n(.*?)\n(---|\.\.\.)\s*\r?\n)?(.*)')
 TAG_RE = re.compile(r'(\s|^)#([a-zA-Z][a-zA-Z\-_0-9]*)\b')
 INLINE_HREF_RE = re.compile(r'\[.*?\]\((\S+?)\)')
 REFSTYLE_HREF_RE = re.compile(r'(?m)^\[.*?\]:\s*(\S+)')
