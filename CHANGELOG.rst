@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.0.4 (2020-08-02)
+------------------
 
 - Bugfixes
     - For Markdown files, if the document contained additional ``...`` or ``---`` lines after the YAML metadata, the whole document up to that point was incorrectly being treated as part of the metadata.
