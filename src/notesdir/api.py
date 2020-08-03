@@ -214,7 +214,7 @@ class Notesdir:
                     exceptions.append(ex)
         return modified, exceptions
 
-    def change(self, paths: Set[str], add_tags=Set[str], del_tags=Set[str], title=Optional[str],
+    def change(self, paths: Set[str], add_tags: Set[str] = set(), del_tags: Set[str] = set(), title=Optional[str],
                created=Optional[datetime]) -> None:
         """Applies all the specified changes to the specified paths.
 

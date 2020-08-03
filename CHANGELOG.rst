@@ -1,3 +1,9 @@
+Unreleased
+----------
+
+- Bugfixes
+    - Do not require ``add_tags`` and ``del_tags`` arguments in ``Notesdir.change``.
+
 0.0.3 (2020-07-24)
 ------------------
 
