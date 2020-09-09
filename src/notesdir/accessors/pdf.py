@@ -7,15 +7,23 @@ from PyPDF4.generic import IndirectObject
 from notesdir.accessors.base import Accessor, ParseError
 from notesdir.models import AddTagCmd, DelTagCmd, FileInfo, SetTitleCmd, SetCreatedCmd
 
+STRPTIME_FORMATS = [
+    'D:%Y%m%d%H%M%S%z',
+    'D:%Y%m%d%H%M%S',
+    '%a %b %d %H:%M:%S %Y',  # Sat Jan 29 14:44:14 2011
+]
+
 
 def _pdf_strptime(s: Optional[str]) -> Optional[datetime]:
     if not s:
         return None
     s = s.replace("'", '').replace('Z0000', 'Z')
-    if len(s) < 17:
-        return datetime.strptime(s, 'D:%Y%m%d%H%M%S')
-    else:
-        return datetime.strptime(s, 'D:%Y%m%d%H%M%S%z')
+    for fmt in STRPTIME_FORMATS:
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            pass
+    raise ValueError(f'Invalid datetime: {s}')
 
 
 def _pdf_strftime(d: Optional[datetime]) -> Optional[str]:

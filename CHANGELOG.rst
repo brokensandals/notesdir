@@ -1,3 +1,9 @@
+Unreleased
+----------
+
+- Bugfixes
+    - Handle an additional (invalid) PDF date format I've encountered in the wild.
+
 0.0.4 (2020-08-02)
 ------------------
 
