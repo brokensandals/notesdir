@@ -247,8 +247,21 @@ the process’s arguments are used.</p>
 
 <dl class="py class">
 <dt id="notesdir.conf.NotesdirConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1097324d0&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1074c85f0&gt;, cli_path_output_rewriter: 'Callable[[str], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1074c8290&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="notesdir.conf.NotesdirConf.cli_path_output_rewriter">
+<code class="sig-name descname">cli_path_output_rewriter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf.cli_path_output_rewriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes how paths are printed to the console by the CLI.</p>
+<p>By default paths are printed in their absolute, canonical form.
+This setting lets you change that by defining a function which takes the absolute path as a parameter and returns the path that should be printed.</p>
+<p>My use case for this is that I store some notes in iCloud, and the absolute path to the iCloud folder contains a space, which means command-clicking the path in the terminal does not work.
+By creating a symlink and rewriting the paths to use the symlink before printing them, I can ensure the paths are clickable.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">conf</span><span class="o">.</span><span class="n">cli_path_output_rewriter</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">path</span><span class="p">:</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/Users/jacob/Library/Mobile Documents/com~apple~CloudDocs/&#39;</span><span class="p">,</span> <span class="s1">&#39;/Users/jacob/iCloud/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py method">
 <dt id="notesdir.conf.NotesdirConf.for_user">
 <em class="property">classmethod </em><code class="sig-name descname">for_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#notesdir.conf.NotesdirConf" title="notesdir.conf.NotesdirConf">notesdir.conf.NotesdirConf</a><a class="headerlink" href="#notesdir.conf.NotesdirConf.for_user" title="Permalink to this definition">¶</a></dt>
