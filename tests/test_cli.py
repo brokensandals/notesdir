@@ -63,6 +63,39 @@ backlinks:
     }
 
 
+def test_path_rewrite(fs, capsys):
+    nd_setup(fs, extra_conf="""
+conf.cli_path_output_rewriter = lambda path: path.replace('/notes/cwd/', '/newbasepath/')
+""")
+    path1 = Path('/notes/cwd/one.md')
+    path2 = Path('/notes/cwd/two.md')
+    doc1 = """---
+title: A Note
+created: 2001-02-03 04:05:06
+...
+I have #some #boring-tags and [a link](two.md#heading)."""
+    doc2 = """I link to [one](one.md)."""
+    fs.create_file(path1, contents=doc1)
+    fs.create_file(path2, contents=doc2)
+    assert cli.main(['info', 'one.md']) == 0
+    out, err = capsys.readouterr()
+    assert out == """path: /newbasepath/one.md
+title: A Note
+created: 2001-02-03 04:05:06
+tags: boring-tags, some
+links:
+\ttwo.md#heading -> /newbasepath/two.md
+backlinks:
+\t/newbasepath/two.md
+"""
+
+    template = "<% directives.dest = '/notes/cwd/created.md' %>"
+    fs.create_file('/notes/templates/empty.md.mako', contents=template)
+    assert cli.main(['new', 'empty']) == 0
+    out, err = capsys.readouterr()
+    assert out == 'Created /newbasepath/created.md\n'
+
+
 @freeze_time('2012-05-02T03:04:05Z')
 def test_new(fs, capsys, mocker):
     mocker.patch('shortuuid.uuid', side_effect=(f'uuid{i}' for i in itertools.count(1)))

@@ -1,8 +1,11 @@
 Unreleased
 ----------
 
+- Additions
+    - Add ``cli_path_output_rewriter`` configuration option for altering CLI output.
 - Bugfixes
     - Handle an additional (invalid) PDF date format I've encountered in the wild.
+    - Fix a problem with printing changed file paths in ``backfill`` command.
 
 0.0.4 (2020-08-02)
 ------------------

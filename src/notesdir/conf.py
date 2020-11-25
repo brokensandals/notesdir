@@ -215,6 +215,20 @@ class NotesdirConf:
     * :func:`rewrite_name_using_title`
     """
 
+    cli_path_output_rewriter: Callable[[str], str] = lambda path: path
+    """Changes how paths are printed to the console by the CLI.
+    
+    By default paths are printed in their absolute, canonical form.
+    This setting lets you change that by defining a function which takes the absolute path as a parameter and returns the path that should be printed.
+    
+    My use case for this is that I store some notes in iCloud, and the absolute path to the iCloud folder contains a space, which means command-clicking the path in the terminal does not work.
+    By creating a symlink and rewriting the paths to use the symlink before printing them, I can ensure the paths are clickable.
+    
+    .. code-block:: python
+
+       conf.cli_path_output_rewriter = lambda path: path.replace('/Users/jacob/Library/Mobile Documents/com~apple~CloudDocs/', '/Users/jacob/iCloud/')
+    """
+
     @classmethod
     def for_user(cls) -> NotesdirConf:
         path = os.path.expanduser(os.path.join('~', '.notesdir.conf.py'))

@@ -13,9 +13,9 @@ from notesdir.api import Notesdir
 from notesdir.models import FileInfoReq, FileInfo
 
 
-def _print_file_info(info: FileInfo, fields: FileInfoReq) -> None:
+def _print_file_info(info: FileInfo, fields: FileInfoReq, nd: Notesdir) -> None:
     if fields.path:
-        print(f'path: {info.path}')
+        print(f'path: {nd.conf.cli_path_output_rewriter(info.path)}')
     if fields.title:
         print(f'title: {info.title}')
     if fields.created:
@@ -28,12 +28,12 @@ def _print_file_info(info: FileInfo, fields: FileInfoReq) -> None:
             line = f'\t{link.href}'
             referent = link.referent()
             if referent:
-                line += f' -> {referent}'
+                line += f' -> {nd.conf.cli_path_output_rewriter(referent)}'
             print(line)
     if fields.backlinks:
         print('backlinks:')
         for link in info.backlinks:
-            print(f'\t{link.referrer}')
+            print(f'\t{nd.conf.cli_path_output_rewriter(link.referrer)}')
 
 
 def _info(args, nd: Notesdir) -> int:
@@ -42,14 +42,14 @@ def _info(args, nd: Notesdir) -> int:
     if args.json:
         print(json.dumps(info.as_json()))
     else:
-        _print_file_info(info, fields)
+        _print_file_info(info, fields, nd)
     return 0
 
 
 def _new(args, nd: Notesdir) -> int:
     path = nd.new(args.template[0], args.dest)
     if not args.preview:
-        print(f'Created {path}')
+        print(f'Created {nd.conf.cli_path_output_rewriter(path)}')
     return 0
 
 
@@ -80,7 +80,7 @@ def _organize(args, nd: Notesdir) -> int:
         print(json.dumps({str(k): str(v) for k, v in moves.items()}))
     elif moves and not args.preview:
         for k, v in moves.items():
-            print(f'Moved {k} to {v}')
+            print(f'Moved {nd.conf.cli_path_output_rewriter(k)} to {nd.conf.cli_path_output_rewriter(v)}')
     return 0
 
 
@@ -88,7 +88,7 @@ def _backfill(args, nd: Notesdir) -> int:
     changed, errors = nd.backfill()
     if not args.preview:
         for path in changed:
-            print(f'Updated {changed}')
+            print(f'Updated {nd.conf.cli_path_output_rewriter(path)}')
         for error in errors:
             print(repr(error), file=sys.stderr)
     return 0
@@ -161,7 +161,7 @@ def _query(args, nd: Notesdir) -> int:
     else:
         for info in infos:
             print('--------------------')
-            _print_file_info(info, fields)
+            _print_file_info(info, fields, nd)
     return 0
 
 
