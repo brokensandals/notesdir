@@ -106,7 +106,8 @@ published about online (see [this article](http://example.com/blah) among many o
 def test_change(fs):
     doc = """---
 title: An Examination of the Navel
-...
+---
+
 #personal #book-draft
 # Preface: Reasons for #journaling
 
@@ -117,7 +118,8 @@ published about online (see [this article](http://example.com/blahblah) and
     expected = """---
 created: 2019-06-04 10:12:13-08:00
 title: A Close Examination of the Navel
-...
+---
+
 #personal #book-draft
 # Preface: Reasons for #journaling
 
@@ -141,13 +143,15 @@ def test_change_metadata_tags(fs):
 keywords:
 - one
 - two
-...
+---
+
 text"""
     expected = """---
 keywords:
 - three
 - two
-...
+---
+
 text"""
     path = '/fakenotes/test.md'
     fs.create_file(path, contents=doc)
@@ -235,8 +239,50 @@ whatever
         assert info.tags == set()
         acc.edit(AddTagCmd(path, 'testing'))
         acc.save()
-        if doc == doc2:
-            doc = doc.replace('\n---', '\n...', 1)
+        if doc == doc1:
+            doc = doc.replace('\n...', '\n---', 1)
         doc = doc.replace('title', 'keywords:\n- testing\ntitle', 1)
-        doc = doc.replace('...\n', '...', 1)  # FIXME it's a bug that the accessor removes this newline
         assert Path(path).read_text() == doc
+
+def test_meta_body_separation(fs):
+    # MarkdownAccessor does not preserve blank lines between meta and body.
+    # This test formally recognizes this, and verifies our convention of
+    # always separating meta and body by one blank line.
+
+    # one blank line between meta and body
+    expected = """---
+title: new title
+---
+
+body
+"""
+    # no blank line between meta and body
+    doc1 = """---
+title: title
+---
+body
+"""
+    # one blank line between meta and body
+    doc2 = """---
+title: title
+---
+
+body
+"""
+    # two blank lines between meta and body
+    doc3 = """---
+title: title
+---
+
+
+body
+"""
+    Path('/fakenotes').mkdir()
+    for doc in [doc1, doc2, doc3]:
+        path = '/fakenotes/doc.md'
+        Path(path).write_text(doc)
+        acc = MarkdownAccessor(path)
+        # change title to trigger a save
+        acc.edit(SetTitleCmd(path, 'new title'))
+        acc.save()
+        assert Path(path).read_text() == expected

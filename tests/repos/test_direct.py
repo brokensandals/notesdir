@@ -51,7 +51,7 @@ def test_change(fs):
     repo = DirectRepoConf(root_paths={'/notes'}).instantiate()
     repo.change(edits)
     assert not Path('/notes/one.md').exists()
-    assert Path('/notes/moved.md').read_text() == '---\ntitle: New Title\n...\n[1](new)'
+    assert Path('/notes/moved.md').read_text() == '---\ntitle: New Title\n---\n\n[1](new)'
     assert Path('/notes/two.md').read_text() == '[2](bar)'
 
 

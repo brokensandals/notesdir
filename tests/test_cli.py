@@ -357,7 +357,8 @@ keywords:
 - tag1
 - tag2
 title: A Bland Note
-...
+---
+
 some text"""
     assert cli.main(['change', '-d', 'tag1', '-t', 'A Better Note', 'foo.md']) == 0
     assert Path('/notes/cwd/foo.md').read_text() == """---
@@ -365,7 +366,8 @@ created: 2012-02-03 00:00:00
 keywords:
 - tag2
 title: A Better Note
-...
+---
+
 some text"""
 
 
@@ -445,10 +447,12 @@ def test_backfill(fs, capsys):
 title: Good Note
 created: 2001-02-03T04:05:06-07:00
 ...
+
 Hi!"""
     no_title_doc = """---
 created: 2002-03-04T05:06:07-08:00
 ...
+
 Hello!"""
     no_created_doc = """---
 title: Mediocre Note
@@ -485,16 +489,19 @@ Whatever"""
     assert Path(no_title_path).read_text() == """---
 created: 2002-03-04 05:06:07-08:00
 title: no-title
-...
+---
+
 Hello!"""
     assert Path(no_created_path).read_text() == """---
 created: 2010-09-08 07:06:05+00:00
 title: Mediocre Note
-...
+---
+
 Whatever"""
     assert Path(nothing_path).read_text() == """---
 created: 2010-09-08 07:06:05+00:00
 title: nothing
-...
+---
+
 Boo."""
     assert Path(unsupported_path).read_text() == unsupported_doc
