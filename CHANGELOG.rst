@@ -3,6 +3,9 @@ Unreleased
 
 - Additions
     - Add ``cli_path_output_rewriter`` configuration option for altering CLI output.
+- Changes
+    - When modifying Markdown files, always terminate the metadata block with ``---`` instead of ``...``.
+    - When modifying Markdown files, always put exactly one blank line between metadata block and body.
 - Bugfixes
     - Handle an additional (invalid) PDF date format I've encountered in the wild.
     - Fix a problem with printing changed file paths in ``backfill`` command.
