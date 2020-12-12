@@ -99,8 +99,9 @@ class MarkdownAccessor(Accessor):
        keywords:
        - boring
        - unnecessary
-       ...
-       The three dots indicate the end of the metadata. Now we're in **Markdown**!
+       ---
+
+       The three hyphens indicate the end of the metadata. Now we're in **Markdown**!
        This is a really #uninteresting note.
     """
     def _load(self):
@@ -126,7 +127,8 @@ class MarkdownAccessor(Accessor):
         if self.meta:
             sio = StringIO()
             yaml.safe_dump(self.meta, sio)
-            text = f'---\n{sio.getvalue()}...\n{body}'
+            # include a blank line between metadata and body
+            text = f'---\n{sio.getvalue()}---\n\n{body}'
         else:
             text = body
         with open(self.path, 'w') as file:

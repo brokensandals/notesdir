@@ -114,7 +114,7 @@ def test_change(fs):
     repo = config().instantiate()
     repo.change(edits)
     assert not Path(path1).exists()
-    assert Path(path3).read_text() == '---\ntitle: New Title\n...\n[1](new)'
+    assert Path(path3).read_text() == '---\ntitle: New Title\n---\n\n[1](new)'
     assert Path(path2).read_text() == '[2](bar)'
     assert repo.info(path1, FileInfoReq.full()) == FileInfo(path1)
     assert repo.info(path3, FileInfoReq.full()) == FileInfo(path3, title='New Title', links=[LinkInfo(path3, 'new')])
