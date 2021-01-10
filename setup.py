@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="notesdir",
-    version="0.0.5",
+    version="0.0.6",
     author="Jacob Williams",
     author_email="jacobaw@gmail.com",
     description="Helpers for managing notes as a directory full of files.",
