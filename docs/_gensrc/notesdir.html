@@ -4,15 +4,14 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>notesdir package &#8212; notesdir  documentation</title>
-    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" /> 
   </head><body>
@@ -240,14 +239,16 @@ the process’s arguments are used.</p>
 
 <dl class="py attribute">
 <dt id="notesdir.conf.DirectRepoConf.root_paths">
-<code class="sig-name descname">root_paths</code><a class="headerlink" href="#notesdir.conf.DirectRepoConf.root_paths" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">root_paths</code><em class="property">: Set<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.conf.DirectRepoConf.root_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>The folders that should be searched (recursively) when querying for notes, finding backlinks, etc.</p>
+<p>Must not be empty.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt id="notesdir.conf.NotesdirConf">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x10eedc5f0&gt;, cli_path_output_rewriter: 'Callable[[str], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x10eedc290&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.conf.</code><code class="sig-name descname">NotesdirConf</code><span class="sig-paren">(</span><em class="sig-param">repo_conf: 'RepoConf', template_globs: 'Set[str]' = &lt;factory&gt;, path_organizer: 'Callable[[FileInfo], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1050f3dc0&gt;, cli_path_output_rewriter: 'Callable[[str], str]' = &lt;function NotesdirConf.&lt;lambda&gt; at 0x1050f3ca0&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.conf.NotesdirConf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt id="notesdir.conf.NotesdirConf.cli_path_output_rewriter">
@@ -309,7 +310,7 @@ By creating a symlink and rewriting the paths to use the symlink before printing
 
 <dl class="py attribute">
 <dt id="notesdir.conf.NotesdirConf.repo_conf">
-<code class="sig-name descname">repo_conf</code><em class="property">: RepoConf</em><a class="headerlink" href="#notesdir.conf.NotesdirConf.repo_conf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">repo_conf</code><em class="property">: <a class="reference internal" href="#notesdir.conf.RepoConf" title="notesdir.conf.RepoConf">notesdir.conf.RepoConf</a></em><a class="headerlink" href="#notesdir.conf.NotesdirConf.repo_conf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configures how to access your collection of notes.</p>
 </dd></dl>
 
@@ -518,7 +519,7 @@ if they have not been executed in the filesystem yet).</p>
 
 <dl class="py attribute">
 <dt id="notesdir.models.DependentPathFn.fn">
-<code class="sig-name descname">fn</code><em class="property">: Callable<span class="p">[</span><span class="p">[</span>FileInfo<span class="p">]</span><span class="p">, </span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.DependentPathFn.fn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fn</code><em class="property">: Callable<span class="p">[</span><span class="p">[</span><a class="reference internal" href="#notesdir.models.FileInfo" title="notesdir.models.FileInfo">notesdir.models.FileInfo</a><span class="p">]</span><span class="p">, </span>str<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.DependentPathFn.fn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -554,13 +555,13 @@ are supported for the file type and what data is populated in the particular fil
 
 <dl class="py attribute">
 <dt id="notesdir.models.FileInfo.backlinks">
-<code class="sig-name descname">backlinks</code><em class="property">: List<span class="p">[</span>LinkInfo<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.backlinks" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">backlinks</code><em class="property">: List<span class="p">[</span><a class="reference internal" href="#notesdir.models.LinkInfo" title="notesdir.models.LinkInfo">notesdir.models.LinkInfo</a><span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.backlinks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Links from other files to this file.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="notesdir.models.FileInfo.created">
-<code class="sig-name descname">created</code><em class="property">: Optional<span class="p">[</span>datetime<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#notesdir.models.FileInfo.created" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">created</code><em class="property">: Optional<span class="p">[</span>datetime.datetime<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#notesdir.models.FileInfo.created" title="Permalink to this definition">¶</a></dt>
 <dd><p>The creation date of the document, according to metadata within the document, if any.</p>
 <p>This will <em>not</em> automatically be populated with timestamps from the filesystem, but
 see <a class="reference internal" href="#notesdir.models.FileInfo.guess_created" title="notesdir.models.FileInfo.guess_created"><code class="xref py py-meth docutils literal notranslate"><span class="pre">guess_created()</span></code></a>.</p>
@@ -575,7 +576,7 @@ see <a class="reference internal" href="#notesdir.models.FileInfo.guess_created"
 
 <dl class="py attribute">
 <dt id="notesdir.models.FileInfo.links">
-<code class="sig-name descname">links</code><em class="property">: List<span class="p">[</span>LinkInfo<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.links" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">links</code><em class="property">: List<span class="p">[</span><a class="reference internal" href="#notesdir.models.LinkInfo" title="notesdir.models.LinkInfo">notesdir.models.LinkInfo</a><span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileInfo.links" title="Permalink to this definition">¶</a></dt>
 <dd><p>Links from this file to other files or resources.</p>
 </dd></dl>
 
@@ -720,7 +721,7 @@ pass to <a class="reference internal" href="#notesdir.models.FileQuery.parse" ti
 
 <dl class="py attribute">
 <dt id="notesdir.models.FileQuery.sort_by">
-<code class="sig-name descname">sort_by</code><em class="property">: List<span class="p">[</span>FileQuerySort<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileQuery.sort_by" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sort_by</code><em class="property">: List<span class="p">[</span><a class="reference internal" href="#notesdir.models.FileQuerySort" title="notesdir.models.FileQuerySort">notesdir.models.FileQuerySort</a><span class="p">]</span></em><a class="headerlink" href="#notesdir.models.FileQuery.sort_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indicates how to sort the results.</p>
 <p>For example, <code class="docutils literal notranslate"><span class="pre">[(FileQuerySort.BACKLINKS_COUNT,</span> <span class="pre">Order.DESC),</span> <span class="pre">(FileQuerySort.FILENAME,</span> <span class="pre">Order.ASC)]</span></code>
 would sort the results so that the most-linked-to files appear first; files with equal numbers of backlinks
@@ -731,11 +732,11 @@ would be sorted lexicographically.</p>
 
 <dl class="py class">
 <dt id="notesdir.models.FileQuerySort">
-<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileQuerySort</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">field</span><span class="p">:</span> <span class="n">‘FileQuerySortField’</span></em>, <em class="sig-param"><span class="n">reverse</span><span class="p">:</span> <span class="n">‘bool’</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ignore_case</span><span class="p">:</span> <span class="n">‘bool’</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">missing_first</span><span class="p">:</span> <span class="n">‘bool’</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileQuerySort" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">notesdir.models.</code><code class="sig-name descname">FileQuerySort</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">field</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#notesdir.models.FileQuerySortField" title="notesdir.models.FileQuerySortField">FileQuerySortField</a></span></em>, <em class="sig-param"><span class="n">reverse</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ignore_case</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">missing_first</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#notesdir.models.FileQuerySort" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt id="notesdir.models.FileQuerySort.field">
-<code class="sig-name descname">field</code><em class="property">: FileQuerySortField</em><a class="headerlink" href="#notesdir.models.FileQuerySort.field" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">field</code><em class="property">: <a class="reference internal" href="#notesdir.models.FileQuerySortField" title="notesdir.models.FileQuerySortField">notesdir.models.FileQuerySortField</a></em><a class="headerlink" href="#notesdir.models.FileQuerySort.field" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -897,7 +898,7 @@ provided by <a class="reference internal" href="#notesdir.api.Notesdir.move" tit
 <p>Represents a request to change the creation date stored in a document’s metadata (not filesystem metadata).</p>
 <dl class="py attribute">
 <dt id="notesdir.models.SetCreatedCmd.value">
-<code class="sig-name descname">value</code><em class="property">: Optional<span class="p">[</span>datetime<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.SetCreatedCmd.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><em class="property">: Optional<span class="p">[</span>datetime.datetime<span class="p">]</span></em><a class="headerlink" href="#notesdir.models.SetCreatedCmd.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The new creation date, or None to delete it from the metadata.</p>
 </dd></dl>
 
@@ -972,7 +973,7 @@ to/from all files/folders within it will be updated too.</p>
 
 <dl class="py function">
 <dt id="notesdir.rearrange.find_available_name">
-<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">find_available_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">also_unavailable</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.find_available_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">find_available_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">also_unavailable</span><span class="p">:</span> <span class="n">Set<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.find_available_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a desired destination path, adjusts it so that it will not overwrite any existing files.</p>
 <p>dest should be the full desired path.</p>
 <p>also_unavailable should be any paths that may be created between the time this method executes
@@ -997,7 +998,7 @@ returns <cite>../meh/blah.png</cite>.</p>
 
 <dl class="py function">
 <dt id="notesdir.rearrange.path_as_href">
-<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">path_as_href</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">into_url</span><span class="p">:</span> <span class="n">urllib.parse.ParseResult</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.path_as_href" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">notesdir.rearrange.</code><code class="sig-name descname">path_as_href</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">into_url</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>urllib.parse.ParseResult<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#notesdir.rearrange.path_as_href" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the string to use for referring to the given path in a file.</p>
 <p>This percent-encodes characters as necessary to make the path a valid URL.
 If into_url is provided, it copies every part of that URL except the path
@@ -1071,7 +1072,7 @@ into the resulting URL.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Jacob Williams.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.3.
     </div>
   </body>
 </html>
