@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.0.5 (2021-01-10)
+------------------
 
 - Additions
     - Add ``cli_path_output_rewriter`` configuration option for altering CLI output.
