@@ -54,7 +54,10 @@ class DirectRepo(Repo):
         if skip_parse or not os.path.exists(path):
             info = FileInfo(path)
         else:
-            info = self.accessor_factory(path).info()
+            try:
+                info = self.accessor_factory(path).info()
+            except Exception as ex:
+                raise IOError(f'Unable to parse {path}') from ex
 
         if fields.backlinks:
             for other in self.query(fields=FileInfoReq(path=True, links=True)):
