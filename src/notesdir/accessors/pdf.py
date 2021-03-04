@@ -11,6 +11,7 @@ STRPTIME_FORMATS = [
     'D:%Y%m%d%H%M%S%z',
     'D:%Y%m%d%H%M%S',
     '%a %b %d %H:%M:%S %Y',  # Sat Jan 29 14:44:14 2011
+    '%Y',
 ]
 
 
