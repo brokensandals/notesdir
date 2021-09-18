@@ -1,3 +1,9 @@
+Update:
+
+I used this for about a year, and it was mostly a good experience, but I decided it doesn't go far enough in the direction described in the "Philosophy" section below. In particular, to avoid broken links, it's necessary to only use supported file types and to make sure that all reorganization of files is done via the tool (as opposed to, say, the Finder). So while the feeling of lock-in is less than when using traditional note management software, it's still there. Also, it's hard to avoid accidentally breaking links from time to time - whether because of bugs, or forgetting to invoke notesdir when moving a file, or interaction with weird iCloud Drive behavior.
+
+My current thinking is that keeping hyperlinks between notes is more trouble than it's worth. Instead, I put a unique ID in the text of each note, and mention that ID in the text of any notes that need to "link" to it. To find a linked note I can just search for the ID with Spotlight/etc. This relatively low-tech approach means that connections between notes are never lost when I convert between file types or move stuff around. It's less convenient than being able to just click a hyperlink, but I don't really need to follow the links in my notes all that often anyway.
+
 About
 -----
 
